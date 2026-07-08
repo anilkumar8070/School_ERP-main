@@ -1,0 +1,11 @@
+// Barrel exports for student pages
+export { default as Attendance } from './Attendance'
+export { default as Syllabus } from './Syllabus'
+export { default as Assignments } from './Assignments'
+export { default as Timetable } from './Timetable'
+export { default as Results } from './Results'
+export { default as Complaint } from './Complaint'
+export { default as Fees } from './Fees'
+export { default as Resources } from './Resources'
+export { default as Notices } from './Notices'
+export { default as Calendar } from './Calendar'

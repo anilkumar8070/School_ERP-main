@@ -1,0 +1,14 @@
+.cm-input::placeholder {
+    color: #0a84ff;
+    opacity: 1;
+}
+
+.cm-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+.cm-input:focus {
+    outline: 2px solid #0a84ff;
+}

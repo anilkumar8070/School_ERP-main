@@ -1,0 +1,64 @@
+.admin-gallery-root {
+    padding: 12px
+}
+
+.gallery-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px
+}
+
+.gallery-form input[type="file"] {
+    border: 1px dashed #e5e7eb;
+    padding: 8px;
+    border-radius: 8px
+}
+
+.gallery-actions {
+    margin-left: auto
+}
+
+.gallery-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px
+}
+
+.gallery-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid rgba(11, 18, 32, 0.04)
+}
+
+.gallery-head {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.gallery-label {
+    font-weight: 800
+}
+
+.gallery-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px
+}
+
+.gallery-images img {
+    width: 140px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb
+}
+
+.btn.small {
+    padding: 6px 8px;
+    font-size: 13px
+}

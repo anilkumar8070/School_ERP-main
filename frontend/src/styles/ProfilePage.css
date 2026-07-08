@@ -1,0 +1,196 @@
+/* Shared profile page styles: vertical, colorful layout */
+.profile-vertical {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 18px;
+    background: var(--bg-main);
+}
+
+.profile-card-vertical {
+    width: 100%;
+    max-width: 820px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--shadow-xl, 0 18px 50px rgba(13, 18, 45, 0.08));
+    border: 1px solid var(--border);
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 18px;
+    object-fit: cover;
+    border: 6px solid rgba(124, 58, 237, 0.12);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+    background: var(--bg-main);
+}
+
+.profile-initial {
+    width: 120px;
+    height: 120px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 40px;
+    color: #fff;
+    /* Use a solid blue square for the 'no profile' icon to match request */
+    background: linear-gradient(90deg, #0B5FFF, #0066FF);
+}
+
+.profile-info {
+    flex: 1
+}
+
+.profile-info h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    color: var(--text-main);
+}
+
+.profile-info p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px
+}
+
+.profile-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.profile-form input[type="text"],
+.profile-form input[type="email"] {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+.profile-form input[type="file"] {
+    padding: 6px 0;
+    color: var(--text-muted);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px
+}
+
+.profile-action-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    background: transparent;
+    color: var(--text-main);
+    font-weight: 700;
+    border-radius: 8px;
+    margin-right: 4px;
+}
+
+.profile-revert {
+    background: var(--bg-card);
+    border: 2px solid #0B5FFF !important;
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 10px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #7c3aed, #5b21b6);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    cursor: pointer
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+/* Cancel button shown to the left of Save on profile pages: blue background, white text */
+.btn-cancel {
+    background: linear-gradient(90deg, #0B5FFF, #0066FF);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 780px) {
+    .profile-card-vertical {
+        padding: 18px;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .profile-avatar-large,
+    .profile-initial {
+        width: 96px;
+        height: 96px;
+    }
+
+    .profile-info h2 {
+        text-align: center;
+        margin-top: 6px;
+    }
+
+    .profile-form input[type="text"],
+    .profile-form input[type="email"] {
+        font-size: 16px;
+        /* Avoid zoom on mobile */
+    }
+
+    .profile-actions {
+        flex-direction: column-reverse;
+        gap: 12px;
+    }
+
+    .profile-actions button {
+        width: 100%;
+        margin: 0;
+    }
+
+    .btn-cancel {
+        margin-right: 0;
+    }
+}

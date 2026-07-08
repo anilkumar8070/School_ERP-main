@@ -1,0 +1,1331 @@
+/* Faculty panel styles - consistent with student theme */
+:root {
+    /* Light Mode Variables */
+    --primary: #2563eb;
+    --primary-light: #60a5fa;
+    --primary-dark: #1e3a8a;
+    --secondary: #7c3aed;
+
+    --bg-main: #f9fafb;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    /* Light sidebar in light mode */
+    --bg-sidebar-active: #f3f4f6;
+    --bg-hover: #f3f4f6;
+    --bg-surface: var(--bg-hover);
+
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --text-inverted: #ffffff;
+    --text-sidebar: #111827;
+
+    --border: #e5e7eb;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    --faculty-header-height: 64px;
+}
+
+/* Dark Mode Overrides */
+.faculty-root.dark {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #1e293b;
+    --bg-sidebar-active: rgba(255, 255, 255, 0.08);
+    --bg-hover: #334155;
+
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-inverted: #ffffff;
+    --text-sidebar: #f3f4f6;
+
+    --border: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --bg-surface: var(--bg-hover);
+}
+
+.faculty-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.faculty-header {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--faculty-header-height);
+    z-index: 80;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.faculty-header .faculty-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    /* colorful gradient title */
+    background: linear-gradient(90deg, #7c3aed, #06b6d4, #fb7185);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.faculty-header .hamburger {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* visible hamburger lines */
+.faculty-header .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text-main);
+    margin: 3px 0;
+    border-radius: 2px;
+}
+
+/* show hamburger only on small screens */
+@media (min-width: 760px) {
+    .faculty-header .hamburger {
+        display: none;
+    }
+}
+
+/* Hemensburg button (Windows-like 2x2 icon) */
+.faculty-header .hemensburg {
+    position: absolute;
+    left: 54px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    display: inline-grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 4px;
+    align-items: center;
+    justify-items: center;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.faculty-header .hemensburg .cell {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 1px;
+}
+
+/* MOBILE: Hide the sidebar by default and show it as a full-width
+   dropdown that slides down from beneath the header when opened. */
+@media (max-width: 760px) {
+    .faculty-root {
+        overflow-x: hidden;
+    }
+
+    .faculty-header {
+        height: 52px;
+        padding: 8px 12px;
+    }
+
+    .faculty-sidebar {
+        /* convert left sidebar into a top-to-bottom dropdown */
+        position: fixed;
+        top: var(--faculty-header-height);
+        /* below header */
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: calc(100vh - var(--faculty-header-height) - 48px);
+        transform: translateY(-110%);
+        transition: transform .22s ease, opacity .15s ease;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);
+        z-index: 90;
+        padding: 12px 10px;
+        overflow-y: auto;
+    }
+
+    /* When open, slide down to reveal the full-width menu */
+    .faculty-sidebar.open {
+        transform: translateY(0);
+    }
+
+    /* Make sure the hamburger remains small and aligned */
+    .faculty-header .hamburger {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        background: transparent;
+        border: none;
+        box-sizing: border-box;
+    }
+
+    /* show hemensburg next to hamburger on mobile */
+    .faculty-header .hemensburg {
+        display: inline-grid;
+        left: 54px;
+        color: var(--text-main);
+    }
+
+    /* When sidebar is opened via hemensburg keep it full-width under header
+       (mobile): slide down from header to bottom and occupy full width. */
+    .faculty-root.sidebar-attached .faculty-sidebar {
+        left: 0;
+        right: 0;
+        width: 100%;
+    }
+
+    .faculty-header .hamburger span {
+        display: block;
+        width: 20px;
+        height: 2px;
+        background: currentColor;
+        margin: 3px 0;
+        border-radius: 2px;
+        transition: transform .18s ease, opacity .12s ease;
+    }
+
+    /* transform into X when open */
+    .faculty-header .hamburger.open span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+
+    .faculty-header .hamburger.open span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0.1);
+    }
+
+    .faculty-header .hamburger.open span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* Overlay the content when sidebar is open; prevents layout shift */
+    .faculty-content.sidebar-open::before {
+        content: '';
+        position: fixed;
+        top: var(--faculty-header-height);
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        background: rgba(0, 0, 0, 0.32);
+        z-index: 85;
+    }
+
+    /* Ensure content area does not shift due to sidebar in mobile */
+    .faculty-content {
+        margin-left: 0;
+        padding: 12px;
+    }
+
+}
+
+/* compact profile styling on right */
+.faculty-profile .profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.faculty-profile .profile-btn img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.faculty-profile .avatar-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.faculty-profile .profile-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.profile-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    width: 200px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.profile-item {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.profile-item:hover {
+    background: var(--bg-hover);
+}
+
+
+@media (max-width: 520px) {
+    .faculty-header {
+        padding: 8px 12px;
+        --faculty-header-height: 52px;
+        height: var(--faculty-header-height);
+    }
+
+    .faculty-header .faculty-title {
+        font-size: 12px
+    }
+
+    /* shift the centered title ~0.57cm to the left on small screens */
+    .faculty-header .faculty-title {
+        transform: translateX(calc(-50% - 0.57cm));
+    }
+
+    .faculty-profile .profile-btn {
+        padding: 4px 6px
+    }
+
+    .faculty-profile .profile-btn img,
+    .faculty-profile .avatar-placeholder {
+        width: 24px;
+        height: 24px
+    }
+
+    .faculty-profile .profile-label {
+        font-size: 12px
+    }
+}
+
+.faculty-sidebar {
+    width: 220px;
+    background: var(--bg-sidebar);
+    color: var(--text-sidebar);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 64px;
+    /* below fixed header */
+    bottom: 48px;
+    /* above fixed footer */
+    left: 0;
+    padding: 18px 12px;
+    transform: translateX(0);
+    transition: transform .2s ease, background-color 0.3s;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    z-index: 70;
+    overflow-y: auto;
+}
+
+.faculty-sidebar.open {
+    transform: translateX(0);
+}
+
+.faculty-sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.faculty-sidebar nav li {
+    margin-bottom: 10px
+}
+
+.faculty-sidebar nav button {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-sidebar);
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.faculty-sidebar nav button:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+/* Active state for faculty sidebar items */
+.faculty-sidebar nav button.active {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--border);
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+
+/* In dark mode, text-main is white, hover bg is dark blueish. Contrast is fine.
+   In light mode, text-main is black, hover bg is light gray. Contrast is fine.
+*/
+
+
+.faculty-content {
+    padding: 24px;
+    margin-top: 80px;
+    /* leave space for fixed header */
+    margin-left: 0;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: calc(100vh - 64px - 48px);
+}
+
+@media (min-width: 768px) {
+    .faculty-content.sidebar-open {
+        margin-left: 280px;
+    }
+}
+
+.faculty-footer {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 12px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 75;
+    border-top: 1px solid var(--border);
+}
+
+.faculty-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px
+}
+
+.faculty-card {
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow-md);
+    color: #fff;
+    /* Always white text on colored cards */
+    overflow: hidden;
+    position: relative;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Distinct colorful gradients per card - keep these as they are "brand" colors */
+.faculty-dashboard-cards .faculty-card:nth-child(1) {
+    background: linear-gradient(135deg, #06b6d4 0%, #7c3aed 100%);
+}
+
+.faculty-dashboard-cards .faculty-card:nth-child(2) {
+    background: linear-gradient(135deg, #f59e0b 0%, #fb7185 100%);
+}
+
+.faculty-dashboard-cards .faculty-card:nth-child(3) {
+    background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+}
+
+.faculty-card .card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    flex: 0 0 48px;
+    color: #fff;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.95;
+    color: #fff;
+}
+
+.card-value {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: #fff;
+}
+
+.faculty-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* Global Button Styles */
+.btn,
+.action-btn,
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 12px;
+    /* Perfect rounded rectangle */
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    text-decoration: none;
+    line-height: normal;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+}
+
+.btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn:hover,
+.action-btn:hover {
+    background: var(--bg-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn.outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.btn.outline:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-muted);
+}
+
+/* Specific .action-btn override if needed, essentially same as .btn */
+.action-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+}
+
+.faculty-page h2 {
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.quick-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform .14s ease, box-shadow .14s ease;
+}
+
+.quick-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+}
+
+.quick-card .qc-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.quick-card .qc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    color: var(--text-main);
+    flex: 0 0 40px;
+}
+
+.quick-card-title {
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--text-main);
+}
+
+.quick-card-desc {
+    color: var(--text-muted);
+    font-size: 13px
+}
+
+
+/* Assignment specific styles */
+.assignment-form-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+    border-radius: 14px;
+    padding: 18px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.assignment-form-card .full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .assignment-form-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+.assignment-form-card label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-main);
+}
+
+.assignment-form-card input[type="text"],
+.assignment-form-card textarea,
+.assignment-form-card select,
+.assignment-form-card input[type="date"],
+.assignment-form-card input[type="number"],
+.assignment-form-card input[type="email"],
+.assignment-form-card input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+    margin-top: 6px;
+}
+
+.assignment-form-card input:focus,
+.assignment-form-card textarea:focus,
+.assignment-form-card select:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+}
+
+.assignment-history {
+    display: grid;
+    gap: 12px;
+}
+
+.assignment-history-card {
+    display: flex;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.assignment-side {
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    color: #fff;
+    /* Always white as it uses colored gradients */
+}
+
+.assignment-side .subject-badge {
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase
+}
+
+.assignment-side .due {
+    font-size: 12px;
+    opacity: 0.95
+}
+
+.assignment-main {
+    flex: 1;
+    padding: 14px 16px;
+    color: var(--text-main);
+}
+
+.assignment-main .title {
+    font-weight: 800;
+    font-size: 16px;
+    margin-bottom: 6px;
+    color: var(--text-main);
+}
+
+.assignment-main .desc {
+    color: var(--text-muted);
+    font-size: 14px
+}
+
+.assignment-actions {
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    align-items: flex-end;
+    justify-content: center
+}
+
+.assignment-actions .btn {
+    width: 100%;
+
+}
+
+/* colorful side variants */
+.side-math {
+    background: linear-gradient(180deg, #6ee7b7, #10b981)
+}
+
+.side-science {
+    background: linear-gradient(180deg, #93c5fd, #3b82f6)
+}
+
+.side-english {
+    background: linear-gradient(180deg, #fbcfe8, #f472b6)
+}
+
+.side-history {
+    background: linear-gradient(180deg, #fde68a, #f59e0b)
+}
+
+.side-default {
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8)
+}
+
+@media (max-width: 880px) {
+    .assignment-history-card {
+        flex-direction: column
+    }
+
+    .assignment-actions {
+        width: 100%;
+        flex-direction: row;
+        gap: 8px
+    }
+
+    .assignment-side {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 8px 12px
+    }
+}
+
+.leaves-table tbody td {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+.data-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.data-table th {
+    background: linear-gradient(90deg, #06b6d4, #7c3aed) !important;
+    color: #ffffff !important;
+    padding: 12px 14px;
+    font-weight: 800;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.students-table thead th {
+    /* Keep colorful gradients for headers, assuming user likes them */
+    background: linear-gradient(90deg, #06b6d4, #7c3aed);
+    color: #fff;
+    padding: 12px 14px;
+    font-weight: 800;
+}
+
+.students-table tbody tr.student-row.blocked td {
+    background: var(--bg-hover);
+    opacity: 0.95;
+    color: var(--text-muted);
+}
+
+.students-table tbody tr:hover td {
+    background: var(--bg-hover);
+}
+
+.students-table-wrap {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.data-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.data-table thead th {
+    text-align: left;
+    font-weight: 700;
+}
+
+/* Leaves table & toolbar */
+.leaves-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.leaves-search {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-width: 360px;
+    font-size: 14px;
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+/* Make table columns visually distinct with soft column backgrounds and bordered cells */
+.students-table td,
+.students-table th {
+    border: 1px solid var(--border);
+}
+
+.students-table tbody td {
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+/* Remove alternating row colors or specific column colors if they clash with dark mode */
+/* Or use transparent/semi-transparent coloring if needed. For now, stick to clean BG */
+
+.students-table thead th:nth-child(1) {
+    background: linear-gradient(90deg, #7c3aed, #06b6d4);
+}
+
+.students-table thead th:nth-child(2) {
+    background: linear-gradient(90deg, #06b6d4, #60a5fa);
+}
+
+.students-table thead th:nth-child(3) {
+    background: linear-gradient(90deg, #f59e0b, #fb923c);
+}
+
+.students-table thead th:nth-child(4) {
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+}
+
+.students-table thead th:nth-child(5) {
+    background: linear-gradient(90deg, #ef4444, #fb7185);
+}
+
+.students-table thead th:nth-child(6) {
+    background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.students-table thead th:nth-child(7) {
+    background: linear-gradient(90deg, #9f7efe, #7c3aed);
+}
+
+.students-table thead th:nth-child(8) {
+    background: linear-gradient(90deg, #7c3aed, #06b6d4);
+}
+
+.students-table thead th:nth-child(9) {
+    background: linear-gradient(90deg, #06b6d4, #60a5fa);
+}
+
+/* Responsive Search Header */
+.faculty-search-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.faculty-search-header input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+.faculty-search-header button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .faculty-search-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .faculty-search-header .create-btn-wrapper {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+
+    .faculty-search-header button {
+        width: 100%;
+    }
+}
+
+/* Responsive Timetable Card */
+.timetable-card {
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.timetable-card .info-side {
+    flex: 1;
+    min-width: 200px;
+}
+
+.timetable-card .action-side {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 600px) {
+    .timetable-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .timetable-card .action-side {
+        width: 100%;
+    }
+
+    .timetable-card .action-side a,
+    .timetable-card .action-side button {
+        flex: 1;
+        text-align: center;
+        width: 100%;
+    }
+}
+
+.students-table thead th:nth-child(10) {
+    background: linear-gradient(90deg, #f59e0b, #fb923c);
+}
+
+.students-table thead th:nth-child(11) {
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+}
+
+.students-table tbody td {
+    padding: 12px 10px;
+    vertical-align: middle;
+}
+
+/* Responsive Filters Layout */
+.faculty-filters {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    /* Align inputs to bottom */
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.faculty-filters label {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    gap: 6px;
+}
+
+.faculty-filters select,
+.faculty-filters input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-size: 14px;
+    min-width: 160px;
+    height: 42px;
+    /* Consistent height */
+}
+
+/* Specific styling for search input to be larger */
+.faculty-filters .leaves-search {
+    flex: 1;
+    min-width: 200px;
+}
+
+.faculty-filters .action-btn {
+    height: 42px;
+    padding: 0 16px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    /* Match global perfect rounded */
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .faculty-filters {
+        gap: 10px;
+        align-items: stretch;
+        /* Stretch inputs to full width */
+    }
+
+    .faculty-filters label {
+        width: 100%;
+        /* Stack on mobile */
+    }
+
+    .faculty-filters select,
+    .faculty-filters input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .faculty-filters .leaves-search {
+        width: 100%;
+        flex: 100%;
+    }
+
+    /* Wrap the search/clear container if it exists */
+    .faculty-filters .search-group {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+
+    .faculty-filters .action-btn {
+        width: 100%;
+    }
+}
+
+/* Leave Form */
+.leave-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 600px;
+}
+
+.leave-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.leave-form textarea,
+.leave-form input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+/* Generic Faculty Form Card (Responsive Grid) */
+.faculty-form-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.faculty-form-card label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+.faculty-form-card input,
+.faculty-form-card select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.faculty-form-card input:focus,
+.faculty-form-card select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.faculty-form-card .full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .faculty-form-card {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+    }
+}
+
+.faculty-form-card .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.faculty-form-card input[type="file"] {
+    background: var(--bg-main);
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Attendance Radio Group */
+.attendance-radio-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.attendance-radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.attendance-radio-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+/* Leave List Items (My Leaves) */
+.leave-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+}
+
+.leave-item strong {
+    color: var(--text-main);
+}
+
+.leave-item.approved {
+    border-left: 4px solid #10b981;
+}
+
+.leave-item .status {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.pending {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Dark mode overrides for badges */
+.faculty-root.dark .status-badge.paid {
+    background: rgba(22, 101, 52, 0.2);
+    color: #4ade80;
+}
+
+.faculty-root.dark .status-badge.pending {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+}
+
+/* Responsive adjustments for tables */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+
+
+.data-table {
+    white-space: nowrap;
+    /* Prevent wrapping in tight spaces */
+}
+
+/* Explicit text color for dark mode tables to ensure legibility */
+.faculty-root.dark .data-table td,
+.faculty-root.dark .data-table {
+    color: #ffffff;
+}
+
+.faculty-root.dark .status-badge {
+    color: #ffffff;
+}
+
+.faculty-root.dark h2,
+.faculty-root.dark h3 {
+    color: #ffffff !important;
+}
+
+/* Force table headers to display gradient and white text in dark mode */
+.faculty-root.dark .data-table th {
+    background: linear-gradient(90deg, #06b6d4, #7c3aed) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #334155;
+    -webkit-text-fill-color: #ffffff !important;
+}

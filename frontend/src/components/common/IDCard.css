@@ -1,0 +1,186 @@
+.idcard {
+    width: calc(320px + 3.5cm);
+    border-radius: 18px;
+    border: 6px solid #1e5180;
+    background: var(--bg-card, #fff);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+    color: var(--text-main, #0b2540);
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Force light theme for ID card when downloading or specifically requested */
+.idcard.force-light {
+    background: #fff;
+    color: #0b2540;
+}
+
+.idcard-header {
+    background: #1e5180;
+    color: #fff;
+    text-align: center;
+    font-weight: 800;
+    font-size: 22px;
+    padding: 14px 10px;
+    letter-spacing: .5px;
+}
+
+.idcard-body {
+    padding: 16px 18px;
+}
+
+.idcard-body.horiz {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+}
+
+.idcard .details {
+    flex: 1;
+}
+
+.idcard .photo-wrap {
+    border: 4px solid #1e5180;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    width: 220px;
+    height: 160px;
+    margin: 6px 0 12px;
+    background: var(--bg-main, #e6f0fa);
+}
+
+.idcard.horizontal .photo-wrap {
+    width: 220px;
+    height: 160px;
+}
+
+.idcard .photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.idcard .name {
+    font-weight: 800;
+    font-size: 20px;
+    text-align: center;
+    margin: 8px 0 4px;
+    color: var(--text-main, #0b2540);
+}
+
+.idcard .father {
+    font-size: 16px;
+    text-align: center;
+    color: var(--text-main, #0b2540);
+    margin-bottom: 10px;
+}
+
+.idcard .father-name {
+    font-weight: 700;
+    margin-top: 4px;
+}
+
+.idcard .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.idcard .label {
+    font-size: 14px;
+    color: var(--text-muted, #0b2540);
+    opacity: 0.9;
+}
+
+.idcard .value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main, #0b2540);
+}
+
+/* Stack layout for employee details (Email/Contact on separate lines) */
+.idcard .stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin: 8px 0;
+}
+
+/* Allow long emails to wrap cleanly into multiple lines */
+.idcard .value.multiline {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* Compact variant for faculty/staff (PAN-card-like proportion) */
+.idcard.compact {
+    width: calc(320px + 3.5cm);
+}
+
+.idcard.compact .photo-wrap {
+    width: 220px;
+    height: 160px;
+}
+
+.idcard.compact .name {
+    font-size: 18px;
+}
+
+.idcard.compact .label {
+    font-size: 13px;
+}
+
+.idcard.compact .value {
+    font-size: 16px;
+}
+
+/* Employee variant (faculty/staff) — rounded green border, no header bar */
+.idcard.employee {
+    border: 2px solid #22c55e;
+    /* tailwind green-500 */
+    border-radius: 28px;
+    box-shadow: 0 6px 18px rgba(34, 197, 94, 0.15);
+}
+
+.idcard.employee .idcard-header {
+    display: none;
+}
+
+.idcard.employee .photo-wrap {
+    border-color: #22c55e;
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+}
+
+.idcard.employee .idcard-body {
+    padding-top: 20px;
+}
+
+/* Student variant: circular photo */
+.idcard.student .photo-wrap {
+    border-radius: 50%;
+    width: 160px;
+    height: 160px;
+}
+
+/* Watermark text inside card */
+.idcard .wm {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: rgba(30, 81, 128, 0.12);
+    font-size: 42px;
+    transform: rotate(-12deg);
+    pointer-events: none;
+    user-select: none;
+}

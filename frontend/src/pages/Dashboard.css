@@ -1,0 +1,143 @@
+.dashboard-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: linear-gradient(180deg, #f7fbff, #eef6ff);
+    color: #0f172a
+}
+
+.dashboard-header {
+    background: linear-gradient(90deg, #7c3aed, #5b21b6);
+    color: #fff;
+    /* increased header height for stronger presence */
+    padding: 22px 16px;
+    min-height: 72px;
+    box-shadow: 0 6px 24px rgba(91, 33, 182, 0.12);
+}
+
+.dashboard-header {
+    position: relative
+}
+
+.logo-edge {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: #fff;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+.btn-get-started {
+    background: #fff;
+    color: #7c3aed;
+    border: none;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(91, 33, 182, 0.12);
+    transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.btn-get-started:hover {
+    transform: translateY(-2px);
+    opacity: 0.98;
+    box-shadow: 0 12px 30px rgba(124, 58, 237, 0.14);
+}
+
+.btn-get-started:active {
+    transform: translateY(0);
+}
+
+.dashboard-header .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+.logo {
+    font-weight: 700;
+    letter-spacing: 0.6px
+}
+
+.nav {
+    display: flex;
+    gap: 16px
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: none;
+    font-weight: 600
+}
+
+.nav-link:hover {
+    opacity: 0.9
+}
+
+.dashboard-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 16px
+}
+
+.erp {
+    font-size: clamp(48px, 12vw, 160px);
+    margin: 0;
+    color: #0b1220;
+    font-weight: 800;
+    letter-spacing: 6px
+}
+
+.system {
+    font-size: clamp(22px, 4.5vw, 40px);
+    margin-top: 12px;
+    margin-bottom: 6px;
+    color: #0b1220;
+    font-weight: 700
+}
+
+.powered {
+    font-size: 14px;
+    color: #475569;
+    margin-top: 4px
+}
+
+.dashboard-footer {
+    text-align: center;
+    padding: 14px 8px;
+    color: #fff;
+    background: linear-gradient(90deg, #7c3aed, #5b21b6);
+    box-shadow: 0 -6px 18px rgba(91, 33, 182, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width:520px) {
+    .nav {
+        display: none
+    }
+
+    .erp {
+        letter-spacing: 2px
+    }
+}

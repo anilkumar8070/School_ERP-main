@@ -1,0 +1,301 @@
+:root {
+    --accent-green: #12c56b;
+    --panel-bg: rgba(255, 255, 255, 0.03);
+    --muted: #9ea6b0;
+    --text-muted: #c7c9cc;
+}
+
+/* Events page container */
+.events-page {
+    font-family: inherit;
+}
+
+/* Ensure important calendar headings use theme colors */
+.events-page .page-title,
+.events-page .cal-weekname,
+.events-page .month-title,
+.events-page .calendar-header {
+    color: var(--text-main);
+}
+
+/* Event pill base */
+.events-page .event-pill {
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    box-shadow: 0 6px 14px rgba(12, 12, 12, 0.08);
+}
+
+/* Explicit colored variants (used by Events.jsx) */
+.events-page .event-pill.blue {
+    background: linear-gradient(90deg, #60bfff, #2aa0ff);
+    color: #021b2b;
+}
+
+.events-page .event-pill.purple {
+    background: linear-gradient(90deg, #c39bff, #9b59ff);
+    color: #180a28;
+}
+
+.events-page .event-pill.green {
+    background: linear-gradient(90deg, #7ee6b6, #12c56b);
+    color: #042915;
+}
+
+.events-page .event-pill.orange {
+    background: linear-gradient(90deg, #ffd59a, #ff9f43);
+    color: #2a1500;
+}
+
+/* Header / controls */
+.events-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.page-title {
+    font-size: 28px;
+    margin: 0;
+    color: #f3f6f9;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.page-title .icon {
+    margin-right: 6px
+}
+
+.btn-add {
+    background: var(--accent-green);
+    color: #051416;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.calendar-panel {
+    background: var(--panel-bg);
+    padding: 18px;
+    border-radius: 12px;
+}
+
+/* Calendar shell */
+.calendar {
+    border-radius: 8px;
+    padding: 8px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px
+}
+
+.cal-weeknames {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    color: var(--text-muted);
+    padding: 6px 8px
+}
+
+.cal-weekname {
+    text-align: center;
+    font-weight: 700
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cal-cell {
+    min-height: 80px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 8px;
+    color: var(--text-muted);
+    position: relative;
+    transition: background 160ms ease, transform 120ms ease;
+    background: var(--bg-card);
+}
+
+.cal-cell.muted {
+    opacity: 0.45;
+    filter: grayscale(6%)
+}
+
+.cal-cell.today {
+    outline: 3px solid rgba(255, 215, 90, 0.12);
+    background: linear-gradient(180deg, rgba(255, 246, 220, 0.06), rgba(255, 238, 170, 0.02))
+}
+
+.cal-cell:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.03))
+}
+
+.day-num {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 12px;
+    color: #000;
+    /* make day numbers black for visibility */
+    background: #ffffff;
+    /* white background to contrast on dark calendar */
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700
+}
+
+/* For muted (previous/next month) cells keep muted number styling */
+.cal-cell.muted .day-num {
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.events-list {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+/* Make pills stand out and occupy most of cell width */
+.events-list .event-pill {
+    padding: 6px 10px;
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(12, 12, 12, 0.08);
+    color: #000;
+    /* ensure event pill text is black */
+}
+
+.more {
+    font-size: 12px;
+    color: #aab0b6
+}
+
+/* Modal styles */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 80
+}
+
+.modal {
+    background: #fff;
+    color: #111;
+    padding: 18px;
+    border-radius: 12px;
+    min-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6)
+}
+
+.modal-title {
+    margin: 0 0 8px 0
+}
+
+.modal-body input,
+.modal-body textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #d8dbe0;
+    margin-bottom: 10px
+}
+
+.modal-body textarea {
+    min-height: 80px
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer
+}
+
+.btn.cancel {
+    background: #a8aab0;
+    color: #111
+}
+
+.btn.save {
+    background: #1266ff;
+    color: #fff
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.ctrl {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer
+}
+
+.ctrl.today {
+    background: rgba(0, 0, 0, 0.45)
+}
+
+@media (max-width:900px) {
+    .cal-cell {
+        min-height: 60px
+    }
+
+    .modal {
+        width: 90%;
+        min-width: unset
+    }
+}
+
+/* Optional: color the whole day cell slightly if it has events of a single prominent color */
+.cal-cell.has-events.blue {
+    background: linear-gradient(180deg, rgba(96, 191, 255, 0.06), rgba(42, 160, 255, 0.02))
+}
+
+.cal-cell.has-events.purple {
+    background: linear-gradient(180deg, rgba(195, 155, 255, 0.06), rgba(155, 89, 255, 0.02))
+}
+
+.cal-cell.has-events.green {
+    background: linear-gradient(180deg, rgba(126, 230, 182, 0.06), rgba(18, 197, 107, 0.02))
+}
+
+.cal-cell.has-events.orange {
+    background: linear-gradient(180deg, rgba(255, 213, 154, 0.06), rgba(255, 159, 67, 0.02))
+}
