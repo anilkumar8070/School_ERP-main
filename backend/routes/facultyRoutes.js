@@ -1,0 +1,789 @@
+
+const express = require('express');
+const mongoose = require('mongoose');
+
+module.exports = function(helpers) {
+  const router = express.Router();
+  
+  const { 
+    User, Complaint, Event, Syllabus, Leave, Message, Student, Faculty,
+    ContactQuery, DeletionRequest, Meeting, FeeStructure, Receipt, ReportCard,
+    Assignment, Submission, Timetable, FacultyRegistration, StudentRegistration,
+    PasswordReset, Attendance, FacultyAttendance, StaffAttendance, Mark, Notice,
+    Resource, TestSeries, ClassModel, TestResult, Question, SalaryPayment,
+    StaffSalaryPayment, IDCard, HostelAllocation, Hostel, FrontOffice,
+    AdmissionEnquiry, OnlineAdmission, Discount, LessonPlan, BehaviorRecord,
+    CustomForm, FormQuery, Gallery, Certificate, NotificationSettings,
+    TransportAllocation, TransportReceipt, ReceiptModel,
+    verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
+    generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
+    generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
+    similarity, PDFDocument, fs, path, bcrypt, jwt
+  } = helpers;
+
+// Admin: update faculty fields (accept assignments, houses, role)
+router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const payload = req.body || {};
+    const allowed = ['name', 'email', 'contact', 'experience', 'employeeId', 'subject', 'avatar', 'classGrade', 'assignments', 'houses', 'role'];
+    const update = {};
+    for (const k of allowed) {
+      if (payload[k] !== undefined) update[k] = payload[k];
+    }
+    const doc = await Faculty.findByIdAndUpdate(id, update, {
+      new: true
+    }).lean().catch(() => null);
+    if (!doc) return res.status(404).json({
+      message: 'not found'
+    });
+    return res.json(doc);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Faculty dashboard - small summary for faculty (used by frontend to populate panel)
+router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
+  try {
+    const userId = req.user && req.user.sub;
+    const username = req.user && req.user.username;
+    let fac = null;
+    try {
+      if (userId) fac = await Faculty.findOne({
+        $or: [{
+          userId: userId
+        }, {
+          _id: userId
+        }]
+      }).lean().catch(() => null);
+      if (!fac && username) fac = await Faculty.findOne({
+        $or: [{
+          email: username
+        }, {
+          employeeId: username
+        }]
+      }).lean().catch(() => null);
+    } catch (e) {
+      fac = null;
+    }
+
+    // Count upcoming meetings linked to this faculty (if any)
+    let upcomingMeetings = 0;
+    try {
+      if (fac && fac._id) {
+        upcomingMeetings = await Meeting.countDocuments({
+          facultyId: String(fac._id),
+          date: {
+            $gte: new Date()
+          }
+        }).catch(() => 0);
+      }
+    } catch (e) {
+      upcomingMeetings = 0;
+    }
+
+    // Normalize assigned classes into an array of class identifiers
+    let assignedClasses = [];
+    try {
+      if (fac) {
+        if (Array.isArray(fac.classGrade)) assignedClasses = fac.classGrade.map(x => String(x)).filter(Boolean);else if (typeof fac.classGrade === 'string' && fac.classGrade.trim()) assignedClasses = [fac.classGrade.trim()];else if (Array.isArray(fac.assignments) && fac.assignments.length) assignedClasses = fac.assignments.map(a => String(a)).filter(Boolean);
+      }
+    } catch (e) {
+      assignedClasses = [];
+    }
+
+    // Count students in those assigned classes (real-time)
+    let assignedStudentsCount = 0;
+    try {
+      if (assignedClasses.length > 0) {
+        assignedStudentsCount = await Student.countDocuments({
+          class: {
+            $in: assignedClasses
+          }
+        }).catch(() => 0);
+      }
+    } catch (e) {
+      assignedStudentsCount = 0;
+    }
+    const summary = {
+      faculty: fac ? {
+        _id: fac._id,
+        name: fac.name,
+        email: fac.email,
+        subject: fac.subject,
+        classGrade: fac.classGrade
+      } : null,
+      upcomingMeetings: Number(upcomingMeetings) || 0,
+      assignedClasses: assignedClasses,
+      assignedClassesCount: assignedClasses.length,
+      assignedStudentsCount: Number(assignedStudentsCount) || 0
+    };
+    return res.json(summary);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Faculty Attendance APIs
+
+// Resolve current user's Faculty record
+router.get("/me", verifyToken, async (req, res) => {
+  try {
+    const me = await User.findById(req.user.sub).lean().catch(() => null);
+    if (!me) return res.status(404).json({
+      message: 'User not found'
+    });
+    let fac = await Faculty.findOne({
+      email: me.username
+    }).lean().catch(() => null);
+    if (!fac && me.name) fac = await Faculty.findOne({
+      name: me.name
+    }).lean().catch(() => null);
+    if (!fac && me.contact) fac = await Faculty.findOne({
+      contact: me.contact
+    }).lean().catch(() => null);
+    if (!fac) return res.status(404).json({
+      message: 'Faculty record not linked'
+    });
+    return res.json(fac);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// login endpoint
+
+// Faculty registration endpoint (public) - stores registration for admin approval
+router.post("/register", async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const {
+      name,
+      email,
+      subject,
+      education,
+      contact,
+      avatar,
+      experience,
+      classGrade,
+      houses,
+      password
+    } = req.body || {};
+    if (!name || !email) return res.status(400).json({
+      message: 'name and email required'
+    });
+    const exists = await FacultyRegistration.findOne({
+      email
+    }).lean().catch(() => null);
+    if (exists && exists.status === 'pending') return res.status(409).json({
+      message: 'Registration already submitted'
+    });
+    const reg = await FacultyRegistration.create({
+      name,
+      email,
+      subject,
+      education,
+      contact,
+      avatar,
+      experience,
+      classGrade,
+      houses: Array.isArray(houses) ? houses : [],
+      password,
+      status: 'pending'
+    });
+    // send notification email to admin
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || null;
+      if (adminEmail) {
+        const subjectAdmin = `New faculty registration: ${name}`;
+        const htmlAdmin = `
+          <div style="font-family:Arial,sans-serif;color:#333;padding:20px;background:#f7f7fb">
+            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #eee">
+              <div style="background:linear-gradient(90deg,#6a4ef6,#9f7efe);padding:18px;color:white">
+                <h2 style="margin:0;font-size:20px">New Faculty Registration</h2>
+              </div>
+              <div style="padding:18px">
+                <p style="margin:0 0 10px">A new faculty has submitted a registration and is awaiting approval.</p>
+                <table style="width:100%;border-collapse:collapse;margin-top:8px">
+                  <tr><td style="font-weight:600;padding:6px 0">Name</td><td style="padding:6px 0">${name}</td></tr>
+                  <tr><td style="font-weight:600;padding:6px 0">Email</td><td style="padding:6px 0">${email}</td></tr>
+                  <tr><td style="font-weight:600;padding:6px 0">Subject</td><td style="padding:6px 0">${subject || '-'}</td></tr>
+                  <tr><td style="font-weight:600;padding:6px 0">Class</td><td style="padding:6px 0">${classGrade || '-'}</td></tr>
+                  <tr><td style="font-weight:600;padding:6px 0">Experience</td><td style="padding:6px 0">${experience || '-'}</td></tr>
+                  <tr><td style="font-weight:600;padding:6px 0">Contact</td><td style="padding:6px 0">${contact || '-'}</td></tr>
+                </table>
+                <p style="margin-top:12px">Open the <a href="${process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || ''}/admin/approvals">Admin Approvals</a> page to review and approve.</p>
+                <p style="color:#666;font-size:13px;margin-top:12px">This is an automated message.</p>
+              </div>
+            </div>
+          </div>
+        `;
+        sendMail({
+          to: adminEmail,
+          subject: subjectAdmin,
+          html: htmlAdmin
+        }).catch(() => {});
+      }
+    } catch (mailErr) {
+      console.warn('Failed to notify admin of registration:', mailErr && (mailErr.message || String(mailErr)));
+    }
+
+    // emit SSE event for admin UIs
+    try {
+      sendSseEvent('faculty_registration', {
+        id: reg._id,
+        name: reg.name,
+        email: reg.email
+      });
+    } catch (e) {}
+    return res.status(201).json(reg);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Student registration (public) -> admin approval
+
+// Faculty: lesson planning management
+router.get("/lesson-plans", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const LessonPlan = require('./models/LessonPlan');
+    const {
+      class: cls,
+      section,
+      subject,
+      status,
+      from,
+      to
+    } = req.query || {};
+    const q = {};
+    if (req.user && req.user.role === 'faculty') q.facultyUserId = req.user.sub;
+    if (cls) q.class = String(cls);
+    if (section) q.section = String(section);
+    if (subject) q.subject = new RegExp(String(subject), 'i');
+    if (status) q.status = String(status);
+    if (from || to) {
+      q.lessonDate = {};
+      if (from) q.lessonDate.$gte = String(from);
+      if (to) q.lessonDate.$lte = String(to);
+    }
+    const items = await LessonPlan.find(q).sort({
+      lessonDate: -1,
+      createdAt: -1
+    }).lean();
+    return res.json(items);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+router.post("/lesson-plans", verifyToken, requireRole('faculty'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const LessonPlan = require('./models/LessonPlan');
+    const {
+      class: cls,
+      section = 'ALL',
+      subject,
+      title,
+      lessonDate,
+      durationMinutes = 40,
+      objectives = '',
+      materials = '',
+      activities = '',
+      homework = '',
+      assessment = '',
+      status = 'planned',
+      notes = ''
+    } = req.body || {};
+    if (!cls || !subject || !title || !lessonDate) return res.status(400).json({
+      message: 'class, subject, title and lessonDate required'
+    });
+    const user = await User.findById(req.user.sub).lean().catch(() => null);
+    const faculty = await Faculty.findOne({
+      email: req.user.username
+    }).lean().catch(() => null);
+    const doc = await LessonPlan.create({
+      facultyUserId: req.user.sub,
+      facultyId: faculty && faculty._id,
+      teacherName: faculty && faculty.name || user && user.name || req.user.username || '',
+      class: String(cls),
+      section: String(section || 'ALL'),
+      subject: String(subject),
+      title: String(title),
+      lessonDate: String(lessonDate),
+      durationMinutes: Number(durationMinutes || 40),
+      objectives: String(objectives || ''),
+      materials: String(materials || ''),
+      activities: String(activities || ''),
+      homework: String(homework || ''),
+      assessment: String(assessment || ''),
+      status: ['planned', 'in_progress', 'completed'].includes(String(status)) ? String(status) : 'planned',
+      notes: String(notes || '')
+    });
+    return res.status(201).json(doc);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const LessonPlan = require('./models/LessonPlan');
+    const doc = await LessonPlan.findOne({
+      _id: req.params.id,
+      facultyUserId: req.user.sub
+    });
+    if (!doc) return res.status(404).json({
+      message: 'Lesson plan not found'
+    });
+    const allowed = ['class', 'section', 'subject', 'title', 'lessonDate', 'durationMinutes', 'objectives', 'materials', 'activities', 'homework', 'assessment', 'status', 'notes'];
+    allowed.forEach(key => {
+      if (req.body && req.body[key] !== undefined) doc[key] = key === 'durationMinutes' ? Number(req.body[key] || 40) : String(req.body[key] || '');
+    });
+    if (!['planned', 'in_progress', 'completed'].includes(String(doc.status))) doc.status = 'planned';
+    await doc.save();
+    return res.json(doc);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+router.delete("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const LessonPlan = require('./models/LessonPlan');
+    const doc = await LessonPlan.findOneAndDelete({
+      _id: req.params.id,
+      facultyUserId: req.user.sub
+    }).lean();
+    if (!doc) return res.status(404).json({
+      message: 'Lesson plan not found'
+    });
+    return res.json({
+      ok: true
+    });
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+// Admin: list pending/processed faculty registrations
+router.get("/registrations", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const {
+      status
+    } = req.query || {};
+    const q = {};
+    if (status) q.status = status;
+    const items = await FacultyRegistration.find(q).sort({
+      createdAt: -1
+    }).lean();
+    return res.json(items);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Admin: approve registration -> create Faculty record and mark registration approved
+router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const reg = await FacultyRegistration.findById(req.params.id);
+    if (!reg) return res.status(404).json({
+      message: 'Registration not found'
+    });
+
+    // Block reuse of email across roles
+    const existingAccount = await User.findOne({
+      username: reg.email
+    }).lean().catch(() => null);
+    if (existingAccount) return res.status(409).json({
+      message: 'This email is already in use for another account'
+    });
+
+    // create Faculty record if not exists and ensure unique employeeId
+    let facultyDoc = await Faculty.findOne({
+      email: reg.email
+    });
+    if (!facultyDoc) {
+      // generate unique employeeId (EMP + timestamp + random)
+      function genId() {
+        return `EMP${Date.now().toString().slice(-6)}${Math.floor(100 + Math.random() * 900)}`;
+      }
+      let empId = genId();
+      // ensure uniqueness
+      let attempts = 0;
+      while (await Faculty.findOne({
+        employeeId: empId
+      })) {
+        empId = genId();
+        attempts++;
+        if (attempts > 5) break;
+      }
+      facultyDoc = await Faculty.create({
+        name: reg.name,
+        email: reg.email,
+        employeeId: empId,
+        subject: reg.subject,
+        experience: reg.experience,
+        contact: reg.contact,
+        avatar: reg.avatar,
+        classGrade: reg.classGrade,
+        houses: Array.isArray(reg.houses) ? reg.houses : []
+      });
+    }
+
+    // create a login user for the faculty
+    let user = null;
+    let generatedPassword = reg.password && String(reg.password).length >= 6 ? String(reg.password) : Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10);
+    const hashed = await bcrypt.hash(generatedPassword, 10);
+    user = await User.create({
+      username: reg.email,
+      password: hashed,
+      role: 'faculty',
+      name: reg.name
+    });
+
+    // mark registration approved
+    reg.status = 'approved';
+    await reg.save();
+
+    // notify admin UIs via SSE
+    try {
+      sendSseEvent('faculty_approved', {
+        id: reg._id,
+        name: reg.name,
+        email: reg.email,
+        employeeId: facultyDoc.employeeId
+      });
+    } catch (e) {}
+
+    // try to send a congratulation email with credentials (if SMTP configured)
+    let mailStatus = {
+      attempted: false,
+      sent: false,
+      info: null,
+      error: null
+    };
+    try {
+      const loginUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
+      const subject = 'Congratulations — you have been selected as a Teacher';
+      const passwordRow = generatedPassword ? `
+            <tr>
+              <td style="padding:8px 12px;background:#fafafa;font-weight:600;border-top:1px solid #eee">Password</td>
+              <td style="padding:8px 12px;background:#fafafa;border-top:1px solid #eee"><strong>${generatedPassword}</strong></td>
+            </tr>` : '';
+      const html = `
+        <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
+          <div style="max-width:680px;margin:0 auto;">
+            <div style="background:linear-gradient(90deg,#6a4ef6,#9f7efe);padding:20px;border-radius:10px 10px 0 0;color:#fff;text-align:left;">
+              <h1 style="margin:0;font-size:22px;">Congratulations ${reg.name}!</h1>
+              <div style="margin-top:6px;opacity:0.95">You have been selected for the role of <strong>Teacher</strong>.</div>
+            </div>
+            <div style="background:#ffffff;padding:18px;border:1px solid #e8e8f0;border-top:0;border-radius:0 0 10px 10px;">
+              <p style="margin:0 0 12px;color:#374151">An account has been created for you on our ERP system. Below are your account details — keep them secure.</p>
+
+              <table style="width:100%;border-collapse:collapse;margin-top:8px;border-radius:6px;overflow:hidden;box-shadow:0 6px 18px rgba(99,102,241,0.08)">
+                <tr>
+                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-bottom:1px solid #f1f1f5;width:40%">Username</td>
+                  <td style="padding:12px 16px;background:#fff;border-bottom:1px solid #f1f1f5">${reg.email}</td>
+                </tr>
+                ${passwordRow}
+                <tr>
+                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-top:${generatedPassword ? '0' : '1px solid #f1f1f5'}">Employee ID</td>
+                  <td style="padding:12px 16px;background:#fff">${facultyDoc.employeeId}</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-top:1px solid #f1f1f5">Class</td>
+                  <td style="padding:12px 16px;background:#fff">${facultyDoc.classGrade || reg.classGrade || '-'}</td>
+                </tr>
+              </table>
+
+              <div style="margin-top:16px;text-align:left">
+                <a href="${loginUrl}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white;text-decoration:none;font-weight:600">Login to ERP</a>
+              </div>
+
+              <p style="margin-top:14px;color:#6b7280;font-size:13px">${generatedPassword ? 'Please change your password after first login.' : 'Use your existing credentials to login.'}</p>
+              <p style="margin-top:10px;color:#9ca3af;font-size:12px">If you did not expect this email or there is an issue, please contact the administrator.</p>
+              <div style="margin-top:18px;color:#6b7280;font-size:13px">Regards,<br/>Admin</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Use shared sendMail helper.
+      mailStatus = await sendMail({
+        to: reg.email,
+        subject,
+        html
+      });
+      if (mailStatus.sent) console.log('Approval email sent to', reg.email);
+    } catch (mailErr) {
+      mailStatus.error = mailErr && (mailErr.message || String(mailErr));
+      console.warn('Failed to send approval email:', mailStatus.error);
+    }
+    return res.json({
+      registration: reg.toObject(),
+      faculty: facultyDoc,
+      user: user ? {
+        id: user._id,
+        username: user.username
+      } : null,
+      mail: mailStatus
+    });
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Admin: list admins
+
+// Admin: reject registration with optional note
+router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const {
+      note
+    } = req.body || {};
+    const reg = await FacultyRegistration.findById(req.params.id);
+    if (!reg) return res.status(404).json({
+      message: 'Registration not found'
+    });
+    reg.status = 'rejected';
+    reg.note = note || '';
+    await reg.save();
+    return res.json(reg);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// protected profile
+
+// Faculty management: list, update, delete (admin only)
+router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const {
+      name,
+      employeeId,
+      subject,
+      email
+    } = req.query || {};
+    const q = {};
+    if (name) q.name = {
+      $regex: name,
+      $options: 'i'
+    };
+    if (employeeId) q.employeeId = {
+      $regex: employeeId,
+      $options: 'i'
+    };
+    if (subject) q.subject = {
+      $regex: subject,
+      $options: 'i'
+    };
+    if (email) q.email = {
+      $regex: email,
+      $options: 'i'
+    };
+    const items = await Faculty.find(q).sort({
+      name: 1
+    }).lean();
+
+    // enrich with blocked status from User collection (if a user exists with same email)
+    try {
+      const emails = items.map(i => i.email).filter(Boolean);
+      const users = emails.length ? await User.find({
+        username: {
+          $in: emails
+        }
+      }).lean() : [];
+      const userMap = {};
+      for (const u of users) userMap[u.username] = u;
+      const enriched = items.map(i => ({
+        ...i,
+        blocked: !!(i.email && userMap[i.email] && userMap[i.email].disabled)
+      }));
+      return res.json(enriched);
+    } catch (e) {
+      return res.json(items);
+    }
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const update = req.body || {};
+    const updated = await Faculty.findByIdAndUpdate(req.params.id, update, {
+      new: true
+    }).lean();
+    if (!updated) return res.status(404).json({
+      message: 'Faculty not found'
+    });
+    return res.json(updated);
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Admin: block or unblock a faculty's user account (by faculty id)
+router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const {
+      block
+    } = req.body || {};
+    const f = await Faculty.findById(req.params.id).lean();
+    if (!f) return res.status(404).json({
+      message: 'Faculty not found'
+    });
+    const user = await User.findOne({
+      username: f.email,
+      role: 'faculty'
+    });
+    if (!user) return res.status(404).json({
+      message: 'User account not found for this faculty'
+    });
+    user.disabled = !!block;
+    await user.save();
+    try {
+      sendSseEvent('faculty_blocked', {
+        id: f._id,
+        email: f.email,
+        blocked: user.disabled
+      });
+    } catch (e) {}
+    return res.json({
+      ok: true,
+      blocked: user.disabled
+    });
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
+  if (!dbConnected) return res.status(503).json({
+    message: 'Database not available'
+  });
+  try {
+    const removed = await Faculty.findByIdAndDelete(req.params.id).lean();
+    if (!removed) return res.status(404).json({
+      message: 'Faculty not found'
+    });
+    // send removal email to faculty
+    try {
+      const to = removed.email;
+      if (to) {
+        const subject = 'Notice: You have been removed as Faculty';
+        const html = `
+          <div style="font-family:Arial,sans-serif;color:#333;padding:20px;background:#f7f7fb">
+            <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #eee">
+              <div style="background:linear-gradient(90deg,#ff5f6d,#ffc371);padding:18px;color:white">
+                <h2 style="margin:0;font-size:20px">Account Removed</h2>
+              </div>
+              <div style="padding:18px">
+                <p style="margin:0 0 10px">Dear ${removed.name || 'Faculty'},</p>
+                <p style="margin:0 0 10px">This is to inform you that your faculty account (Employee ID: <strong>${removed.employeeId || 'N/A'}</strong>) has been removed by the administration.</p>
+                <p style="margin-top:8px">If you believe this was done in error or need assistance, please contact the school administration.</p>
+                <p style="color:#666;font-size:13px;margin-top:12px">Regards,<br/>Admin</p>
+              </div>
+            </div>
+          </div>
+        `;
+        sendMail({
+          to,
+          subject,
+          html
+        }).catch(() => {});
+      }
+    } catch (mailErr) {
+      console.warn('Failed to send removal email:', mailErr && (mailErr.message || String(mailErr)));
+    }
+
+    // try to also remove the login user for this faculty (if any)
+    try {
+      const u = await User.findOneAndDelete({
+        username: removed.email,
+        role: 'faculty'
+      }).lean().catch(() => null);
+      if (u) console.log('Removed user account for', removed.email);
+    } catch (e) {
+      console.warn('Failed to remove user account for deleted faculty', e && e.message);
+    }
+
+    // emit SSE event so admin UI can refresh lists
+    try {
+      sendSseEvent('faculty_deleted', {
+        id: removed._id,
+        email: removed.email,
+        name: removed.name
+      });
+    } catch (e) {}
+    return res.json({
+      ok: true
+    });
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
+    });
+  }
+});
+
+// Syllabus
+
+  return router;
+};
