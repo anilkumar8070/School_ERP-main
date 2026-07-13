@@ -1,0 +1,204 @@
+/* Global responsive utilities to make the app mobile-friendly */
+:root {
+    --ui-radius: 10px;
+    --gap-xs: 6px;
+    --gap-sm: 10px;
+    --gap-md: 16px;
+    --max-content-width: 1200px;
+}
+
+/* Responsive base font sizing */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    font-size: clamp(14px, 1.8vw, 16px);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    color: #0b1220;
+    background: #fff;
+    line-height: 1.35;
+    margin: 0;
+}
+
+/* Headings scale smoothly on small screens */
+h1 {
+    font-size: clamp(20px, 4.4vw, 28px);
+    margin: 0 0 .5em
+}
+
+h2 {
+    font-size: clamp(18px, 3.6vw, 22px);
+    margin: 0 0 .5em
+}
+
+h3 {
+    font-size: clamp(16px, 3.0vw, 18px);
+    margin: 0 0 .4em
+}
+
+h4,
+h5,
+h6 {
+    margin: 0 0 .3em
+}
+
+/* Make images and media flexible */
+img,
+video,
+svg {
+    max-width: 100%;
+    height: auto;
+    display: block
+}
+
+/* Forms and buttons: touch friendly */
+button,
+input,
+select,
+textarea {
+    font: inherit
+}
+
+button {
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 8px
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    box-sizing: border-box
+}
+
+/* Utility container that respects small screens */
+.container {
+    max-width: 100%;
+    padding: 0 12px;
+    margin: 0 auto;
+    box-sizing: border-box
+}
+
+@media(min-width:768px) {
+    .container {
+        max-width: var(--max-content-width);
+        padding: 0 20px
+    }
+}
+
+/* Card/grid helpers for responsive layouts */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--gap-md)
+}
+
+.stack {
+    display: block
+}
+
+/* Make tables scrollable on small screens */
+.table-wrap {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse
+}
+
+/* Improve link/button spacing for tap targets */
+a,
+button {
+    touch-action: manipulation
+}
+
+/* Ensure modals/overlays cover viewport correctly */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.32);
+    z-index: 60
+}
+
+/* Slight adjustments for very narrow phones */
+@media(max-width:360px) {
+    html {
+        font-size: 14px
+    }
+
+    button {
+        min-height: 38px
+    }
+
+    :root {
+        --gap-md: 12px
+    }
+}
+
+/* Small helper to reduce excessive horizontal padding in page CSS */
+.tight-mobile {
+    padding-left: 8px;
+    padding-right: 8px
+}
+
+/* Ensure inputs inside cards don't overflow */
+.card input,
+.card textarea {
+    width: 100%
+}
+
+/* Accessibility: focus visible */
+:focus {
+    outline: 3px solid rgba(59, 130, 246, 0.22);
+    outline-offset: 2px
+}
+
+/* Link colors (kept neutral; pages may override) */
+a {
+    color: var(--accent, #2b6cb0)
+}
+
+/* Small helper to make large tables usable on mobile */
+.responsive-table {
+    width: 100%;
+    overflow: auto
+}
+
+/* Keep the admin hamburger visible on small screens (existing header hides it >=640px)
+   and provide a consistent, professional three-line hamburger icon for mobile. */
+@media (max-width: 640px) {
+    .hamburger {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        padding: 6px;
+        box-sizing: border-box;
+    }
+
+    .hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: currentColor;
+        margin: 3px 0;
+        border-radius: 2px;
+        transition: transform .18s ease, opacity .18s ease;
+    }
+}
+
+/* Hide staff profile name on small screens (keep avatar visible) */
+@media (max-width: 640px) {
+    .staff-mobile-hide {
+        display: none !important;
+    }
+}

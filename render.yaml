@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: school-erp
+    env: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: cd ../frontend && npm install && npm run build && cd ../backend && npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_DIST
+        value: ../frontend/dist

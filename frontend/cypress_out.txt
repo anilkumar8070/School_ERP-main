@@ -1,0 +1,67 @@
+Warning: The allowCypressEnv configuration option is enabled. This allows any browser code to read values from Cypress.env(). This is insecure and will be removed in a future major version.
+
+1. Replace Cypress.env() calls with cy.env() (for sensitive values) or Cypress.expose() (for public configuration)
+2. Set allowCypressEnv: false in your Cypress configuration to disable Cypress.env()
+
+Learn more: https://on.cypress.io/cypress-env-migration
+
+
+========================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.11.0                                                                        │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v24.11.1 (/usr/local/bin/node)                                                 │
+  │ Specs:          1 found (manual_entry.cy.js)                                                   │
+  │ Searched:       cypress/e2e/manual_entry.cy.js                                                 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  manual_entry.cy.js                                                              (1 of 1)
+
+
+  Automated Manual Data Entry
+    1) Logs in, assigns classes to faculty, and adds students to classes 1-8
+
+
+  0 passing (9s)
+  1 failing
+
+  1) Automated Manual Data Entry
+       Logs in, assigns classes to faculty, and adds students to classes 1-8:
+     AssertionError: Timed out retrying after 4000ms: expected 'http://localhost:5173/admin-login' to include '/admin-dashboard'
+      at Context.eval (webpack://vite-project/./cypress/e2e/manual_entry.cy.js:13:13)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        1                                                                                │
+  │ Passing:      0                                                                                │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     9 seconds                                                                        │
+  │ Spec Ran:     manual_entry.cy.js                                                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+========================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  manual_entry.cy.js                       00:09        1        -        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:09        1        -        1        -        -  
+

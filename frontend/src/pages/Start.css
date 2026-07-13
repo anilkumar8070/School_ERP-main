@@ -1,0 +1,311 @@
+.start-root {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    color: white;
+}
+
+/* Background Slider */
+.background-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.bg-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    animation: zoomEffect 20s infinite alternate;
+}
+
+.bg-slide.active {
+    opacity: 1;
+}
+
+@keyframes zoomEffect {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* Dark overlay for readability */
+    z-index: 1;
+}
+
+/* Main Content */
+.start-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.start-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.start-title h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.start-title p {
+    font-size: 1.2rem;
+    color: #e5e7eb;
+    margin-top: 10px;
+}
+
+/* Role Cards Container */
+.role-cards {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    width: 100%;
+}
+
+/* Glassmorphism Card */
+.role-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 40px 30px;
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.card-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    color: #3b82f6;
+    /* Blue icon */
+    background: rgba(59, 130, 246, 0.1);
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-card.admin .card-icon {
+    color: #a855f7;
+    background: rgba(168, 85, 247, 0.1);
+}
+
+.role-card.student .card-icon {
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.role-card.teacher .card-icon {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.role-card.parent .card-icon {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.role-card.staff .card-icon {
+    color: #ec4899;
+    background: rgba(236, 72, 153, 0.1);
+}
+
+
+.role-card h3 {
+    font-size: 1.5rem;
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+
+.role-card p {
+    font-size: 0.95rem;
+    color: #d1d5db;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.card-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.role-card.admin .card-btn {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.role-card.teacher .card-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.role-card.parent .card-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+.role-card.staff .card-btn {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
+}
+
+
+.card-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+/* Bottom Verify Section */
+.verify-trigger {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s;
+}
+
+.verify-trigger:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.verify-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    z-index: 20;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.verify-panel.open {
+    transform: translateY(0);
+}
+
+.verify-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.verify-content {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.verify-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.verify-input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    background: #1f2937;
+    color: white;
+}
+
+.verify-btn-submit {
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.verify-result {
+    margin-top: 20px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}

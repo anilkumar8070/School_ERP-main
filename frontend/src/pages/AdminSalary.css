@@ -1,0 +1,132 @@
+.admin-salary-page {
+    display: grid;
+    gap: 18px;
+    padding-bottom: 80px;
+}
+
+.colorful-vertical-form {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid transparent;
+    border-image: linear-gradient(90deg, #7c3aed, #06b6d4, #f59e0b, #10b981) 1;
+    border-radius: 14px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-md);
+    max-width: 520px;
+    color: var(--text-main);
+}
+
+.colorful-vertical-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.colorful-input {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: var(--bg-main);
+    color: var(--text-main);
+    outline: none;
+    transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+/* Multicolor borders per field based on order */
+.colorful-vertical-form label:nth-child(1) .colorful-input {
+    border-color: #7c3aed;
+}
+
+.colorful-vertical-form label:nth-child(2) .colorful-input {
+    border-color: #06b6d4;
+}
+
+.colorful-vertical-form label:nth-child(3) .colorful-input {
+    border-color: #f59e0b;
+}
+
+.colorful-input:focus {
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.10);
+}
+
+/* Colorful placeholder style */
+.colorful-placeholder::placeholder {
+    color: #7c3aed;
+    opacity: 0.8;
+}
+
+.colorful-vertical-form label:nth-child(2) .colorful-placeholder::placeholder {
+    color: #06b6d4;
+}
+
+.colorful-vertical-form label:nth-child(3) .colorful-placeholder::placeholder {
+    color: #f59e0b;
+}
+
+.colorful-button {
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #7c3aed, #06b6d4);
+    color: #fff;
+    border: none;
+    font-weight: 800;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.payments-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--text-main);
+}
+
+.payments-table th,
+.payments-table td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.payments-table thead th {
+    background: var(--bg-hover);
+    text-align: left;
+    color: var(--text-main);
+}
+
+/* Colorful variant for staff page */
+.staff-salary-page .payments-table.colorful {
+    border: 2px solid transparent;
+    border-image: linear-gradient(90deg, #7c3aed, #06b6d4, #f59e0b, #10b981) 1;
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-card);
+}
+
+.staff-salary-page .payments-table.colorful thead th {
+    background: var(--bg-hover);
+    border-bottom: 2px solid var(--border);
+    color: var(--text-main);
+}
+
+.staff-salary-page .payments-table.colorful td,
+.staff-salary-page .payments-table.colorful th {
+    border-right: 1px solid var(--border);
+}
+
+.staff-salary-page .payments-table.colorful tr:nth-child(even) td {
+    background: var(--bg-surface);
+}
+
+.staff-salary-page .payments-table.colorful tr.row-paid td {
+    background: rgba(34, 197, 94, 0.1);
+    /* Light green tint visible in dark mode too */
+}
+
+.staff-salary-page .payments-table.colorful tr.row-pending td {
+    background: rgba(249, 115, 22, 0.1);
+    /* Light orange tint */
+}

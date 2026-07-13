@@ -1,0 +1,993 @@
+/* Parent panel styles - consistent with student/faculty theme */
+:root {
+    /* Light Mode Variables */
+    --primary: #7c3aed;
+    /* Purple accent for parent */
+    --primary-light: #a78bfa;
+    --primary-dark: #5b21b6;
+    --secondary: #2563eb;
+
+    --bg-main: #f9fafb;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-sidebar-active: #f3f4f6;
+    --bg-hover: #f3f4f6;
+    --bg-surface: var(--bg-hover);
+
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --text-inverted: #ffffff;
+    --text-sidebar: #111827;
+
+    --border: #e5e7eb;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+    --parent-header-height: 64px;
+}
+
+/* Dark Mode Overrides */
+.parent-root.dark {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #1e293b;
+    --bg-sidebar-active: rgba(255, 255, 255, 0.08);
+    --bg-hover: #334155;
+
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-inverted: #ffffff;
+    --text-sidebar: #f3f4f6;
+
+    --border: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --bg-surface: var(--bg-hover);
+}
+
+.parent-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-main);
+    color: var(--text-main);
+    transition: background-color 0.3s, color 0.3s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    overflow-x: hidden;
+}
+
+.parent-header {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--parent-header-height);
+    z-index: 80;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.parent-header .parent-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: linear-gradient(90deg, #7c3aed, #fb7185);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.parent-header .hamburger {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.parent-header .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text-main);
+    margin: 3px 0;
+    border-radius: 2px;
+}
+
+.header-spacer {
+    flex: 1;
+}
+
+/* Hide manual hamburger on desktop if sidebar is persistent */
+@media (min-width: 760px) {
+    .parent-header .hamburger {
+        display: none;
+    }
+}
+
+/* Hemensburg button (desktop toggle) */
+.parent-header .hemensburg {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    padding: 6px;
+    display: inline-grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 4px;
+    align-items: center;
+    justify-items: center;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.parent-header .hemensburg .cell {
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 1px;
+}
+
+@media (max-width: 760px) {
+    .parent-header .hemensburg {
+        display: none;
+        /* Use hamburger on mobile */
+    }
+}
+
+
+/* Sidebar Styling */
+.parent-sidebar {
+    width: 280px;
+    background: var(--bg-sidebar);
+    color: var(--text-sidebar);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 64px;
+    bottom: 48px;
+    left: 0;
+    padding: 18px 12px;
+    transform: translateX(-100%);
+    /* Hidden by default on desktop too */
+    transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    z-index: 900;
+    overflow-y: auto;
+}
+
+.parent-sidebar.open {
+    transform: translateX(0);
+}
+
+.close-sidebar-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+
+.parent-sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.parent-sidebar nav li {
+    margin-bottom: 6px;
+}
+
+.parent-sidebar .menu-item {
+    display: block;
+}
+
+.parent-sidebar .menu-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text-sidebar);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.parent-sidebar .menu-link:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.parent-sidebar .menu-link.active {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-color: var(--border);
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.parent-sidebar .menu-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.parent-sidebar .menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-muted);
+}
+
+.parent-sidebar .menu-link:hover .menu-icon,
+.parent-sidebar .menu-link.active .menu-icon {
+    color: var(--primary);
+}
+
+.parent-sidebar .menu-text {
+    font-size: 14px;
+}
+
+/* Mobile Sidebar Overrides */
+@media (max-width: 760px) {
+    .parent-header {
+        height: 52px;
+        padding: 8px 12px;
+        --parent-header-height: 52px;
+    }
+
+    .parent-sidebar {
+        /* full width dropdown style like faculty */
+        top: var(--parent-header-height);
+        bottom: 48px;
+        right: 0;
+        width: 100%;
+        transform: translateY(-110%);
+        transition: transform .22s ease;
+        padding: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        z-index: 90;
+        border-right: none;
+    }
+
+    .parent-sidebar.open {
+        transform: translateY(0);
+    }
+}
+
+.parent-content {
+    padding: 24px;
+    margin-top: 80px;
+    margin-left: 0;
+    /* Default 0 margin since sidebar is hidden */
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: calc(100vh - 64px - 48px);
+}
+
+/* Push content when sidebar is open on desktop */
+@media (min-width: 760px) {
+    .parent-content.sidebar-open {
+        margin-left: 280px;
+    }
+}
+
+@media (max-width: 760px) {
+    .parent-content {
+        margin-left: 0 !important;
+    }
+
+    .parent-content.sidebar-open::before {
+        content: '';
+        position: fixed;
+        top: var(--parent-header-height);
+        left: 0;
+        right: 0;
+        bottom: 48px;
+        background: rgba(0, 0, 0, 0.32);
+        z-index: 85;
+    }
+}
+
+/* Footer */
+.parent-footer {
+    background: var(--bg-card);
+    color: var(--text-main);
+    padding: 12px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 75;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+}
+
+/* Dashboard Cards */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    max-width: 1200px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.stat-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+/* Message / Form Cards */
+.message-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.message-card h2 {
+    color: var(--text-main);
+    margin-top: 0;
+}
+
+.message-form label {
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.message-form input[type="text"],
+.message-form textarea,
+.message-form select {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.message-form input:focus,
+.message-form textarea:focus,
+.message-form select:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-logout {
+    color: var(--text-main);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.btn-logout:hover {
+    background: var(--bg-hover);
+}
+
+/* Profile Dropdown */
+/* Scoped to parent/staff layout to prevent leaks */
+.parent-root .profile-btn {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 6px 12px 6px 6px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.parent-root .profile-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--text-muted);
+}
+
+.parent-root .profile-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.profile-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    color: var(--text-main);
+}
+
+.profile-item {
+    background: transparent;
+    color: var(--text-main);
+}
+
+.profile-item:hover {
+    background: var(--bg-hover);
+}
+
+.avatar-placeholder {
+    background: var(--primary);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Priority Chips */
+.prio-chip {
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-muted);
+}
+
+.prio-chip.selected {
+    background: var(--primary-light);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+.prio-chip.high.selected {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.prio-chip.medium.selected {
+    background: #f59e0b;
+    border-color: #f59e0b;
+}
+
+.prio-chip.low.selected {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.history-entry {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.history-meta {
+    color: var(--text-muted);
+}
+
+.history-note {
+    color: var(--text-main);
+}
+
+.history-status {
+    color: var(--text-main);
+}
+
+/* Parent panel overrides for dark mode compatibility with shared components */
+
+/* Override hardcoded label color from Complaints.css */
+.parent-root .message-card .message-form label {
+    color: var(--text-main);
+}
+
+/* Override input styles from Complaints.css black-bordered-input */
+.parent-root .black-bordered-input {
+    background: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border) !important;
+}
+
+.parent-root.dark .black-bordered-input {
+    background: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border) !important;
+}
+
+/* Ensure focus state is also visible */
+.parent-root .black-bordered-input:focus {
+    outline: 2px solid var(--primary) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Chat / Message Thread Dark Mode Overrides */
+.parent-root .chat-panel,
+.parent-root .chat-frame {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+}
+
+.parent-root .chat-header,
+.parent-root .chat-meta {
+    color: var(--text-main) !important;
+}
+
+.parent-root .chat-bubble.bubble-left {
+    background: var(--bg-hover) !important;
+    color: var(--text-main) !important;
+}
+
+.parent-root .chat-bubble.bubble-right {
+    color: #fff !important;
+    /* Keep white text for primary colored bubbles */
+}
+
+/* Fix chat reply textarea in dark mode */
+.parent-root .chat-reply textarea {
+    background: var(--bg-main) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
+}
+
+.parent-root .chat-reply textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Meeting Card Overrides */
+.parent-root .meeting-item {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-main) !important;
+    border-radius: 12px;
+    /* Ensure rounded corners */
+}
+
+.parent-root .mi-title {
+    color: var(--primary) !important;
+    font-weight: 700;
+}
+
+.parent-root .mi-datetime {
+    color: var(--text-muted) !important;
+}
+
+.parent-root .mi-summary {
+    color: var(--text-main) !important;
+}
+
+.parent-root .meetings-empty,
+.parent-root .meetings-loading {
+    background: var(--bg-card) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px;
+}
+
+/* Global Responsive Helpers */
+
+/* Responsive Table Wrapper */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.table-responsive table {
+    width: 100%;
+    white-space: nowrap;
+    /* Prevent wrapping in cells on small screens */
+}
+
+/* Mobile Adjustments */
+@media (max-width: 640px) {
+    .parent-content {
+        padding: 16px;
+        /* Reduce padding on mobile */
+    }
+
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+        /* Stack cards on mobile */
+    }
+
+    .message-card,
+    .stat-card,
+    .meeting-item {
+        padding: 16px;
+        /* Slightly less padding */
+    }
+
+    /* Stack form inputs if they are in flex rows (generic) */
+    .form-row {
+        flex-direction: column;
+    }
+
+    .parent-header .parent-title {
+        position: static;
+        width: 100%;
+        transform: none;
+        margin-left: 36px;
+        /* Space for hamburger */
+        text-align: left;
+    }
+}
+
+/* ==========================================================================
+   New Responsive & Theme Components (Attendance, Notices, Progress, etc.)
+   ========================================================================== */
+
+/* Typography Helpers */
+.text-subtle {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.text-normal {
+    color: var(--text-main);
+}
+
+.text-strong {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* Status Colors */
+.status-present {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.status-absent {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Buttons */
+.btn-secondary {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+}
+
+/* Form Helpers */
+.form-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text-main);
+}
+
+.search-input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+.search-input:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+}
+
+/* Responsive Grid Helper */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+}
+
+/* Attendance Page */
+.attendance-card,
+.fee-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.attendance-row,
+.fee-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-surface);
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+/* Notices Page */
+.notice-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.notice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.notice-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0 0 6px 0;
+}
+
+.notice-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.notice-body {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+/* Staff Dashboard Card */
+.staff-dashboard-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: var(--text-main);
+}
+
+.staff-dashboard-card h3 {
+    margin: 0;
+    color: var(--text-main);
+}
+
+.staff-dashboard-card p {
+    margin-top: 8px;
+    color: var(--text-muted);
+}
+
+/* Status Badges (Theme Aware) */
+.status-badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-badge.present {
+    background: rgba(34, 197, 94, 0.15);
+    /* Green tint */
+    color: #15803d;
+    border-color: #86efac;
+}
+
+.parent-root.dark .status-badge.present {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    border-color: #22c55e;
+}
+
+.status-badge.absent {
+    background: rgba(239, 68, 68, 0.15);
+    /* Red tint */
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.parent-root.dark .status-badge.absent {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: #ef4444;
+}
+
+.status-badge.pending,
+.status-badge.not-marked {
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+/* Attendance Row Styles */
+.row-present {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+}
+
+.row-absent {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.row-pending {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.notice-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+}
+
+.notice-body {
+    margin-top: 12px;
+    color: var(--text-main);
+    line-height: 1.45;
+}
+
+/* Progress / Marks */
+.marks-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    background: var(--bg-card);
+    transition: transform 0.2s;
+}
+
+.test-result-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.test-badge {
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 12px;
+    background: var(--bg-surface);
+    color: var(--text-main);
+}
+
+.summary-badge {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-correct {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.badge-wrong {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.badge-skipped {
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+/* Dark Mode Badge Overrides */
+.parent-root.dark .badge-correct {
+    background: #052e16;
+    color: #22c55e;
+    border-color: #14532d;
+}
+
+/* Grid Layout Utilities */
+.grid-2-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .grid-2-cols {
+        grid-template-columns: 1fr;
+    }
+}
