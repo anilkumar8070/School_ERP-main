@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 
@@ -43,101 +43,102 @@ import StudentComplaint from './pages/student/ComplaintFixed'
 import StudentFees from './pages/student/Fees'
 import StudentParents from './pages/student/Parents'
 import StudentLayout from './components/student/StudentLayout'
-import AdminPanel from './pages/AdminPanel'
-import AdminMessages from './pages/AdminMessages'
-import Academics from './pages/Academics'
-import AcademicsSyllabus from './pages/AcademicsSyllabus'
-import AcademicsTimetable from './pages/AcademicsTimetable'
-import AcademicsResults from './pages/AcademicsResults'
-import Finance from './pages/admin/Finance'
-import Meeting from './pages/Meeting'
-import Complaints from './pages/Complaints'
-import Events from './pages/Events'
-import AdminProfile from './pages/AdminProfile'
-import AdminStudents from './pages/admin/Students'
-import AdminFaculty from './pages/admin/Faculty'
-import AdminAdmins from './pages/admin/Admins'
-import AdminParents from './pages/admin/Parents'
-import AdminApprovals from './pages/admin/Approvals'
-import AdminDeleteRequests from './pages/admin/DeleteRequests'
-import AdminStudentApprovals from './pages/admin/StudentApprovals'
-import StudentLeaves from './pages/admin/StudentLeaves'
-import FacultyLeavesAdmin from './pages/admin/FacultyLeaves'
-import AdminTests from './pages/admin/Tests'
-import ViewTestSeries from './pages/admin/ViewTestSeries'
-import AdminTestResults from './pages/admin/TestResults'
-import AdminStudentAttendance from './pages/admin/StudentAttendance'
-import AdminFacultyAttendance from './pages/admin/FacultyAttendance'
-import AdminStaffAttendance from './pages/admin/StaffAttendance'
-import StaffLeavesAdmin from './pages/admin/StaffLeaves'
-import ParentDashboard from './pages/ParentDashboard'
-import ParentProgress from './pages/parent/Progress'
-import ParentAttendance from './pages/parent/Attendance'
-import ParentNotices from './pages/parent/Notices'
-import ParentMessages from './pages/parent/Messages'
-import ParentProfile from './pages/parent/Profile'
-import ParentLinkStudent from './pages/parent/LinkStudent'
-import FacultyProfile from './pages/faculty/Profile'
-import StudentProfile from './pages/student/Profile'
-import ParentMeeting from './pages/parent/Meeting'
-import AdminNotices from './pages/admin/Notices'
-import AdminNotifications from './pages/admin/Notifications'
-import AdminNotificationSettings from './pages/admin/NotificationSettings'
-import FrontOffice from './pages/admin/FrontOffice'
-import AdmissionEnquiry from './pages/admin/AdmissionEnquiry'
-import OnlineAdmissions from './pages/admin/OnlineAdmissions'
-import OnlineAdmission from './pages/OnlineAdmission'
-import DiscountManagement from './pages/admin/DiscountManagement'
-import AdminForm from './pages/admin/Form'
-import AdminFormQueries from './pages/admin/FormQueries'
-import LibraryManagement from './pages/admin/LibraryManagement'
-import BehaviorRecordsAdmin from './pages/admin/BehaviorRecords'
-import ContactQueries from './pages/admin/ContactQueries'
-import AnalyticsStudentRank from './pages/admin/AnalyticsStudentRank'
-import Forms from './pages/Forms'
-import FacultyNotices from './pages/faculty/Notices'
-import FacultyTests from './pages/faculty/Tests'
-import FacultyTestResults from './pages/faculty/TestResults'
-import FacultyAttendanceSelf from './pages/faculty/AttendanceSelf'
-import AdminFacultyTimetable from './pages/admin/FacultyTimetable'
-import FacultyTimetable from './pages/faculty/FacultyTimetable'
-import AdminCertificates from './pages/admin/Certificates'
-import AdminAdmitCards from './pages/admin/AdmitCards'
-import AdminReportCard from './pages/admin/ReportCard'
-import FacultyCertificates from './pages/faculty/Certificates'
-import FacultyAdmitCards from './pages/faculty/AdmitCards'
-import FacultyReportCard from './pages/faculty/ReportCard'
-import GalleryAdmin from './pages/admin/Gallery'
-import StudentTransport from './pages/student/Transport'
-import StudentCertificates from './pages/student/Certificates'
-import StudentAdmitCards from './pages/student/AdmitCards'
-import StudentReportCard from './pages/student/ReportCard'
-import StudentMarks from './pages/student/Marks'
-import AdminSalary from './pages/AdminSalary'
-import AdminStaffSalary from './pages/AdminStaffSalary'
-import StaffSalary from './pages/StaffSalary'
-import FacultySalary from './pages/FacultySalary'
-import AdminCardManagement from './pages/admin/CardManagement'
-import StudentCard from './pages/student/Card'
-import StudentHostel from './pages/student/Hostel'
-import AdminStaff from './pages/admin/Staff'
-import AdminHr from './pages/admin/Hr'
-import AdminHostelManagement from './pages/admin/HostelManagement'
-import AdminHouseManagement from './pages/admin/HouseManagement'
-import AdminTransportManagement from './pages/admin/TransportManagement'
-import FacultyCard from './pages/faculty/Card'
-import FacultyHouseManagement from './pages/faculty/HouseManagement'
-import StaffLayout from './components/staff/StaffLayout'
-import StaffDashboard from './pages/staff/Dashboard'
-import StaffNotices from './pages/staff/Notices'
-import StaffMeeting from './pages/staff/Meeting'
-import StaffCard from './pages/staff/Card'
-import StaffProfile from './pages/staff/Profile'
-import StaffCalendar from './pages/StaffCalendar'
-import StaffAttendance from './pages/StaffAttendance'
-import StaffCertificates from './pages/staff/Certificates'
-import BehaviorRecordsFaculty from './pages/faculty/BehaviorRecords'
-import LessonPlan from './pages/faculty/LessonPlan'
+
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'))
+const AdminMessages = React.lazy(() => import('./pages/AdminMessages'))
+const Academics = React.lazy(() => import('./pages/Academics'))
+const AcademicsSyllabus = React.lazy(() => import('./pages/AcademicsSyllabus'))
+const AcademicsTimetable = React.lazy(() => import('./pages/AcademicsTimetable'))
+const AcademicsResults = React.lazy(() => import('./pages/AcademicsResults'))
+const Finance = React.lazy(() => import('./pages/admin/Finance'))
+const Meeting = React.lazy(() => import('./pages/Meeting'))
+const Complaints = React.lazy(() => import('./pages/Complaints'))
+const Events = React.lazy(() => import('./pages/Events'))
+const AdminProfile = React.lazy(() => import('./pages/AdminProfile'))
+const AdminStudents = React.lazy(() => import('./pages/admin/Students'))
+const AdminFaculty = React.lazy(() => import('./pages/admin/Faculty'))
+const AdminAdmins = React.lazy(() => import('./pages/admin/Admins'))
+const AdminParents = React.lazy(() => import('./pages/admin/Parents'))
+const AdminApprovals = React.lazy(() => import('./pages/admin/Approvals'))
+const AdminDeleteRequests = React.lazy(() => import('./pages/admin/DeleteRequests'))
+const AdminStudentApprovals = React.lazy(() => import('./pages/admin/StudentApprovals'))
+const StudentLeaves = React.lazy(() => import('./pages/admin/StudentLeaves'))
+const FacultyLeavesAdmin = React.lazy(() => import('./pages/admin/FacultyLeaves'))
+const AdminTests = React.lazy(() => import('./pages/admin/Tests'))
+const ViewTestSeries = React.lazy(() => import('./pages/admin/ViewTestSeries'))
+const AdminTestResults = React.lazy(() => import('./pages/admin/TestResults'))
+const AdminStudentAttendance = React.lazy(() => import('./pages/admin/StudentAttendance'))
+const AdminFacultyAttendance = React.lazy(() => import('./pages/admin/FacultyAttendance'))
+const AdminStaffAttendance = React.lazy(() => import('./pages/admin/StaffAttendance'))
+const StaffLeavesAdmin = React.lazy(() => import('./pages/admin/StaffLeaves'))
+const ParentDashboard = React.lazy(() => import('./pages/ParentDashboard'))
+const ParentProgress = React.lazy(() => import('./pages/parent/Progress'))
+const ParentAttendance = React.lazy(() => import('./pages/parent/Attendance'))
+const ParentNotices = React.lazy(() => import('./pages/parent/Notices'))
+const ParentMessages = React.lazy(() => import('./pages/parent/Messages'))
+const ParentProfile = React.lazy(() => import('./pages/parent/Profile'))
+const ParentLinkStudent = React.lazy(() => import('./pages/parent/LinkStudent'))
+const FacultyProfile = React.lazy(() => import('./pages/faculty/Profile'))
+const StudentProfile = React.lazy(() => import('./pages/student/Profile'))
+const ParentMeeting = React.lazy(() => import('./pages/parent/Meeting'))
+const AdminNotices = React.lazy(() => import('./pages/admin/Notices'))
+const AdminNotifications = React.lazy(() => import('./pages/admin/Notifications'))
+const AdminNotificationSettings = React.lazy(() => import('./pages/admin/NotificationSettings'))
+const FrontOffice = React.lazy(() => import('./pages/admin/FrontOffice'))
+const AdmissionEnquiry = React.lazy(() => import('./pages/admin/AdmissionEnquiry'))
+const OnlineAdmissions = React.lazy(() => import('./pages/admin/OnlineAdmissions'))
+const OnlineAdmission = React.lazy(() => import('./pages/OnlineAdmission'))
+const DiscountManagement = React.lazy(() => import('./pages/admin/DiscountManagement'))
+const AdminForm = React.lazy(() => import('./pages/admin/Form'))
+const AdminFormQueries = React.lazy(() => import('./pages/admin/FormQueries'))
+const LibraryManagement = React.lazy(() => import('./pages/admin/LibraryManagement'))
+const BehaviorRecordsAdmin = React.lazy(() => import('./pages/admin/BehaviorRecords'))
+const ContactQueries = React.lazy(() => import('./pages/admin/ContactQueries'))
+const AnalyticsStudentRank = React.lazy(() => import('./pages/admin/AnalyticsStudentRank'))
+const Forms = React.lazy(() => import('./pages/Forms'))
+const FacultyNotices = React.lazy(() => import('./pages/faculty/Notices'))
+const FacultyTests = React.lazy(() => import('./pages/faculty/Tests'))
+const FacultyTestResults = React.lazy(() => import('./pages/faculty/TestResults'))
+const FacultyAttendanceSelf = React.lazy(() => import('./pages/faculty/AttendanceSelf'))
+const AdminFacultyTimetable = React.lazy(() => import('./pages/admin/FacultyTimetable'))
+const FacultyTimetable = React.lazy(() => import('./pages/faculty/FacultyTimetable'))
+const AdminCertificates = React.lazy(() => import('./pages/admin/Certificates'))
+const AdminAdmitCards = React.lazy(() => import('./pages/admin/AdmitCards'))
+const AdminReportCard = React.lazy(() => import('./pages/admin/ReportCard'))
+const FacultyCertificates = React.lazy(() => import('./pages/faculty/Certificates'))
+const FacultyAdmitCards = React.lazy(() => import('./pages/faculty/AdmitCards'))
+const FacultyReportCard = React.lazy(() => import('./pages/faculty/ReportCard'))
+const GalleryAdmin = React.lazy(() => import('./pages/admin/Gallery'))
+const StudentTransport = React.lazy(() => import('./pages/student/Transport'))
+const StudentCertificates = React.lazy(() => import('./pages/student/Certificates'))
+const StudentAdmitCards = React.lazy(() => import('./pages/student/AdmitCards'))
+const StudentReportCard = React.lazy(() => import('./pages/student/ReportCard'))
+const StudentMarks = React.lazy(() => import('./pages/student/Marks'))
+const AdminSalary = React.lazy(() => import('./pages/AdminSalary'))
+const AdminStaffSalary = React.lazy(() => import('./pages/AdminStaffSalary'))
+const StaffSalary = React.lazy(() => import('./pages/StaffSalary'))
+const FacultySalary = React.lazy(() => import('./pages/FacultySalary'))
+const AdminCardManagement = React.lazy(() => import('./pages/admin/CardManagement'))
+const StudentCard = React.lazy(() => import('./pages/student/Card'))
+const StudentHostel = React.lazy(() => import('./pages/student/Hostel'))
+const AdminStaff = React.lazy(() => import('./pages/admin/Staff'))
+const AdminHr = React.lazy(() => import('./pages/admin/Hr'))
+const AdminHostelManagement = React.lazy(() => import('./pages/admin/HostelManagement'))
+const AdminHouseManagement = React.lazy(() => import('./pages/admin/HouseManagement'))
+const AdminTransportManagement = React.lazy(() => import('./pages/admin/TransportManagement'))
+const FacultyCard = React.lazy(() => import('./pages/faculty/Card'))
+const FacultyHouseManagement = React.lazy(() => import('./pages/faculty/HouseManagement'))
+const StaffLayout = React.lazy(() => import('./components/staff/StaffLayout'))
+const StaffDashboard = React.lazy(() => import('./pages/staff/Dashboard'))
+const StaffNotices = React.lazy(() => import('./pages/staff/Notices'))
+const StaffMeeting = React.lazy(() => import('./pages/staff/Meeting'))
+const StaffCard = React.lazy(() => import('./pages/staff/Card'))
+const StaffProfile = React.lazy(() => import('./pages/staff/Profile'))
+const StaffCalendar = React.lazy(() => import('./pages/StaffCalendar'))
+const StaffAttendance = React.lazy(() => import('./pages/StaffAttendance'))
+const StaffCertificates = React.lazy(() => import('./pages/staff/Certificates'))
+const BehaviorRecordsFaculty = React.lazy(() => import('./pages/faculty/BehaviorRecords'))
+const LessonPlan = React.lazy(() => import('./pages/faculty/LessonPlan'))
 
 function App() {
   // Listen for global logout events from other tabs
@@ -162,7 +163,8 @@ function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastContainer position="top-right" autoClose={3000} />
-      <Routes>
+      <Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
+        <Routes>
         <Route path="/start" element={<Start />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         {/* Staff login */}
@@ -306,7 +308,8 @@ function App() {
         <Route path="/faculty/notices" element={<Protected role="faculty"><FacultyNotices /></Protected>} />
         <Route path="/faculty/behavior-records" element={<Protected role="faculty"><BehaviorRecordsFaculty /></Protected>} />
         <Route path="/faculty/lesson-plan" element={<Protected role="faculty"><LessonPlan /></Protected>} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }
