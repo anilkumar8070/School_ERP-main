@@ -23,7 +23,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      MONGO_URI: mongodb://mongo:27017/erp_backend
+      MONGODB_URI: mongodb://mongo:27017/school_erp
     depends_on:
       - mongo
 
