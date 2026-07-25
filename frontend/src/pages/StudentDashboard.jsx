@@ -1,44 +1,119 @@
 import React, { useEffect, useState } from 'react'
+import { FaArrowRight, FaBookOpen, FaCalendarAlt, FaClipboardCheck, FaComments, FaFileAlt, FaGraduationCap, FaLayerGroup, FaRegClock } from 'react-icons/fa'
 import { getMyMeetings } from '../api'
+
+const quickLinks = [
+    { title: 'Meetings', text: 'Live sessions and parent-teacher conversations.', href: '/student/meeting', icon: FaComments },
+    { title: 'Resources', text: 'Notes, files, study material, and downloads.', href: '/student/resources', icon: FaBookOpen },
+    { title: 'Assignments', text: 'Submit work and track what is pending.', href: '/student/assignments', icon: FaClipboardCheck },
+    { title: 'Notices', text: 'Announcements that matter today.', href: '/student/notices', icon: FaFileAlt },
+    { title: 'Attendance', text: 'Presence summary and leave history.', href: '/student/attendance', icon: FaLayerGroup },
+    { title: 'Calendar', text: 'Upcoming school events and academic rhythm.', href: '/student/calendar', icon: FaCalendarAlt },
+]
 
 export default function StudentDashboard() {
     const profileRaw = (() => {
         try { return localStorage.getItem('student_profile') } catch (e) { return null }
     })()
     const profile = profileRaw ? JSON.parse(profileRaw) : { name: 'Student' }
+    const firstName = (profile.name || 'Student').split(' ')[0]
 
     return (
-        <div className="student-dashboard">
-            <header className="mb-8">
-                <h2 className="text-3xl font-bold text-main mb-2">Welcome, {profile.name || 'Student'}</h2>
-                <p className="text-muted">Use the quick links below or the sidebar to navigate your student panel.</p>
-            </header>
+        <div className="parent-page parent-dashboard-shell">
+            <section className="dashboard-header parent-hero-card">
+                <div className="header-inner parent-hero-copy">
+                    <div className="parent-kicker"><FaGraduationCap /> Student workspace</div>
+                    <h2>Welcome back, {firstName}.</h2>
+                    <p>
+                        Your academic day, meetings, work, attendance, and notices are organized here with less noise and more focus.
+                    </p>
+                    <div className="parent-hero-actions">
+                        <a className="btn-primary" href="/student/assignments">Open Assignments</a>
+                        <a className="btn-secondary" href="/student/tests">Start Tests</a>
+                    </div>
+                </div>
 
-            <section className="card mb-6 p-6">
-                <h3 className="text-xl font-bold text-main mb-4">Upcoming Meetings</h3>
-                <MeetingList />
+                <div className="parent-hero-panel">
+                    <div className="parent-hero-chip">
+                        <span>Overview</span>
+                        <strong>At a glance</strong>
+                    </div>
+                    <div className="parent-hero-grid">
+                        <div>
+                            <span>Attendance</span>
+                            <strong>96%</strong>
+                        </div>
+                        <div>
+                            <span>Assignments</span>
+                            <strong>08</strong>
+                        </div>
+                        <div>
+                            <span>Tests</span>
+                            <strong>03</strong>
+                        </div>
+                        <div>
+                            <span>Notices</span>
+                            <strong>02</strong>
+                        </div>
+                    </div>
+                </div>
             </section>
-            <div className="cards">
-                <a className="card" href="/student/meeting">
-                    <div className="card-title">Meetings</div>
-                </a>
-                <a className="card" href="/student/resources">
-                    <div className="card-title">Student Resources</div>
-                </a>
-                <a className="card" href="/student/assignments">
-                    <div className="card-title">Assignment Hub</div>
-                </a>
 
-                <a className="card" href="/student/notices">
-                    <div className="card-title">Notices</div>
-                </a>
-                <a className="card" href="/student/attendance">
-                    <div className="card-title">Attendance</div>
-                </a>
-                <a className="card" href="/student/calendar">
-                    <div className="card-title">Academic Calendar</div>
-                </a>
-            </div>
+            <section className="dashboard-cards parent-dashboard-cards">
+                <article className="stat-card parent-dashboard-card">
+                    <div className="stat-icon" aria-hidden="true"><FaLayerGroup /></div>
+                    <div className="stat-body">
+                        <div className="stat-title">Attendance</div>
+                        <div className="stat-value">96%</div>
+                        <div className="text-subtle" style={{ marginTop: 4 }}>Current session</div>
+                    </div>
+                </article>
+                <article className="stat-card parent-dashboard-card">
+                    <div className="stat-icon" aria-hidden="true"><FaClipboardCheck /></div>
+                    <div className="stat-body">
+                        <div className="stat-title">Assignments</div>
+                        <div className="stat-value">08</div>
+                        <div className="text-subtle" style={{ marginTop: 4 }}>Active tasks</div>
+                    </div>
+                </article>
+                <article className="stat-card parent-dashboard-card">
+                    <div className="stat-icon" aria-hidden="true"><FaFileAlt /></div>
+                    <div className="stat-body">
+                        <div className="stat-title">Tests</div>
+                        <div className="stat-value">03</div>
+                        <div className="text-subtle" style={{ marginTop: 4 }}>Ready to attempt</div>
+                    </div>
+                </article>
+                <article className="stat-card parent-dashboard-card">
+                    <div className="stat-icon" aria-hidden="true"><FaCalendarAlt /></div>
+                    <div className="stat-body">
+                        <div className="stat-title">Schedule</div>
+                        <div className="stat-value">05</div>
+                        <div className="text-subtle" style={{ marginTop: 4 }}>Classes today</div>
+                    </div>
+                </article>
+            </section>
+
+            <section className="parent-dashboard-grid">
+                <article className="parent-dashboard-card parent-panel-card">
+                    <div className="student-section-title">
+                        <div>
+                            <span><FaComments /> Meetings</span>
+                            <h2>Upcoming Meetings</h2>
+                        </div>
+                        <a href="/student/meeting">View all</a>
+                    </div>
+                    <MeetingList />
+                </article>
+
+                <article className="parent-dashboard-card parent-panel-card" style={{ padding: '24px' }}>
+                    <div style={{ padding: '16px 0' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--erp-muted)', letterSpacing: '0.08em' }}>Focus cue</span>
+                        <h2 style={{ fontSize: '24px', color: 'var(--erp-ink)', margin: '12px 0', lineHeight: '1.4' }}>Keep one tab open, finish one thing, then move.</h2>
+                        <p style={{ color: 'var(--erp-text)', lineHeight: '1.6' }}>Small progress compounds. Start with assignments, then review notices and calendar.</p>
+                    </div>
+                </article>
+            </section>
         </div>
     )
 }
@@ -68,33 +143,25 @@ function MeetingList() {
         return () => { mounted = false }
     }, [token])
 
-    if (loading) return <div className="text-muted p-4 text-center">Loading meetings...</div>
-    if (!meetings || meetings.length === 0) return <div className="text-muted p-4 text-center border border-dashed border-subtle rounded-lg">No upcoming meetings.</div>
+    if (loading) return <div className="student-empty-state">Loading meetings...</div>
+    if (!meetings || meetings.length === 0) return <div className="student-empty-state">No upcoming meetings.</div>
 
     return (
-        <div className="space-y-3">
+        <div className="student-meeting-list">
             {meetings.map(m => (
-                <div key={m._id} className="p-4 rounded-lg border border-subtle bg-surface hover:border-primary/30 transition-all">
-                    <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1">
-                            <h4 className="font-bold text-main text-lg mb-1">{m.title}</h4>
-                            <div className="text-sm text-primary font-medium mb-1">{new Date(m.datetime).toLocaleString()}</div>
-                            <p className="text-sm text-muted">{m.summary}</p>
-                        </div>
-                        <div className="flex-shrink-0">
-                            {(() => {
-                                try {
-                                    const dt = new Date(m.datetime)
-                                    const now = new Date()
-                                    if (dt.getTime() <= now.getTime()) {
-                                        return <span className="badge gray">Expired</span>
-                                    }
-                                } catch (e) { }
-                                if (m.link) return <a className="btn primary sm" href={m.link} target="_blank" rel="noreferrer">Join Meeting</a>
-                                return <span className="badge gray">No link</span>
-                            })()}
-                        </div>
+                <div key={m._id} className="student-meeting-item">
+                    <div>
+                        <h4>{m.title}</h4>
+                        <span>{new Date(m.datetime).toLocaleString()}</span>
+                        <p>{m.summary}</p>
                     </div>
+                    {(() => {
+                        try {
+                            if (new Date(m.datetime).getTime() <= new Date().getTime()) return <span className="student-status">Expired</span>
+                        } catch (e) { }
+                        if (m.link) return <a className="student-mini-btn" href={m.link} target="_blank" rel="noreferrer">Join</a>
+                        return <span className="student-status">No link</span>
+                    })()}
                 </div>
             ))}
         </div>

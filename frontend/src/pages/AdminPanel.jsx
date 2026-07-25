@@ -46,67 +46,80 @@ export default function AdminPanel() {
 
     return (
         <AdminLayout>
-            <div className="admin-page">
-                {/* Dashboard Welcome Section */}
-                <div className="dashboard-header">
-                    <div className="welcome-text">
-                        <h2>Welcome back, Admin!</h2>
-                        <p>Here's what's happening with your school today.</p>
-                    </div>
-                    <div className="system-status">
-                        <span className="status-dot"></span> System Online
-                    </div>
-                </div>
-
-                {/* Stats Grid - 4 Columns */}
-                <div className="dashboard-stats-grid">
-
-                    {/* Card 1: Total Students */}
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper text-purple">
-                            <FiUsers className="stat-icon-svg" />
+            <div className="parent-page parent-dashboard-shell">
+                <section className="dashboard-header parent-hero-card">
+                    <div className="header-inner parent-hero-copy">
+                        <div className="parent-kicker"><FiBriefcase /> Admin workspace</div>
+                        <h2>Welcome back, Admin.</h2>
+                        <p>
+                            Oversee school operations, manage students and faculty, and track finances from your command center.
+                        </p>
+                        <div className="parent-hero-actions">
+                            <a className="btn-primary" href="/admin/students">Manage Students</a>
+                            <a className="btn-secondary" href="/admin/finance">View Finances</a>
                         </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Total Students</span>
+                    </div>
+
+                    <div className="parent-hero-panel">
+                        <div className="parent-hero-chip">
+                            <span>Overview</span>
+                            <strong>At a glance</strong>
+                        </div>
+                        <div className="parent-hero-grid">
+                            <div>
+                                <span>Students</span>
+                                <strong>{formatNumber(counts.students)}</strong>
+                            </div>
+                            <div>
+                                <span>Teachers</span>
+                                <strong>{formatNumber(counts.teachers)}</strong>
+                            </div>
+                            <div>
+                                <span>Classes</span>
+                                <strong>{formatNumber(counts.classes)}</strong>
+                            </div>
+                            <div>
+                                <span>Revenue</span>
+                                <strong>₹{formatNumber(counts.fees)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="dashboard-cards parent-dashboard-cards">
+                    <article className="stat-card parent-dashboard-card">
+                        <div className="stat-icon" aria-hidden="true"><FiUsers /></div>
+                        <div className="stat-body">
+                            <div className="stat-title">Total Students</div>
                             <div className="stat-value">{formatNumber(counts.students)}</div>
+                            <div className="text-subtle" style={{ marginTop: 4 }}>Active enrolled</div>
                         </div>
-                    </div>
-
-                    {/* Card 2: Attendance Rate */}
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper text-green">
-                            <FiCheckCircle className="stat-icon-svg" />
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Attendance Rate</span>
+                    </article>
+                    <article className="stat-card parent-dashboard-card">
+                        <div className="stat-icon" aria-hidden="true"><FiCheckCircle /></div>
+                        <div className="stat-body">
+                            <div className="stat-title">Attendance Rate</div>
                             <div className="stat-value">0%</div>
+                            <div className="text-subtle" style={{ marginTop: 4 }}>Today's average</div>
                         </div>
-                    </div>
-
-                    {/* Card 3: Fee Collection */}
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper text-teal">
-                            <FiDollarSign className="stat-icon-svg" />
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Fee Collection</span>
+                    </article>
+                    <article className="stat-card parent-dashboard-card">
+                        <div className="stat-icon" aria-hidden="true"><FiDollarSign /></div>
+                        <div className="stat-body">
+                            <div className="stat-title">Fee Collection</div>
                             <div className="stat-value">₹{formatNumber(counts.fees)}</div>
+                            <div className="text-subtle" style={{ marginTop: 4 }}>Total revenue</div>
                         </div>
-                    </div>
-
-                    {/* Card 4: Faculty Members */}
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper text-orange">
-                            <FiBriefcase className="stat-icon-svg" />
-                        </div>
-                        <div className="stat-content">
-                            <span className="stat-label">Faculty Members</span>
+                    </article>
+                    <article className="stat-card parent-dashboard-card">
+                        <div className="stat-icon" aria-hidden="true"><FiBriefcase /></div>
+                        <div className="stat-body">
+                            <div className="stat-title">Faculty Members</div>
                             <div className="stat-value">{formatNumber(counts.teachers)}</div>
+                            <div className="text-subtle" style={{ marginTop: 4 }}>Active staff</div>
                         </div>
-                    </div>
-
-                </div>
-
+                    </article>
+                </section>
             </div>
         </AdminLayout>
     )

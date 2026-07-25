@@ -157,8 +157,8 @@ let corsOptions = undefined;
   }
 }
 app.use(cors(corsOptions));
-// When running behind a proxy (Render, etc.) enable trust proxy so req.ip and secure checks work correctly
-app.set('trust proxy', true);
+// Trust the first proxy hop for hosted environments without allowing spoofed client IPs.
+app.set('trust proxy', 1);
 
 // Production-grade security headers
 app.use(helmet({
@@ -1644,7 +1644,12 @@ const helpers = {
     fs: typeof fs !== 'undefined' ? fs : require('fs'),
     path: typeof path !== 'undefined' ? path : require('path'),
     bcrypt: typeof bcrypt !== 'undefined' ? bcrypt : require('bcryptjs'),
-    jwt: typeof jwt !== 'undefined' ? jwt : require('jsonwebtoken')
+    jwt: typeof jwt !== 'undefined' ? jwt : require('jsonwebtoken'),
+    findByUsername,
+    getDbConnected: () => dbConnected,
+    setDbConnected: (value) => {
+        dbConnected = Boolean(value);
+    }
 };
 
 const transportRoutes = require('./routes/transportRoutes')(helpers);

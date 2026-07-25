@@ -165,7 +165,7 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} />
       <Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
         <Routes>
-        <Route path="/start" element={<Start />} />
+        <Route path="/start" element={<Navigate to="/" replace />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         {/* Staff login */}
         <Route path="/staff-login" element={<StaffLogin />} />
@@ -304,7 +304,7 @@ function App() {
 
         <Route path="/student/profile" element={<Protected role="student"><StudentLayout><StudentProfile /></StudentLayout></Protected>} />
 
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Start />} />
         <Route path="/faculty/notices" element={<Protected role="faculty"><FacultyNotices /></Protected>} />
         <Route path="/faculty/behavior-records" element={<Protected role="faculty"><BehaviorRecordsFaculty /></Protected>} />
         <Route path="/faculty/lesson-plan" element={<Protected role="faculty"><LessonPlan /></Protected>} />
