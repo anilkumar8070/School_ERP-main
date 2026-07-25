@@ -1,0 +1,1030 @@
+/*
+  ERP-School UI refresh layer.
+  Loaded last so it can harmonize legacy page styles without changing page logic.
+*/
+
+:root {
+    --erp-ink: #3f2d08;
+    --erp-text: #47330b;
+    --erp-muted: #746139;
+    --erp-soft: #fffdf4;
+    --erp-paper: rgba(255, 255, 255, 0.92);
+    --erp-card: #ffffff;
+    --erp-yellow: #f6c445;
+    --erp-yellow-deep: #d99a15;
+    --erp-yellow-soft: #fff4bf;
+    --erp-border: #f0d58a;
+    --erp-border-soft: rgba(180, 125, 0, 0.18);
+    --erp-shadow: 0 18px 45px rgba(180, 125, 0, 0.12);
+    --erp-shadow-strong: 0 28px 70px rgba(180, 125, 0, 0.16);
+}
+
+body {
+    background:
+        radial-gradient(circle at 90% 8%, rgba(246, 196, 69, 0.16), transparent 28rem),
+        radial-gradient(circle at 8% 82%, rgba(255, 244, 191, 0.92), transparent 30rem),
+        #fffdf4;
+}
+
+.admin-root.light,
+.faculty-root.light,
+.student-app.light,
+.parent-root,
+.staff-root,
+.parent-app,
+.staff-app {
+    --primary: var(--erp-yellow-deep) !important;
+    --primary-glow: rgba(246, 196, 69, 0.28) !important;
+    --secondary: var(--erp-yellow) !important;
+    --accent: #d99a15 !important;
+    --bg-main: #fffdf4 !important;
+    --bg-card: rgba(255, 255, 255, 0.92) !important;
+    --bg-sidebar: rgba(255, 255, 255, 0.96) !important;
+    --bg-glass: rgba(255, 255, 255, 0.78) !important;
+    --bg-surface: rgba(246, 196, 69, 0.13) !important;
+    --bg-hover: rgba(246, 196, 69, 0.15) !important;
+    --text-main: var(--erp-ink) !important;
+    --text-muted: var(--erp-muted) !important;
+    --text-light: #9b8655 !important;
+    --border: var(--erp-border-soft) !important;
+    --border-subtle: rgba(180, 125, 0, 0.10) !important;
+    --shadow-sm: 0 12px 32px rgba(180, 125, 0, 0.08) !important;
+    --shadow-md: var(--erp-shadow) !important;
+    --shadow-lg: var(--erp-shadow-strong) !important;
+    background:
+        radial-gradient(circle at 92% 10%, rgba(246, 196, 69, 0.16), transparent 26rem),
+        linear-gradient(135deg, #fffdf4, #fff8d8) !important;
+    color: var(--erp-text) !important;
+}
+
+.admin-content,
+.faculty-content,
+.student-main,
+.parent-main,
+.staff-main,
+.main-content {
+    background:
+        radial-gradient(circle at 88% 8%, rgba(246, 196, 69, 0.13), transparent 26rem),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 244, 191, 0.34)) !important;
+    min-height: 100vh;
+}
+
+.admin-card,
+.card,
+.card-panel,
+.quick-card,
+.faculty-form-card,
+.assignment-form-card,
+.timetable-card,
+.student-page .card,
+.student-panel-card,
+.student-action-card,
+.parent-card,
+.staff-card,
+.dashboard-header,
+.stat-card,
+.table-container,
+.students-table-wrap,
+.profile-panel {
+    background: var(--erp-paper) !important;
+    border: 1px solid var(--erp-border-soft) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--erp-shadow) !important;
+    color: var(--erp-text) !important;
+}
+
+.admin-card:hover,
+.card:hover,
+.quick-card:hover,
+.stat-card:hover,
+.student-page .card:hover,
+.student-action-card:hover,
+.parent-card:hover,
+.staff-card:hover {
+    border-color: rgba(217, 154, 21, 0.36) !important;
+    box-shadow: var(--erp-shadow-strong) !important;
+    transform: translateY(-3px);
+}
+
+.admin-page-header,
+.dashboard-header,
+.faculty-search-header,
+.student-section-title {
+    border-bottom: 1px solid rgba(180, 125, 0, 0.10);
+    padding-bottom: 14px;
+}
+
+.admin-page-header h2,
+.dashboard-header h2,
+.welcome-text h2,
+.faculty-page h2,
+.student-page h3,
+.results-title,
+.ts-title {
+    color: var(--erp-ink) !important;
+    letter-spacing: 0 !important;
+}
+
+.admin-page-header h2::first-letter,
+.faculty-page h2::first-letter,
+.student-page h3::first-letter,
+.results-title::first-letter,
+.ts-title::first-letter {
+    color: var(--erp-yellow-deep);
+}
+
+.admin-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-root select,
+.admin-root textarea,
+.faculty-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.faculty-root select,
+.faculty-root textarea,
+.student-app input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.student-app select,
+.student-app textarea,
+.parent-root input,
+.parent-root select,
+.parent-root textarea,
+.staff-root input,
+.staff-root select,
+.staff-root textarea {
+    background: #fffaf0 !important;
+    border: 1px solid var(--erp-border) !important;
+    border-radius: 8px !important;
+    color: var(--erp-text) !important;
+}
+
+.admin-root input:focus,
+.admin-root select:focus,
+.admin-root textarea:focus,
+.faculty-root input:focus,
+.faculty-root select:focus,
+.faculty-root textarea:focus,
+.student-app input:focus,
+.student-app select:focus,
+.student-app textarea:focus {
+    border-color: var(--erp-yellow-deep) !important;
+    box-shadow: 0 0 0 4px rgba(246, 196, 69, 0.22) !important;
+    outline: none !important;
+}
+
+.btn,
+.btn-primary,
+.action-btn,
+.card-btn,
+.admin-root button[type="submit"],
+.faculty-root button[type="submit"],
+.student-app button[type="submit"],
+.parent-root button[type="submit"],
+.staff-root button[type="submit"] {
+    border-radius: 8px !important;
+    font-weight: 850 !important;
+}
+
+.btn.primary,
+.btn.blue,
+.btn-primary,
+.action-btn.primary,
+.admin-root button[type="submit"],
+.faculty-root button[type="submit"],
+.student-app button[type="submit"],
+.parent-root button[type="submit"],
+.staff-root button[type="submit"] {
+    background: #f6c445 !important;
+    border: 1px solid #f0ba2b !important;
+    color: #47330b !important;
+    box-shadow: 0 14px 28px rgba(180, 125, 0, 0.16) !important;
+}
+
+.btn.primary:hover,
+.btn.blue:hover,
+.btn-primary:hover,
+.action-btn.primary:hover,
+.admin-root button[type="submit"]:hover,
+.faculty-root button[type="submit"]:hover,
+.student-app button[type="submit"]:hover {
+    background: #eab532 !important;
+    color: #47330b !important;
+    transform: translateY(-2px);
+}
+
+.btn.outline,
+.action-btn,
+.btn.secondary,
+.btn.purple {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border: 1px solid var(--erp-border) !important;
+    color: #9a6a00 !important;
+    box-shadow: none !important;
+}
+
+.admin-table th,
+.data-table th,
+.students-table thead th,
+.student-table th {
+    background: #fff4bf !important;
+    color: #47330b !important;
+    border-bottom: 1px solid var(--erp-border) !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+
+.admin-table td,
+.data-table td,
+.students-table tbody td,
+.student-table td {
+    background: rgba(255, 255, 255, 0.74) !important;
+    color: var(--erp-text) !important;
+    border-color: rgba(180, 125, 0, 0.12) !important;
+}
+
+.admin-table tr:hover td,
+.data-table tr:hover td,
+.students-table tbody tr:hover td,
+.student-table tr:hover td {
+    background: rgba(255, 244, 191, 0.42) !important;
+}
+
+.badge-blue,
+.badge.blue {
+    background: #fff4bf !important;
+    border-color: var(--erp-border) !important;
+    color: #9a6a00 !important;
+}
+
+.admin-sidebar-new,
+.student-sidebar-new,
+.faculty-sidebar,
+.faculty-sidebar-new,
+.parent-sidebar,
+.staff-sidebar,
+.staff-sidebar-new {
+    background: linear-gradient(180deg, #47330b, #2a1e05) !important;
+    border-right: 1px solid rgba(246, 196, 69, 0.2) !important;
+    box-shadow: 18px 0 45px rgba(0, 0, 0, 0.2) !important;
+    color: #fffdf4 !important;
+}
+
+.sidebar-brand {
+    background: none !important;
+    color: #f6c445 !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+
+.menu-link,
+.submenu-link,
+.faculty-sidebar nav button,
+.student-sidebar nav a {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-radius: 8px !important;
+}
+
+.menu-link:hover,
+.submenu-link:hover,
+.faculty-sidebar nav button:hover,
+.student-sidebar nav a:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    transform: translateX(3px);
+}
+
+.menu-link.active,
+.submenu-link.active,
+.faculty-sidebar nav button.active,
+.student-sidebar nav a.active {
+    background: #f6c445 !important;
+    color: #47330b !important;
+    border-color: #f0ba2b !important;
+    box-shadow: 0 14px 28px rgba(180, 125, 0, 0.16) !important;
+}
+
+.menu-icon,
+.student-sidebar-new .menu-icon {
+    background: rgba(246, 196, 69, 0.18) !important;
+    color: #9a6a00 !important;
+}
+
+.student-header,
+.faculty-header,
+.admin-header,
+.parent-header,
+.staff-header {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-bottom: 1px solid var(--erp-border-soft) !important;
+    box-shadow: 0 18px 45px rgba(180, 125, 0, 0.10) !important;
+    backdrop-filter: blur(16px);
+}
+
+.student-title,
+.faculty-title {
+    color: var(--erp-ink) !important;
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+
+.student-footer,
+.faculty-footer,
+.parent-footer,
+.staff-footer {
+    background: #fff4bf !important;
+    border-top: 1px solid var(--erp-border) !important;
+    color: #47330b !important;
+    font-weight: 800;
+}
+
+/* Parent + staff panels share the parent-* shell classes. */
+.parent-root {
+    --parent-header-height: 72px !important;
+    --primary: var(--erp-yellow-deep) !important;
+    --bg-main: #fffdf4 !important;
+    --bg-card: rgba(255, 255, 255, 0.92) !important;
+    --bg-sidebar: rgba(255, 255, 255, 0.96) !important;
+    --bg-hover: rgba(246, 196, 69, 0.15) !important;
+    --text-main: var(--erp-ink) !important;
+    --text-muted: var(--erp-muted) !important;
+    --border: var(--erp-border-soft) !important;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(246, 196, 69, 0.16), transparent 26rem),
+        linear-gradient(135deg, #fffdf4, #fff8d8) !important;
+}
+
+.parent-content {
+    margin-top: 72px !important;
+    padding: clamp(16px, 2.5vw, 28px) !important;
+    background:
+        radial-gradient(circle at 88% 8%, rgba(246, 196, 69, 0.13), transparent 26rem),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 244, 191, 0.34)) !important;
+}
+
+.parent-header,
+.faculty-header,
+.admin-header,
+.student-header,
+.staff-header {
+    height: 72px !important;
+    padding: 0 clamp(16px, 2.5vw, 26px) !important;
+}
+
+.header-spacer {
+    flex: 1 !important;
+}
+
+.parent-header .hamburger,
+.parent-header .hemensburg,
+.faculty-header .hamburger,
+.faculty-header .hemensburg,
+.admin-header .hamburger,
+.admin-header .hemensburg,
+.student-header .hamburger,
+.student-header .hemensburg,
+.staff-header .hamburger,
+.staff-header .hemensburg,
+.theme-toggle-btn,
+.parent-root .profile-btn,
+.profile-btn {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
+    background: #fff4bf !important;
+    color: #47330b !important;
+    border: 1px solid var(--erp-border) !important;
+    box-shadow: 0 12px 24px rgba(180, 125, 0, 0.12) !important;
+}
+
+.parent-header .hamburger span,
+.parent-header .hemensburg .cell,
+.faculty-header .hamburger span,
+.faculty-header .hemensburg .cell,
+.admin-header .hamburger span,
+.admin-header .hemensburg .cell,
+.student-header .hamburger span,
+.student-header .hemensburg .cell,
+.staff-header .hamburger span,
+.staff-header .hemensburg .cell {
+    background: #47330b !important;
+}
+
+.avatar-placeholder {
+    background: #f6c445 !important;
+    color: #47330b !important;
+    font-weight: 800 !important;
+    border: 1px solid rgba(71, 51, 11, 0.1) !important;
+}
+
+.parent-title {
+    color: var(--erp-ink) !important;
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    letter-spacing: 0.08em;
+}
+
+.parent-sidebar {
+    top: 72px !important;
+    bottom: 40px !important;
+    width: 290px !important;
+    padding: 18px 14px !important;
+}
+
+.parent-content.sidebar-open {
+    margin-left: 290px !important;
+}
+
+.parent-root .profile-panel {
+    background: #ffffff !important;
+    border: 1px solid var(--erp-border-soft) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--erp-shadow-strong) !important;
+}
+
+.parent-root .profile-item:hover {
+    background: rgba(246, 196, 69, 0.14) !important;
+}
+
+.parent-root .message-card,
+.parent-root .chat-panel,
+.parent-root .chat-frame,
+.parent-root .meeting-item,
+.parent-root .meetings-empty,
+.parent-root .meetings-loading,
+.staff-dashboard-card,
+.parent-dashboard-card,
+.parent-progress-card,
+.parent-attendance-card,
+.parent-notice-card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid var(--erp-border-soft) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--erp-shadow) !important;
+    color: var(--erp-text) !important;
+}
+
+.parent-dashboard-shell {
+    display: grid;
+    gap: 22px;
+    padding-bottom: 12px;
+}
+
+.parent-dashboard-shell a {
+    text-decoration: none;
+}
+
+.parent-hero-card {
+    display: grid;
+    grid-template-columns: 1.35fr 0.95fr;
+    gap: 18px;
+    align-items: stretch;
+    padding: 28px !important;
+    border-radius: 28px !important;
+    background:
+        radial-gradient(circle at top right, rgba(246, 196, 69, 0.34), transparent 26%),
+        linear-gradient(135deg, rgba(71, 51, 11, 0.98), rgba(110, 79, 16, 0.92) 58%, rgba(255, 244, 191, 0.98) 58.5%, rgba(255, 250, 231, 0.98) 100%) !important;
+    color: #fff8e1 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.parent-hero-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.22), transparent 16%),
+        radial-gradient(circle at 84% 22%, rgba(255, 255, 255, 0.12), transparent 18%),
+        radial-gradient(circle at 72% 80%, rgba(255, 193, 7, 0.16), transparent 24%);
+    pointer-events: none;
+}
+
+.parent-hero-copy,
+.parent-hero-panel,
+.parent-dashboard-grid,
+.parent-dashboard-actions {
+    position: relative;
+    z-index: 1;
+}
+
+.parent-hero-copy {
+    display: grid;
+    gap: 14px;
+}
+
+.parent-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 250, 231, 0.16);
+    border: 1px solid rgba(255, 244, 191, 0.22);
+    color: #fff8e1;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.parent-hero-copy h2,
+.parent-panel-card h2,
+.quick-card-title,
+.notice-title,
+.mi-title,
+.stat-title {
+    font-family: 'Trebuchet MS', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+.parent-hero-copy h2 {
+    margin: 0;
+    font-size: clamp(2.1rem, 4vw, 3.45rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    color: #fffdf4;
+}
+
+.parent-hero-copy p {
+    margin: 0;
+    max-width: 56ch;
+    color: rgba(255, 248, 225, 0.88);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.parent-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.parent-hero-actions .btn-primary,
+.parent-hero-actions .btn-secondary {
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.parent-hero-actions .btn-primary {
+    background: #f6c445;
+    color: #47330b;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.parent-hero-actions .btn-secondary {
+    background: rgba(255, 250, 231, 0.16);
+    color: #fff8e1;
+    border: 1px solid rgba(255, 244, 191, 0.24);
+}
+
+.parent-hero-panel {
+    display: grid;
+    align-content: space-between;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--erp-text);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: var(--erp-shadow-strong);
+}
+
+.parent-hero-chip {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 3px;
+    width: fit-content;
+    padding: 10px 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #47330b, #6f5216);
+    color: #fff8e1;
+    box-shadow: 0 14px 24px rgba(71, 51, 11, 0.18);
+}
+
+.parent-hero-chip span,
+.parent-hero-chip strong {
+    display: block;
+}
+
+.parent-hero-chip span {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.parent-hero-chip strong {
+    font-size: 18px;
+}
+
+.parent-hero-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.parent-hero-grid div {
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fffdf4, #fff4bf);
+    border: 1px solid rgba(180, 125, 0, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.parent-hero-grid span {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--erp-muted);
+    margin-bottom: 8px;
+}
+
+.parent-hero-grid strong {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--erp-ink);
+}
+
+.parent-dashboard-cards {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.parent-dashboard-cards .stat-card,
+.parent-dashboard-actions .parent-action-card,
+.parent-panel-card {
+    border-radius: 22px !important;
+}
+
+.parent-dashboard-cards .stat-card {
+    padding: 18px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 249, 220, 0.92)) !important;
+}
+
+.parent-dashboard-cards .stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #47330b;
+    background: linear-gradient(135deg, #f6c445, #fff4bf);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.parent-dashboard-cards .stat-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--erp-muted);
+}
+
+.parent-dashboard-cards .stat-value {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 800;
+    color: var(--erp-ink);
+}
+
+.parent-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.parent-panel-card {
+    padding: 20px !important;
+    display: grid;
+    gap: 16px;
+}
+
+.parent-panel-card .student-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 12px;
+}
+
+.parent-panel-card .student-section-title span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--erp-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.parent-panel-card .student-section-title h2 {
+    margin: 5px 0 0;
+    font-size: 24px;
+    color: var(--erp-ink);
+}
+
+.parent-panel-card .student-section-title a {
+    color: var(--erp-yellow-deep);
+    font-weight: 800;
+}
+
+.parent-list {
+    display: grid;
+    gap: 12px;
+}
+
+.parent-list-item {
+    padding: 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fffdf4, #fff7d6);
+    border: 1px solid rgba(180, 125, 0, 0.14);
+}
+
+.parent-list-item.notice-card,
+.parent-list-item.meeting-item {
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.parent-list-item .notice-title,
+.parent-list-item .mi-title {
+    font-size: 18px;
+    color: var(--erp-ink);
+    margin-bottom: 6px;
+}
+
+.parent-list-item .notice-meta,
+.parent-list-item .mi-datetime {
+    color: var(--erp-muted);
+    font-size: 13px;
+}
+
+.parent-list-item .notice-body,
+.parent-list-item .mi-summary {
+    margin-top: 10px;
+    color: var(--erp-text);
+    line-height: 1.6;
+}
+
+.parent-dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.parent-action-card {
+    display: grid;
+    gap: 12px;
+    padding: 18px !important;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(246, 196, 69, 0.18), transparent 34%),
+        linear-gradient(180deg, #ffffff, #fff8dc) !important;
+}
+
+.parent-action-card::after {
+    content: '';
+    position: absolute;
+    right: -24px;
+    top: -24px;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: rgba(246, 196, 69, 0.12);
+    pointer-events: none;
+}
+
+.parent-action-card .qc-top {
+    display: grid;
+    gap: 10px;
+}
+
+.parent-action-card .qc-icon {
+    width: 50px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #47330b, #6f5216);
+    color: #fff8e1;
+    font-size: 20px;
+    box-shadow: 0 14px 26px rgba(71, 51, 11, 0.16);
+}
+
+.parent-action-card .quick-card-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--erp-ink);
+}
+
+.parent-action-card .quick-card-desc {
+    color: var(--erp-text);
+    line-height: 1.6;
+    min-height: 3.2em;
+}
+
+.parent-action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--erp-yellow-deep);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.parent-action-link svg {
+    font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+    .parent-hero-card,
+    .parent-dashboard-grid,
+    .parent-dashboard-actions,
+    .parent-dashboard-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 860px) {
+    .parent-hero-card,
+    .parent-dashboard-grid,
+    .parent-dashboard-actions,
+    .parent-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .parent-hero-card {
+        padding: 20px !important;
+    }
+
+    .parent-hero-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .parent-panel-card .student-section-title {
+        align-items: start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 640px) {
+    .parent-hero-copy h2 {
+        font-size: 2rem;
+    }
+
+    .parent-hero-actions {
+        flex-direction: column;
+    }
+
+    .parent-hero-actions .btn-primary,
+    .parent-hero-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .parent-hero-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .parent-dashboard-shell {
+        gap: 16px;
+    }
+}
+
+.parent-root .chat-header,
+.parent-root .chat-meta {
+    color: var(--erp-muted) !important;
+}
+
+.parent-root .chat-bubble.bubble-right {
+    background: #f6c445 !important;
+    color: #47330b !important;
+}
+
+.parent-root .chat-bubble.bubble-left {
+    background: #fffaf0 !important;
+    color: var(--erp-text) !important;
+    border: 1px solid var(--erp-border-soft) !important;
+}
+
+.parent-root .black-bordered-input {
+    border-color: var(--erp-border) !important;
+    background: #fffaf0 !important;
+}
+
+.staff-dashboard-card h3,
+.staff-dashboard-card p {
+    color: var(--erp-text) !important;
+}
+
+@media (max-width: 768px) {
+    .parent-content.sidebar-open {
+        margin-left: 0 !important;
+    }
+
+    .parent-sidebar {
+        width: 100% !important;
+        bottom: auto !important;
+    }
+}
+
+.system-status,
+.status-badge.paid,
+.badge-green,
+.badge.green {
+    background: #ecfdf5 !important;
+    border: 1px solid #d1fae5 !important;
+    color: #047857 !important;
+}
+
+.status-badge.pending,
+.badge.gray {
+    background: #fff7ed !important;
+    border: 1px solid #fed7aa !important;
+    color: #c2410c !important;
+}
+
+/* Faculty and student feature pages: tame legacy blue/purple accents. */
+.faculty-root.light .faculty-header .faculty-title,
+.student-app.light .student-title {
+    color: var(--erp-ink) !important;
+    text-shadow: none !important;
+}
+
+.faculty-root.light .faculty-dashboard-cards .faculty-card,
+.student-app.light .student-hero-panel,
+.student-app.light .focus-panel {
+    background:
+        linear-gradient(135deg, #47330b 0%, #6f551f 72%, #f6c445 72%, #f6c445 100%) !important;
+    border: 1px solid rgba(180, 125, 0, 0.22) !important;
+    box-shadow: var(--erp-shadow-strong) !important;
+}
+
+.faculty-root.light .faculty-dashboard-cards .faculty-card:nth-child(2),
+.faculty-root.light .faculty-dashboard-cards .faculty-card:nth-child(3) {
+    background:
+        linear-gradient(135deg, #ffffff 0%, #fff4bf 100%) !important;
+    color: var(--erp-text) !important;
+}
+
+.faculty-root.light .faculty-dashboard-cards .faculty-card:nth-child(2) *,
+.faculty-root.light .faculty-dashboard-cards .faculty-card:nth-child(3) * {
+    color: var(--erp-text) !important;
+}
+
+.faculty-root.light .data-table th,
+.faculty-root.light .students-table thead th,
+.student-app.light .student-table th,
+.student-app.light .cal-table th {
+    background: #fff4bf !important;
+    color: #47330b !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+
+.faculty-root.light .data-table td,
+.faculty-root.light .students-table tbody td,
+.student-app.light .student-table td,
+.student-app.light .cal-table td {
+    background: rgba(255, 255, 255, 0.76) !important;
+    color: var(--erp-text) !important;
+}
+
+.faculty-root.light .quick-card .qc-icon,
+.student-app.light .student-action-card > span,
+.student-app.light .subject-badge,
+.student-app.light .student-status {
+    background: #f6c445 !important;
+    color: #47330b !important;
+    border: 1px solid #f0ba2b !important;
+}
+
+.student-app.light .student-hero-actions a,
+.student-app.light .student-mini-btn,
+.student-app.light .student-section-title a {
+    background: #f6c445 !important;
+    color: #47330b !important;
+    border-color: #f0ba2b !important;
+}
+
+.student-app.light .student-hero-actions a:nth-child(2) {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+.student-app.light .assignments-list::-webkit-scrollbar-thumb {
+    background: #f0ba2b !important;
+}
+
+@media (max-width: 768px) {
+    .admin-content,
+    .faculty-content,
+    .student-main {
+        padding: 16px !important;
+    }
+}

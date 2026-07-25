@@ -1,12 +1,54 @@
 import React from 'react'
-import { FaUser, FaLock, FaGoogle, FaFacebookF } from 'react-icons/fa'
+import { FaArrowLeft, FaArrowRight, FaChalkboardTeacher, FaIdBadge, FaLock, FaSchool, FaUser, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
 import './LoginLayout.css'
 
+const ROLE_META = {
+    admin: {
+        icon: FaUserShield,
+        eyebrow: 'Command Center',
+        stat: 'Full Access',
+        items: ['Admissions', 'Finance', 'Approvals'],
+    },
+    student: {
+        icon: FaUserGraduate,
+        eyebrow: 'Learning Desk',
+        stat: 'Daily Focus',
+        items: ['Tests', 'Attendance', 'Resources'],
+    },
+    teacher: {
+        icon: FaChalkboardTeacher,
+        eyebrow: 'Faculty Studio',
+        stat: 'Class Flow',
+        items: ['Marks', 'Assignments', 'Timetable'],
+    },
+    parent: {
+        icon: FaUserFriends,
+        eyebrow: 'Family View',
+        stat: 'Live Updates',
+        items: ['Progress', 'Notices', 'Meetings'],
+    },
+    staff: {
+        icon: FaUserTie,
+        eyebrow: 'Operations Hub',
+        stat: 'Fast Desk',
+        items: ['Receipts', 'Cards', 'Records'],
+    },
+}
+
+function resolveRole(title = '') {
+    const lower = title.toLowerCase()
+    if (lower.includes('admin')) return 'admin'
+    if (lower.includes('student')) return 'student'
+    if (lower.includes('teacher') || lower.includes('faculty')) return 'teacher'
+    if (lower.includes('parent')) return 'parent'
+    if (lower.includes('staff')) return 'staff'
+    return 'student'
+}
+
 const LoginLayout = ({
     title,
-    description = "Hey enter your details to sign in to your account",
-    image,
+    description = 'Enter your portal credentials to continue.',
     username,
     setUsername,
     password,
@@ -15,67 +57,91 @@ const LoginLayout = ({
     loading,
     error,
     signupLink,
-    forgotPasswordLink = "/forgot-password",
-    usernameLabel = "Enter your username/email",
-    passwordLabel = "Enter your password"
+    forgotPasswordLink = '/forgot-password',
+    usernameLabel = 'Username or email',
+    passwordLabel = 'Password'
 }) => {
+    const role = resolveRole(title)
+    const meta = ROLE_META[role]
+    const RoleIcon = meta.icon
+
     return (
-        <div className="login-container">
-            {/* Left Side - Image/Illustration */}
-            <div className="login-image-section" style={{ backgroundImage: `url(${image})` }}>
-                <div className="login-overlay">
-                    {/* Optional text or branding overlay can go here */}
+        <div className={`login-container login-${role}`}>
+            <Link to="/start" className="login-back"><FaArrowLeft /> Back to portal</Link>
+
+            <section className="login-stage">
+                <div className="login-showcase">
+                    <div className="login-brand">
+                        <span><FaSchool /></span>
+                        <strong>ERP-School</strong>
+                    </div>
+
+                    <div className="showcase-copy">
+                        <span className="showcase-eyebrow">{meta.eyebrow}</span>
+                        <h1>{title.replace(' Login', '')}<br />Portal</h1>
+                        <p>Designed for focused school work, clean permissions, and quick movement from login to action.</p>
+                    </div>
+
+                    <div className="showcase-board" aria-hidden="true">
+                        <div className="role-medallion"><RoleIcon /></div>
+                        <div className="board-row top">
+                            <span>Today</span>
+                            <b>{meta.stat}</b>
+                        </div>
+                        <div className="board-meter"><i /></div>
+                        <div className="board-grid">
+                            {meta.items.map(item => <span key={item}>{item}</span>)}
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Right Side - Form */}
-            <div className="login-form-section">
-                <div className="login-form-wrapper">
-                    <h2 className="login-title">{title}</h2>
-                    <p className="login-desc">{description}</p>
+                <div className="login-form-section">
+                    <div className="login-form-wrapper">
+                        <div className="form-badge"><FaIdBadge /> Secure role login</div>
+                        <h2 className="login-title">{title}</h2>
+                        <p className="login-desc">{description}</p>
 
-                    <form onSubmit={onSubmit} className="login-form">
-                        <div className="input-group">
-                            {/* <FaUser className="input-icon" /> */}
-                            <input
-                                type="text"
-                                placeholder={usernameLabel}
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="input-group">
-                            {/* <FaLock className="input-icon" /> */}
-                            <input
-                                type="password"
-                                placeholder={passwordLabel}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <form onSubmit={onSubmit} className="login-form">
+                            <label className="input-group">
+                                <span><FaUser /> Identity</span>
+                                <input
+                                    type="text"
+                                    placeholder={usernameLabel}
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                />
+                            </label>
+                            <label className="input-group">
+                                <span><FaLock /> Password</span>
+                                <input
+                                    type="password"
+                                    placeholder={passwordLabel}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </label>
 
-                        {error && <div className="login-error">{error}</div>}
+                            {error && <div className="login-error">{error}</div>}
 
-                        <div className="form-info">
-                            <span className="info-text">Having Trouble in sign in?</span>
-                        </div>
-
-                        <button type="submit" className="login-btn" disabled={loading}>
-                            {loading ? 'Logging In...' : 'Login In'}
-                        </button>
-
-
-
-                        {signupLink && (
-                            <div className="signup-link">
-                                Don't have an account? <Link to={signupLink}>Signup Now</Link>
+                            <div className="form-info">
+                                <Link to={forgotPasswordLink}>Forgot password?</Link>
                             </div>
-                        )}
-                    </form>
+
+                            <button type="submit" className="login-btn" disabled={loading}>
+                                {loading ? 'Logging In...' : <>Login <FaArrowRight /></>}
+                            </button>
+
+                            {signupLink && (
+                                <div className="signup-link">
+                                    Need access? <Link to={signupLink}>Signup Now</Link>
+                                </div>
+                            )}
+                        </form>
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
     )
 }

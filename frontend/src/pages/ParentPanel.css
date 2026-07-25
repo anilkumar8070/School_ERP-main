@@ -1,5 +1,5 @@
-/* Parent panel styles - consistent with student/faculty theme */
-:root {
+/* Parent panel styles - scoped to .parent-root to avoid conflicts with other panels */
+.parent-root {
     /* Light Mode Variables */
     --primary: #7c3aed;
     /* Purple accent for parent */
@@ -12,7 +12,7 @@
     --bg-sidebar: #ffffff;
     --bg-sidebar-active: #f3f4f6;
     --bg-hover: #f3f4f6;
-    --bg-surface: var(--bg-hover);
+    --bg-surface: #f3f4f6;
 
     --text-main: #111827;
     --text-muted: #6b7280;
@@ -109,6 +109,7 @@
     background: var(--text-main);
     margin: 3px 0;
     border-radius: 2px;
+    transition: background 0.2s;
 }
 
 .header-spacer {
@@ -122,16 +123,15 @@
     }
 }
 
-/* Hemensburg button (desktop toggle) */
 .parent-header .hemensburg {
     position: absolute;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
-    padding: 6px;
-    display: inline-grid;
+    width: 42px;
+    height: 42px;
+    padding: 8px;
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 4px;
@@ -141,13 +141,14 @@
     border: none;
     color: var(--text-main);
     cursor: pointer;
+    outline: none;
 }
 
 .parent-header .hemensburg .cell {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     background: currentColor;
-    border-radius: 1px;
+    border-radius: 2px;
 }
 
 @media (max-width: 760px) {
@@ -245,6 +246,7 @@
     justify-content: center;
     font-size: 20px;
     color: var(--text-muted);
+    flex-shrink: 0;
 }
 
 .parent-sidebar .menu-link:hover .menu-icon,
@@ -254,6 +256,8 @@
 
 .parent-sidebar .menu-text {
     font-size: 14px;
+    color: inherit;
+    font-weight: 600;
 }
 
 /* Mobile Sidebar Overrides */
@@ -991,3 +995,443 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Parent Dashboard - Shell & Hero
+   ========================================================================== */
+
+.parent-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.parent-dashboard-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+/* Hero / Welcome Banner */
+.parent-hero-card {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 60%, #2563eb 100%);
+    border-radius: 20px;
+    padding: 36px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-shadow: 0 8px 30px rgba(124, 58, 237, 0.25);
+    overflow: hidden;
+    position: relative;
+}
+
+.parent-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.parent-hero-copy {
+    flex: 1;
+    min-width: 0;
+}
+
+.parent-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 10px;
+}
+
+.parent-hero-card h2 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    line-height: 1.2;
+}
+
+.parent-hero-card p {
+    font-size: 15px;
+    margin: 0 0 24px 0;
+    max-width: 480px;
+    line-height: 1.6;
+}
+
+.parent-hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.parent-hero-actions .btn-primary {
+    background: #111827;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: opacity 0.2s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.parent-hero-actions .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.parent-hero-actions .btn-secondary {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-main);
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 10px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.parent-hero-actions .btn-secondary:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+/* Hero Right Panel (at-a-glance) */
+.parent-hero-panel {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 20px 24px;
+    min-width: 240px;
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+}
+
+.parent-hero-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 12px;
+}
+
+.parent-hero-chip span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.parent-hero-chip strong {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.parent-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.parent-hero-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.parent-hero-grid span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.parent-hero-grid strong {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+@media (max-width: 860px) {
+    .parent-hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 28px 24px;
+    }
+    .parent-hero-panel {
+        width: 100%;
+        min-width: unset;
+    }
+    .parent-hero-card h2 {
+        font-size: 22px;
+    }
+}
+
+/* ==========================================================================
+   Parent Dashboard - Stat Cards
+   ========================================================================== */
+
+.parent-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1024px) {
+    .parent-dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .parent-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Shared dashboard card base */
+.parent-dashboard-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.parent-dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Override stat-card inside dashboard */
+.stat-card.parent-dashboard-card {
+    padding: 20px;
+    border-radius: 16px;
+}
+
+/* ==========================================================================
+   Parent Dashboard - Two-Column Grid (Meetings + Notices)
+   ========================================================================== */
+
+.parent-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 860px) {
+    .parent-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.parent-panel-card {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 240px;
+}
+
+/* Section title row inside panel cards */
+.student-section-title {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.student-section-title > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.student-section-title span {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.student-section-title h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.student-section-title a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(124,58,237,0.08);
+    transition: background 0.2s;
+    margin-top: 2px;
+}
+
+.student-section-title a:hover {
+    background: rgba(124,58,237,0.16);
+}
+
+/* Parent list (meetings/notices inside panel cards) */
+.parent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.parent-list-item {
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.parent-list-item:hover {
+    border-color: var(--primary-light);
+    background: var(--bg-hover);
+}
+
+.meetings-empty,
+.meetings-loading {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    background: var(--bg-main);
+}
+
+/* ==========================================================================
+   Parent Dashboard - Quick Action Cards
+   ========================================================================== */
+
+.parent-dashboard-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1024px) {
+    .parent-dashboard-actions {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .parent-dashboard-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+.quick-card {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.parent-action-card {
+    border-left: 4px solid var(--primary);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.parent-action-card:hover {
+    border-left-color: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(124,58,237,0.15);
+}
+
+.qc-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.qc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(124,58,237,0.1);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.parent-action-card:hover .qc-icon {
+    background: rgba(124,58,237,0.2);
+}
+
+.quick-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.quick-card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.parent-action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   Hamburger fix - visible in both light and dark mode
+   ========================================================================== */
+
+/* The hamburger lines in Header.jsx use Tailwind bg-white which is hardcoded.
+   Override them to use the theme variable so they show on the white header. */
+.parent-header .hamburger .block {
+    background-color: var(--text-main) !important;
+}

@@ -65,10 +65,10 @@ export default function Header({ onToggleSidebar, onAttachSidebar, sidebarOpen, 
 
     return (
         <header className="parent-header">
-            <button className="hamburger w-10 h-10 inline-flex items-center justify-center mr-2 p-2 rounded-md touch-manipulation" aria-label="Toggle sidebar" onClick={onToggleSidebar}>
-                <span className="block w-4 h-px bg-white my-0.5" />
-                <span className="block w-4 h-px bg-white my-0.5" />
-                <span className="block w-4 h-px bg-white my-0.5" />
+            <button className="hamburger" aria-label="Toggle sidebar" onClick={onToggleSidebar}>
+                <span />
+                <span />
+                <span />
             </button>
 
             {/* Desktop Toggle (Hemensburg) */}

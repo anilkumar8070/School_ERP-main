@@ -200,9 +200,7 @@
 
 @media (min-width: 768px) {
     .student-sidebar-new {
-        top: 64px;
-        height: calc(100vh - 64px);
-        z-index: 900;
-        /* Sidebar below Header (1000) on desktop */
+        top: 72px;
+        height: calc(100vh - 72px);
     }
 }

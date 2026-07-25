@@ -138,11 +138,15 @@ body.dark-mode,
     color: var(--text-main); /* Force text color to fix light theme visibility */
 }
 
-/* Force light theme text visibility against light backgrounds */
-body:not(.dark-mode) .text-white, 
-body:not(.dark-mode) .text-gray-100,
-body:not(.dark-mode) .text-gray-200,
-body:not(.dark-mode) .text-gray-300 {
+/* Force light theme text visibility against light backgrounds — scoped to admin/student only */
+body:not(.dark-mode) .admin-root .text-white, 
+body:not(.dark-mode) .admin-root .text-gray-100,
+body:not(.dark-mode) .admin-root .text-gray-200,
+body:not(.dark-mode) .admin-root .text-gray-300,
+body:not(.dark-mode) .student-app .text-white,
+body:not(.dark-mode) .student-app .text-gray-100,
+body:not(.dark-mode) .student-app .text-gray-200,
+body:not(.dark-mode) .student-app .text-gray-300 {
     color: var(--text-main) !important;
 }
 

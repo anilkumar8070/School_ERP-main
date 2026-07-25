@@ -1,1 +1,6 @@
 .vscode/
+node_modules/
+.mongo-data/
+.npm-cache/
+.npm-cache-backend/
+.npm-cache-frontend/
