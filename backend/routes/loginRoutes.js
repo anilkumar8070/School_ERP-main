@@ -18,8 +18,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt, findByUsername,
-    getDbConnected, setDbConnected
+    similarity, PDFDocument, fs, path, bcrypt, jwt
   } = helpers;
 
 // login endpoint
@@ -32,11 +31,7 @@ router.post("/", async (req, res) => {
     message: 'username and password required'
   });
   let user = null;
-  const isDbConnected = () => (
-    typeof getDbConnected === 'function' ? getDbConnected() : mongoose.connection.readyState === 1
-  );
-
-  if (isDbConnected()) {
+  if (dbConnected) {
     // Try case-insensitive username lookup first
     const escapeRegExp = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     try {
@@ -78,7 +73,7 @@ router.post("/", async (req, res) => {
     if (user) user.id = user._id;
   } else if (mongoose.connection.readyState === 1) {
     // DB is connected but dbConnected flag was false? Update it and try DB lookup.
-    if (typeof setDbConnected === 'function') setDbConnected(true);
+    dbConnected = true;
     const escapeRegExp = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     try {
       user = await User.findOne({
@@ -97,7 +92,7 @@ router.post("/", async (req, res) => {
     user = findByUsername(username);
   }
   if (!user) {
-    console.log(`Login failed: user ${username} not found (DB connected: ${isDbConnected()})`);
+    console.log(`Login failed: user ${username} not found (DB connected: ${dbConnected})`);
     return res.status(401).json({
       message: 'User not found'
     });

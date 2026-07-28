@@ -1,113 +1,89 @@
-# School ERP Backend
+# ERP Backend (Minimal)
 
-A Node.js + Express API server for the School ERP application. The backend manages school data, authentication, authorization, file uploads, PDF generation, and integrations with MongoDB, email, SMS, and payment services.
+This is a minimal Express backend for the ERP frontend. It demonstrates JWT authentication and role-based access control.
 
-## Technology Stack
+Features:
+- POST `/api/login` — returns a JWT and suggested redirect path based on role
+- GET `/api/profile` — returns the authenticated user's token payload
+- GET `/api/admin/dashboard` — example admin-only endpoint
+- Serves frontend static `dist` from `../vite-project/dist` if present
 
-- Node.js
-- Express
-- MongoDB + Mongoose
-- JWT authentication
-- Helmet security headers
-- CORS and rate limiting
-- File upload support with Multer
-- PDF generation with PDFKit
-- Email delivery with SendGrid / Nodemailer
-- Payment integration with Razorpay
-- Frontend support via static `dist` serving
+Quick start
 
-## Features
-
-- Secure login and role-based access control
-- Student, faculty, and office staff management
-- Attendance, assignments, marks, and academics
-- Fee structures, receipts, and finance workflows
-- Admission enquiries, online admission forms, and enquiries
-- Notices, events, messages, and notifications
-- Transport, hostel allocation, and ID cards
-- Report cards, certificates, and document generation
-
-## Environment Setup
-
-Copy the example environment file:
-
-```powershell
-cd backend
-copy .env.example .env
-```
-
-Update the `.env` values for your environment. Key variables:
-
-- `MONGODB_URI` — MongoDB connection string
-- `JWT_SECRET` — secret for signing JWT tokens
-- `PORT` — server port (default: `4000`)
-- `FRONTEND_DIST` — path to built frontend static assets
-- `ALLOW_ALL_ORIGINS` — `true` to allow all origins in development
-- `ALLOWED_ORIGINS` — comma-separated allowed browser origins
-- `AUTO_SEED` — `true` to seed demo data when the database is empty
-- `JSON_BODY_LIMIT` — request body size limit (default: `10mb`)
-- `MAX_UPLOAD_BYTES` — maximum file upload size
-
-Optional service integrations:
-
-- `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`
-- `SENDGRID_API_KEY`
-- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`
-
-## Installation
+1. Copy `.env.example` to `.env` and set `JWT_SECRET`.
+2. Install dependencies and start the server:
 
 ```powershell
 cd backend
 npm install
-```
-
-## Local Development
-
-```powershell
 npm run dev
 ```
 
-The server listens on `http://localhost:4000` by default.
+Default demo users (for development only):
+- admin / set `DEMO_ADMIN_PASSWORD` in `.env` (role: admin)
+- faculty / set `DEMO_FACULTY_PASSWORD` in `.env` (role: faculty)
+- student / set `DEMO_STUDENT_PASSWORD` in `.env` (role: student)
+- parent / set `DEMO_PARENT_PASSWORD` in `.env` (role: parent)
 
-## Production Start
+API usage
+
+- Login: POST `/api/login` with JSON body `{ "username": "admin", "password": "admin123" }`.
+  Response: `{ token, role, redirect }`.
+- Use `Authorization: Bearer <token>` header to call protected endpoints.
+
+# ERP Backend (Minimal)
+
+This is a minimal Express backend for the ERP frontend. It demonstrates JWT authentication and role-based access control.
+
+Features:
+- POST `/api/login` — returns a JWT and suggested redirect path based on role
+- GET `/api/profile` — returns the authenticated user's token payload
+- GET `/api/admin/dashboard` — example admin-only endpoint (admin-only)
+- Connects to MongoDB if `MONGODB_URI` is configured; seeds demo users when DB empty
+- Serves frontend static files from the directory configured in `FRONTEND_DIST` (see `.env`)
+
+Quick start
+
+1. Copy `.env.example` to `.env` and set `JWT_SECRET` and `MONGODB_URI` (if using MongoDB).
+2. Install dependencies and start the server:
 
 ```powershell
-npm start
+cd backend
+npm install
+npm run dev
 ```
 
-## Testing
+Default demo users (for development only):
+- admin / admin123 (role: admin)
+- faculty / faculty123 (role: faculty)
+- student / student123 (role: student)
+- parent / parent123 (role: parent)
 
-```powershell
-npm test
-```
+If you set `MONGODB_URI`, the server will attempt to connect and will seed these demo users if the `users` collection is empty.
 
-## API Overview
+API usage
 
-The backend exposes REST endpoints under `/api/*`. Example endpoints include:
+- Login: POST `/api/login` with JSON body `{ "username": "admin", "password": "admin123" }`.
+  Response: `{ token, role, redirect }`.
+- Use `Authorization: Bearer <token>` header to call protected endpoints.
 
-- `POST /api/login` — authenticate users and receive a JWT token
-- `GET /api/profile` — return authenticated user details
-- `GET /api/classes`, `POST /api/attendance`, `GET /api/fees`, etc.
+Frontend configuration
 
-> The backend loads many route modules, including admission, attendance, faculty, finance, forms, hostel, notices, reports, transport, and more.
+- Set `VITE_API_BASE` in your frontend environment to point at the backend base URL (for example `http://localhost:4000`). See `frontend/.env.example`.
 
-## CORS and Frontend Integration
+Cors / Allowed Origins
 
-- Use `ALLOWED_ORIGINS` or `FRONTEND_URL` to restrict browser access.
-- For local development, `ALLOW_ALL_ORIGINS=true` enables permissive mode.
-- Set `FRONTEND_DIST` when serving a built frontend from the backend.
+- To restrict browser access to the backend, set `ALLOWED_ORIGINS` in `backend/.env` (comma-separated list of allowed origins). Example:
 
-## Docker
+  `ALLOWED_ORIGINS=https://my-frontend.example.com,http://localhost:5173`
 
-This backend is designed to run with `docker-compose.yaml` in the repository root. It can also be deployed independently using the provided `Dockerfile`.
+- When deploying to platforms like Render, set `ALLOWED_ORIGINS` in the service's environment variables to the deployed frontend URL(s). The backend will use `ALLOWED_ORIGINS` (preferred) or `FRONTEND_URL` for CORS checks.
 
-## Deployment Notes
+- Notes:
+  - If `ALLOWED_ORIGINS`/`FRONTEND_URL` is not provided, the server will not allow arbitrary browser origins (requests with no origin such as curl or server-to-server still work).
+  - We log the configured allowed origins at startup so you can verify the setting in logs.
 
-- Ensure `NODE_ENV=production` in production.
-- Set a strong `JWT_SECRET` and production-ready `MONGODB_URI`.
-- Disable `ALLOW_ALL_ORIGINS` for production and configure `ALLOWED_ORIGINS` with your frontend URL(s).
-- Keep demo credentials and seeded accounts out of production.
+Security notes
 
-## Notes
-
-This README documents the backend service. For full project context, see the repository root README at `../README.md`.
+- This is a demo. Do NOT use demo passwords or the inline secret in production.
+- Replace the in-memory user store with a real database and use strong secrets in production.
