@@ -87,3 +87,53 @@ Security notes
 
 - This is a demo. Do NOT use demo passwords or the inline secret in production.
 - Replace the in-memory user store with a real database and use strong secrets in production.
+# Backend Migration Issues
+
+This document outlines the remaining issues and bugs in the backend following the initial Mongoose to Prisma migration attempt. The codebase is currently in a broken state because the Mongoose models have been removed, but many route handlers still attempt to invoke Mongoose-specific APIs on the Prisma delegates.
+
+## Remaining Bugs
+
+### 1. Unsupported Methods (.populate())
+Prisma uses the include: { ... } syntax to eagerly load related records, while Mongoose uses .populate('relation'). Several route files (e.g., 
+outes/contact-queryRoutes.js, 
+outes/facultyRoutes.js) still contain .populate().
+- **Error:** TypeError: [...].populate is not a function
+
+### 2. Document Creation (
+ew Model())
+Routes often create new database entries using Mongoose instantiation:
+`js
+const user = new User(req.body);
+await user.save();
+`
+In Prisma, this must be refactored to:
+`js
+const user = await prisma.user.create({ data: req.body });
+`
+Many route files still use the 
+ew Model() pattern.
+
+### 3. Update Methods
+Mongoose has methods like indByIdAndUpdate() or fetching a document, modifying it, and calling .save().
+In Prisma, these must become:
+`js
+prisma.model.update({ where: { id: ... }, data: { ... } });
+`
+Current routes still attempt to call .save() on plain Javascript objects returned by Prisma, which will throw errors.
+
+### 4. Incorrect Queries
+Mongoose supports indById(id). The initial transpilation attempted to convert this, but there are still nested queries, conditional queries, and $or / $in operators from Mongoose that don't translate 1:1 to Prisma syntax.
+
+### 5. indByIdAndDelete
+Some routes still use indByIdAndDelete(id) which does not exist on Prisma delegates. They must use prisma.model.delete({ where: { id } }).
+
+## Next Steps
+To resolve the above bugs, the following actions must be taken on the backend routes:
+1. Manually review all 60+ route handlers.
+2. Replace all instances of 
+ew [ModelName] and .save() with prisma.[model].create().
+3. Replace all instances of .populate(...) with the include parameter in Prisma indUnique/indMany queries.
+4. Replace all occurrences of Mongoose-style updates with Prisma's update and updateMany.
+5. Remove any leftover .exec() or Mongoose specific syntax that wasn't caught by the regex transpiler.
+
+These steps are critical as the backend will systematically crash when these endpoints are hit until the Prisma syntax is correctly implemented.

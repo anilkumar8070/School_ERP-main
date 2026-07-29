@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -30,7 +31,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
     const BehaviorRecord = require('./models/BehaviorRecord');
     const student = await Student.findOne({
       email: req.user.username
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student record not found'
     });
@@ -39,7 +40,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
     }).sort({
       recordDate: -1,
       createdAt: -1
-    }).lean();
+    });
     return res.json(items.map(mapBehaviorRecord));
   } catch (e) {
     return res.status(500).json({
@@ -65,7 +66,7 @@ router.get("/by-student/:id", verifyToken, requireRole(['parent', 'admin', 'facu
     }).sort({
       recordDate: -1,
       createdAt: -1
-    }).lean();
+    });
     return res.json(items.map(mapBehaviorRecord));
   } catch (e) {
     return res.status(500).json({
@@ -93,11 +94,11 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
     if (!studentId || !type || !title) return res.status(400).json({
       message: 'studentId, type and title required'
     });
-    const student = await Student.findById(studentId).lean().catch(() => null);
+    const student = await prisma.student.findUnique({ where: { id: String(studentId) } }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
-    const user = await User.findById(req.user.sub).lean().catch(() => null);
+    const user = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
     const doc = await BehaviorRecord.create({
       studentId,
       studentName: student.name || '',

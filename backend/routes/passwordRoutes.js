@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -117,7 +118,7 @@ router.post("/reset", async (req, res) => {
         message: 'Token expired'
       });
     }
-    const user = await User.findById(pr.userId);
+    const user = await prisma.user.findUnique({ where: { id: String(pr.userId) } });
     if (!user) return res.status(404).json({
       message: 'User not found'
     });

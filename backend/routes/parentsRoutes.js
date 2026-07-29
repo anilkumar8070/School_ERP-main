@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -48,9 +49,9 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         }]
       };
     }
-    let parents = await User.find(filter).select('name username disabled contact address createdAt parentOf avatar').sort({
+    let parents = await prisma.user.findMany({ where: filter }).select('name username disabled contact address createdAt parentOf avatar').sort({
       createdAt: -1
-    }).lean();
+    });
 
     // Resolve parentOf entries to student names when they appear to be student IDs
     try {
@@ -69,7 +70,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
           _id: {
             $in: ids
           }
-        }).select('name _id').lean();
+        }).select('name _id');
         const idToName = {};
         students.forEach(s => {
           idToName[String(s._id)] = s.name;
@@ -108,7 +109,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'Parent not found'
     });
@@ -166,7 +167,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'Parent not found'
     });
@@ -232,7 +233,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
     const exists = await User.findOne({
       username: email
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (exists) return res.status(409).json({
       message: 'User already exists'
     });
@@ -273,11 +274,11 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     });
     const student = await Student.findOne({
       parentAccessCode: String(code).trim().toUpperCase()
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Invalid code'
     });
-    const user = await User.findById(req.user.sub);
+    const user = await prisma.user.findUnique({ where: { id: String(req.user.sub) } });
     if (!user || user.role !== 'parent') return res.status(403).json({
       message: 'Unauthorized'
     });

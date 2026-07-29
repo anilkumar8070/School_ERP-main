@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -46,9 +47,9 @@ router.post("/", upload.single('document'), async (req, res) => {
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await OnlineAdmission.find({}).sort({
+    const list = await prisma.OnlineAdmission.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({

@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -29,7 +30,7 @@ router.get("/", verifyToken, async (req, res) => {
     if (!uid) return res.json({
       user: req.user
     });
-    const user = await User.findById(uid).lean().catch(() => null);
+    const user = await prisma.user.findUnique({ where: { id: String(uid) } }).catch(() => null);
     if (!user) return res.json({
       user: req.user
     });
@@ -38,20 +39,20 @@ router.get("/", verifyToken, async (req, res) => {
     let student = null;
     let faculty = null;
     try {
-      student = await Student.findById(uid).lean().catch(() => null);
+      student = await prisma.student.findUnique({ where: { id: String(uid) } }).catch(() => null);
     } catch (e) {
       student = null;
     }
     try {
       faculty = await Faculty.findOne({
         email: user.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!faculty && user.name) faculty = await Faculty.findOne({
         name: user.name
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!faculty && user.contact) faculty = await Faculty.findOne({
         contact: user.contact
-      }).lean().catch(() => null);
+      }).catch(() => null);
     } catch (e) {
       faculty = null;
     }
@@ -84,13 +85,13 @@ router.put("/", verifyToken, async (req, res) => {
     for (const k of allowed) if (payload[k] !== undefined) up[k] = payload[k];
     const updatedUser = await User.findByIdAndUpdate(uid, up, {
       new: true
-    }).lean().catch(() => null);
+    }).catch(() => null);
 
     // try to update student/faculty records if present
     let updatedStudent = null;
     let updatedFaculty = null;
     try {
-      let s = await Student.findById(uid).catch(() => null);
+      let s = await prisma.student.findUnique({ where: { id: String(uid) } }).catch(() => null);
       if (s) {
         const su = {};
         if (up.name) su.name = up.name;

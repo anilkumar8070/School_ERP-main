@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -28,12 +29,12 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
     if (!id) return res.status(400).json({
       message: 'student id required'
     });
-    const student = await Student.findById(id).lean().catch(() => null);
+    const student = await prisma.student.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
     if (req.user.role === 'parent') {
-      const parent = await User.findById(req.user.sub).lean().catch(() => null);
+      const parent = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(id));
       if (!linked) return res.status(403).json({
         message: 'Parent is not linked to this student'
@@ -47,7 +48,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
     const students = await Student.find({
       class: student.class,
       section: student.section
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const rows = [];
     for (const s of students) {
       const tests = await TestResult.find({
@@ -56,7 +57,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
         }, {
           email: s.email
         }]
-      }).lean().catch(() => []);
+      }).catch(() => []);
       const cards = await ReportCard.find({
         $or: [{
           recipientEmail: s.email
@@ -67,7 +68,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
           className: s.class,
           section: s.section
         }]
-      }).lean().catch(() => []);
+      }).catch(() => []);
       const reportPercentages = cards.map(c => Number(c.percentage)).filter(n => Number.isFinite(n) && n > 0);
       const testPercentages = tests.map(t => {
         if (Number.isFinite(Number(t.percentage))) return Number(t.percentage);

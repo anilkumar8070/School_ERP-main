@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -43,19 +44,19 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
     });
     // If a faculty is creating a meeting targeted to students, ensure they are assigned to that class/section
     if (req.user && req.user.role === 'faculty' && (audience === 'student' || audience === 'students')) {
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!u) return res.status(403).json({
         message: 'Unauthorized'
       });
       let fac = await Faculty.findOne({
         email: u.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.name) fac = await Faculty.findOne({
         name: u.name
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.contact) fac = await Faculty.findOne({
         contact: u.contact
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac) return res.status(403).json({
         message: 'Faculty record not linked'
       });
@@ -110,9 +111,9 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   });
   try {
     // populate createdBy name so admin sees who created the meeting
-    const items = await Meeting.find().sort({
+    const items = await prisma.meeting.findMany().sort({
       datetime: -1
-    }).populate('createdBy', 'name').lean();
+    }).populate('createdBy', 'name');
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -133,7 +134,7 @@ router.get("/my", verifyToken, async (req, res) => {
       const userEmail = req.user.username;
       const studentDoc = await Student.findOne({
         email: userEmail
-      }).lean();
+      });
       const now = new Date();
       const q = {
         datetime: {
@@ -189,26 +190,26 @@ router.get("/my", verifyToken, async (req, res) => {
       const finalOr = or.concat(specific);
       // deduplicate simple: use $or with constructed array
       q.$or = finalOr;
-      const items = await Meeting.find(q).sort({
+      const items = await prisma.meeting.findMany({ where: q }).sort({
         datetime: 1
-      }).lean();
+      });
       return res.json(items);
     }
     // non-students: faculty should also see meetings targeted to students in their assigned classes
     if (role === 'faculty') {
       // resolve faculty record
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       let fac = null;
       if (u) {
         fac = await Faculty.findOne({
           email: u.username
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (!fac && u.name) fac = await Faculty.findOne({
           name: u.name
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (!fac && u.contact) fac = await Faculty.findOne({
           contact: u.contact
-        }).lean().catch(() => null);
+        }).catch(() => null);
       }
       // base items: audience all, audience faculty, audience role plural, and createdBy
       const rolePlural = `${req.user.role}s`;
@@ -223,9 +224,9 @@ router.get("/my", verifyToken, async (req, res) => {
           createdBy: req.user.sub
         }]
       };
-      let items = await Meeting.find(baseQ).sort({
+      let items = await prisma.meeting.findMany({ where: baseQ }).sort({
         datetime: 1
-      }).lean();
+      });
       // include meetings targeted to students for classes/sections the faculty is assigned to
       if (fac && Array.isArray(fac.assignments) && fac.assignments.length > 0) {
         const orClauses = [];
@@ -257,7 +258,7 @@ router.get("/my", verifyToken, async (req, res) => {
             $or: orClauses
           }).sort({
             datetime: 1
-          }).lean();
+          });
           items = items.concat(studentMeetings);
           // deduplicate by _id
           const seen = new Set();
@@ -286,7 +287,7 @@ router.get("/my", verifyToken, async (req, res) => {
       }]
     }).sort({
       datetime: 1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

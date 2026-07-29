@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -32,7 +33,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty', 'staff']), async 
   try {
     const payload = req.body || {};
     payload.createdBy = req.user && req.user.sub;
-    const doc = await FrontOffice.create(payload);
+    const doc = await prisma.frontoffice.create({ data: payload });
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({
@@ -42,9 +43,9 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty', 'staff']), async 
 });
 router.get("/", verifyToken, requireRole(['admin', 'faculty', 'staff']), async (req, res) => {
   try {
-    const list = await FrontOffice.find({}).sort({
+    const list = await prisma.FrontOffice.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({

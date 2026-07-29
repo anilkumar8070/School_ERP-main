@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -31,9 +32,9 @@ router.get("/", verifyToken, async (req, res) => {
     } = req.query || {};
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
-    const items = await Assignment.find(q).sort({
+    const items = await prisma.assignment.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -79,7 +80,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
       message: 'Database not available'
     });
     const aid = req.params.id;
-    const assignment = await Assignment.findById(aid).lean().catch(() => null);
+    const assignment = await prisma.assignment.findUnique({ where: { id: String(aid) } }).catch(() => null);
     if (!assignment) return res.status(404).json({
       message: 'Assignment not found'
     });
@@ -94,7 +95,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
     const username = req.user && req.user.username;
     const studentRec = await Student.findOne({
       email: username
-    }).lean().catch(() => null);
+    }).catch(() => null);
     const file = req.file;
     const filePath = file ? `/uploads/${file.filename}` : req.body && req.body.filePath ? String(req.body.filePath) : '';
     const sub = await Submission.create({
@@ -137,7 +138,7 @@ router.get("/:id/submissions", verifyToken, async (req, res) => {
       if (!studentId) return res.status(400).json({
         message: 'studentId required for parent'
       });
-      const user = await User.findById(req.user.sub).lean().catch(() => null);
+      const user = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!user || user.role !== 'parent') return res.status(403).json({
         message: 'Unauthorized'
       });
@@ -147,9 +148,9 @@ router.get("/:id/submissions", verifyToken, async (req, res) => {
       });
       q.studentId = studentId;
     }
-    const subs = await Submission.find(q).sort({
+    const subs = await prisma.submission.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(subs);
   } catch (e) {
     return res.status(500).json({
@@ -176,19 +177,19 @@ router.post("/", verifyToken, requireRole('faculty'), upload.single('file'), asy
     });
     // Ensure faculty is assigned to this class/section
     if (req.user && req.user.role === 'faculty') {
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!u) return res.status(403).json({
         message: 'Unauthorized'
       });
       let fac = await Faculty.findOne({
         email: u.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.name) fac = await Faculty.findOne({
         name: u.name
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.contact) fac = await Faculty.findOne({
         contact: u.contact
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac) return res.status(403).json({
         message: 'Faculty record not linked'
       });
@@ -254,9 +255,9 @@ router.get("/", verifyToken, async (req, res) => {
     }, {
       section: 'ALL'
     }];
-    const items = await Assignment.find(q).sort({
+    const items = await prisma.assignment.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -274,7 +275,7 @@ router.post("/:id/submit", verifyToken, upload.single('file'), async (req, res) 
     message: 'Database not available'
   });
   try {
-    const assignment = await Assignment.findById(req.params.id).lean();
+    const assignment = await prisma.assignment.findUnique({ where: { id: String(req.params.id) } });
     if (!assignment) return res.status(404).json({
       message: 'Assignment not found'
     });
@@ -285,7 +286,7 @@ router.post("/:id/submit", verifyToken, upload.single('file'), async (req, res) 
     const answerText = req.body.answerText || '';
     const student = await Student.findOne({
       email: req.user.username
-    }).lean().catch(() => null);
+    }).catch(() => null);
     const submission = await Submission.create({
       assignmentId: assignment._id,
       studentId: student ? student._id : null,
@@ -324,7 +325,7 @@ router.get("/:id/submissions", verifyToken, requireRole('faculty'), async (req, 
       assignmentId: req.params.id
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(subs);
   } catch (e) {
     return res.status(500).json({
@@ -345,7 +346,7 @@ router.put("/:id/extend", verifyToken, requireRole('faculty'), async (req, res) 
     if (!dueDate) return res.status(400).json({
       message: 'dueDate required'
     });
-    const a = await Assignment.findById(req.params.id);
+    const a = await prisma.assignment.findUnique({ where: { id: String(req.params.id) } });
     if (!a) return res.status(404).json({
       message: 'Assignment not found'
     });
@@ -371,9 +372,9 @@ router.get("/", verifyToken, async (req, res) => {
     } = req.query || {};
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
-    const items = await Assignment.find(q).sort({
+    const items = await prisma.assignment.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -419,7 +420,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
       message: 'Database not available'
     });
     const aid = req.params.id;
-    const assignment = await Assignment.findById(aid).lean().catch(() => null);
+    const assignment = await prisma.assignment.findUnique({ where: { id: String(aid) } }).catch(() => null);
     if (!assignment) return res.status(404).json({
       message: 'Assignment not found'
     });
@@ -427,7 +428,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
     const username = req.user && req.user.username;
     const studentRec = await Student.findOne({
       email: username
-    }).lean().catch(() => null);
+    }).catch(() => null);
     const file = req.file;
     const filePath = file ? `/uploads/${file.filename}` : req.body && req.body.filePath ? String(req.body.filePath) : '';
     const sub = await Submission.create({
@@ -472,7 +473,7 @@ router.get("/:id/submissions", verifyToken, async (req, res) => {
         message: 'studentId required for parent'
       });
       // ensure parent linked to this student
-      const user = await User.findById(req.user.sub).lean().catch(() => null);
+      const user = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!user || user.role !== 'parent') return res.status(403).json({
         message: 'Unauthorized'
       });
@@ -484,9 +485,9 @@ router.get("/:id/submissions", verifyToken, async (req, res) => {
     } else {
       // admin/faculty: no extra filter
     }
-    const subs = await Submission.find(q).sort({
+    const subs = await prisma.submission.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(subs);
   } catch (e) {
     return res.status(500).json({

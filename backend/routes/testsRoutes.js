@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -67,7 +68,7 @@ router.get("/results/my", verifyToken, async (req, res) => {
     // Find student record for this user
     let student = null;
     try {
-      student = await Student.findById(userId).lean().catch(() => null);
+      student = await prisma.student.findUnique({ where: { id: String(userId) } }).catch(() => null);
     } catch {}
     const filter = {};
     if (student) {
@@ -77,14 +78,14 @@ router.get("/results/my", verifyToken, async (req, res) => {
       const User = require('./models/User');
       let u = null;
       try {
-        u = await User.findById(userId).lean().catch(() => null);
+        u = await prisma.user.findUnique({ where: { id: String(userId) } }).catch(() => null);
       } catch {}
       if (u && u.username) filter.email = u.username;
     }
-    const list = await TestResult.find(filter).sort({
+    const list = await prisma.testresult.findMany({ where: filter }).sort({
       submittedAt: -1,
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -105,7 +106,7 @@ router.get("/results/by-student/:studentId", verifyToken, async (req, res) => {
     }).sort({
       submittedAt: -1,
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -192,9 +193,9 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     if (false) return res.json(inMemoryTests);
-    const items = await TestSeries.find().sort({
+    const items = await prisma.testseries.findMany().sort({
       start: -1
-    }).populate('createdBy', 'name role').lean();
+    }).populate('createdBy', 'name role');
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -210,7 +211,7 @@ router.put("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req, r
       message: 'Database not available'
     });
     const id = req.params.id;
-    const t = await TestSeries.findById(id);
+    const t = await prisma.testseries.findUnique({ where: { id: String(id) } });
     if (!t) return res.status(404).json({
       message: 'Test series not found'
     });
@@ -260,7 +261,7 @@ router.delete("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req
         message: 'Deleted'
       });
     }
-    const t = await TestSeries.findById(id);
+    const t = await prisma.testseries.findUnique({ where: { id: String(id) } });
     if (!t) return res.status(404).json({
       message: 'Test series not found'
     });
@@ -301,9 +302,9 @@ router.get("/my", verifyToken, async (req, res) => {
       return res.json(inMemoryTests);
     }
     if (role === 'admin') {
-      const items = await TestSeries.find().sort({
+      const items = await prisma.testseries.findMany().sort({
         start: -1
-      }).lean();
+      });
       // enrich with totalQuestions
       try {
         const counts = await Promise.all((items || []).map(it => Question.countDocuments({
@@ -322,7 +323,7 @@ router.get("/my", verifyToken, async (req, res) => {
         }]
       }).sort({
         start: -1
-      }).lean();
+      });
       try {
         const counts = await Promise.all((items || []).map(it => Question.countDocuments({
           testId: it._id
@@ -337,7 +338,7 @@ router.get("/my", verifyToken, async (req, res) => {
     const userEmail = req.user.username;
     const studentDoc = await Student.findOne({
       email: userEmail
-    }).lean().catch(() => null);
+    }).catch(() => null);
     const now = new Date();
     const q = {};
     // optional: only upcoming or recent tests; for now return all assigned
@@ -374,9 +375,9 @@ router.get("/my", verifyToken, async (req, res) => {
       }
     }
     q.$or = orClauses;
-    const items = await TestSeries.find(q).sort({
+    const items = await prisma.testseries.findMany({ where: q }).sort({
       start: 1
-    }).lean();
+    });
     try {
       const counts = await Promise.all((items || []).map(it => Question.countDocuments({
         testId: it._id
@@ -402,7 +403,7 @@ router.get("/:id/results", verifyToken, requireRole(['admin', 'faculty']), async
     const testId = req.params.id;
     // If faculty, ensure they created the test
     if (req.user.role === 'faculty') {
-      const testDoc = await TestSeries.findById(testId).lean();
+      const testDoc = await prisma.testseries.findUnique({ where: { id: String(testId) } });
       if (!testDoc) return res.status(404).json({
         message: 'Test not found'
       });
@@ -414,7 +415,7 @@ router.get("/:id/results", verifyToken, requireRole(['admin', 'faculty']), async
       test: testId
     }).sort({
       submittedAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -434,7 +435,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
     const now = new Date();
     const startedParam = String(req.query && req.query.started || '').toLowerCase() === 'true';
     if (true) {
-      const tdoc = await TestSeries.findById(testId).lean();
+      const tdoc = await prisma.testseries.findUnique({ where: { id: String(testId) } });
       if (!tdoc) return res.status(404).json({
         message: 'Test not found'
       });
@@ -461,7 +462,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
         const username = req.user && req.user.username;
         const studentDoc = await Student.findOne({
           email: username
-        }).lean().catch(() => null);
+        }).catch(() => null);
         // count previous attempts and compare to allowed attempts on the test
         const allowedAttempts = tdoc.attempts ? Number(tdoc.attempts) : 1;
         let attemptsCount = 0;
@@ -483,7 +484,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
       }
       const qs = await Question.find({
         testId
-      }).lean();
+      });
       const out = (qs || []).map(q => {
         // For admin/faculty include correctAnswer and explanation so they can manage questions.
         if (userRole === 'admin' || userRole === 'faculty') {
@@ -541,7 +542,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     // check test availability and duplicate submission
     const now = new Date();
     if (true) {
-      const tdoc = await TestSeries.findById(testId).lean();
+      const tdoc = await prisma.testseries.findUnique({ where: { id: String(testId) } });
       if (!tdoc) return res.status(404).json({
         message: 'Test not found'
       });
@@ -565,7 +566,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
       const username = req.user && req.user.username;
       const studentDoc = await Student.findOne({
         email: username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       // count previous attempts and allow submission only if attempts < allowed
       const allowedAttempts2 = tdoc.attempts ? Number(tdoc.attempts) : 1;
       let prevCount = 0;
@@ -593,7 +594,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     } else {
       qs = await Question.find({
         testId
-      }).lean();
+      });
     }
     if (!qs || !qs.length) return res.status(400).json({
       message: 'No questions found for this test'
@@ -673,7 +674,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     if (true) {
       studentDoc = await Student.findOne({
         email: username
-      }).lean().catch(() => null);
+      }).catch(() => null);
     }
 
     // try to include test title and subject for email/raw
@@ -681,7 +682,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     let testSubject = '';
     try {
       if (true) {
-        const tdoc = await TestSeries.findById(testId).lean().catch(() => null);
+        const tdoc = await prisma.testseries.findUnique({ where: { id: String(testId) } }).catch(() => null);
         if (tdoc && tdoc.title) testTitle = tdoc.title;
         if (tdoc && tdoc.subject) testSubject = tdoc.subject;
       } else {
@@ -729,7 +730,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
       inMemoryTestsResults.push(created);
     } else {
       try {
-        created = await TestResult.create(resultPayload);
+        created = await prisma.testresult.create({ data: resultPayload });
       } catch (createErr) {
         // handle duplicate insertion race (unique index on test+studentId or test+email)
         if (createErr && createErr.code === 11000) {
@@ -742,7 +743,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
               }, {
                 studentId: resultPayload.studentId
               }]
-            }).lean().catch(() => null);
+            }).catch(() => null);
             if (existing) {
               created = existing;
             } else {
@@ -791,7 +792,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
     const username = req.user && req.user.username;
     const studentDoc = await Student.findOne({
       email: username
-    }).lean().catch(() => null);
+    }).catch(() => null);
     // check if already submitted
     const prev = await TestResult.findOne({
       test: testId,
@@ -800,7 +801,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
       }, {
         studentId: studentDoc && studentDoc._id
       }]
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (prev) return res.status(403).json({
       message: 'You have already submitted this test'
     });
@@ -808,14 +809,14 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
     // compute total marks from questions
     const qs = await Question.find({
       testId
-    }).lean().catch(() => []);
+    }).catch(() => []);
     let totalMarks = 0;
     for (const q of qs) totalMarks += Number(q.marks || 1);
 
     // include test subject if available
     let testSubject = '';
     try {
-      const tdoc = await TestSeries.findById(testId).lean().catch(() => null);
+      const tdoc = await prisma.testseries.findUnique({ where: { id: String(testId) } }).catch(() => null);
       if (tdoc && tdoc.subject) testSubject = tdoc.subject;
     } catch (e) {}
     const resultPayload = {
@@ -835,7 +836,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
         subject: testSubject
       }
     };
-    const created = await TestResult.create(resultPayload);
+    const created = await prisma.testresult.create({ data: resultPayload });
     return res.json({
       ok: true,
       result: created
@@ -868,7 +869,7 @@ router.post("/:id/results/upload", verifyToken, requireRole(['admin', 'faculty']
     // attempt to fetch test subject and attach it to each imported row
     let testSubject = '';
     try {
-      const tdoc = await TestSeries.findById(testId).lean().catch(() => null);
+      const tdoc = await prisma.testseries.findUnique({ where: { id: String(testId) } }).catch(() => null);
       if (tdoc && tdoc.subject) testSubject = tdoc.subject;
     } catch (e) {}
     const results = [];
@@ -903,7 +904,7 @@ router.post("/:id/results/upload", verifyToken, requireRole(['admin', 'faculty']
       results.push(r);
     }
     // insert many
-    const inserted = await TestResult.insertMany(results);
+    const inserted = await prisma.testresult.createMany({ data: results });
     return res.json(inserted);
   } catch (e) {
     return res.status(500).json({
@@ -930,7 +931,7 @@ router.get("/results/by-student/:id", verifyToken, requireRole(['parent', 'admin
       }]
     }).sort({
       submittedAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -1407,7 +1408,7 @@ router.post("/:id/questions", verifyToken, requireRole(['admin', 'faculty']), as
         try {
           // If the client provided an _id, attempt to update the existing question
           if (q._id) {
-            const existing = await Question.findById(q._id);
+            const existing = await prisma.question.findUnique({ where: { id: String(q._id) } });
             if (existing) {
               // ensure we don't change the test association
               existing.questionText = String(q.questionText).trim();
@@ -1431,7 +1432,7 @@ router.post("/:id/questions", verifyToken, requireRole(['admin', 'faculty']), as
             correctAnswer: q.correctAnswer || '',
             marks: q.marks || 1
           };
-          const doc = await Question.create(payload);
+          const doc = await prisma.question.create({ data: payload });
           created.push(doc);
         } catch (e) {/* skip invalid entries */}
       }

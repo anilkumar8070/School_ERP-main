@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -44,7 +45,7 @@ router.post("/", async (req, res) => {
   if (true) {
     const exists = await User.findOne({
       username
-    }).lean();
+    });
     if (exists) return res.status(409).json({
       message: 'User already exists'
     });

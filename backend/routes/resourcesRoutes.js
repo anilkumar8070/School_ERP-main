@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -66,9 +67,9 @@ router.get("/", verifyToken, async (req, res) => {
     const q = {};
     if (req.query.class || req.query.cls) q.class = String(req.query.class || req.query.cls);
     if (req.query.subject) q.subject = req.query.subject;
-    const items = await Resource.find(q).sort({
+    const items = await prisma.resource.findMany({ where: q }).sort({
       createdAt: -1
-    }).lean();
+    });
     // attach accessible file URL
     const host = '';
     const mapped = items.map(it => ({
@@ -93,7 +94,7 @@ router.delete("/:id", verifyToken, requireRole(['faculty', 'admin']), async (req
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const item = await Resource.findById(id).catch(() => null);
+    const item = await prisma.resource.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!item) return res.status(404).json({
       message: 'Resource not found'
     });
@@ -176,7 +177,7 @@ router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
       uploadedBy: uploader
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     const mapped = items.map(it => ({
       ...it,
       url: `/uploads/${it.filename}`

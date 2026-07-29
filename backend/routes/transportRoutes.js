@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -32,9 +33,9 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
     const filter = {};
     if (studentId) filter['student.id'] = studentId;
     if (routeId) filter.routeId = routeId;
-    const list = await TransportAllocation.find(filter).sort({
+    const list = await prisma.transportallocation.findMany({ where: filter }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     // Attach latest receipt info (if any) to each allocation for admin convenience
     try {
       const allocIds = list.map(l => l._id).filter(Boolean);
@@ -45,7 +46,7 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
           }
         }).sort({
           createdAt: -1
-        }).lean().catch(() => []);
+        }).catch(() => []);
         const map = {};
         for (const r of recs) {
           const key = String(r.allocationId || r.allocationId);
@@ -80,7 +81,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
         message: `${k} required`
       });
     }
-    const doc = await TransportAllocation.create(payload);
+    const doc = await prisma.transportallocation.create({ data: payload });
     // Optionally, add fee to student's assignedFees or create a receipt stub
     try {
       if (payload.fee && payload.student && payload.student.id) {
@@ -96,7 +97,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
             $push: {
               assignedFees: entry
             }
-          }).lean().catch(() => null);
+          }).catch(() => null);
         } else if (String(payload.fee.option) === 'pay-now') {
           try {
             // create a transport receipt record (minimal fields)
@@ -186,9 +187,9 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
     const username = req.user && req.user.username;
     const filter = {};
     if (userId) filter['student.id'] = userId;else if (username) filter['student.email'] = username;
-    const list = await TransportAllocation.find(filter).sort({
+    const list = await prisma.transportallocation.findMany({ where: filter }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -203,9 +204,9 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     const username = req.user && req.user.username;
     const filter = {};
     if (username) filter.studentEmail = username;
-    const items = await TransportReceipt.find(filter).sort({
+    const items = await prisma.transportreceipt.findMany({ where: filter }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
