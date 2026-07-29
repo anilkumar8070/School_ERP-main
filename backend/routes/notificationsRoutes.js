@@ -1,9 +1,10 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
+  const sseClients = new Set();
   
   const { 
     User, Complaint, Event, Syllabus, Leave, Message, Student, Faculty,

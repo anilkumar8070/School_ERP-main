@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Admin: list admins
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -61,7 +61,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: create admin (admin-only)
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -138,7 +138,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: delete admin user
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -168,7 +168,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: block/unblock admin
 router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -204,7 +204,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
 
 // Admin: update admin details (contact, designation)
 router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -45,7 +45,7 @@ router.get("/", verifyToken, async (req, res) => {
 // Create assignment (faculty or admin)
 router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('file'), async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const body = req.body || {};
@@ -75,7 +75,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 // Student: submit an assignment (optional file). Reject if past due date.
 router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('file'), async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const aid = req.params.id;
@@ -119,7 +119,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
 // List submissions for an assignment. Students see only their own; parents need studentId; faculty/admin see all.
 router.get("/:id/submissions", verifyToken, async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const aid = req.params.id;
@@ -159,7 +159,7 @@ router.get("/:id/submissions", verifyToken, async (req, res) => {
 });
 // Create an assignment (faculty)
 router.post("/", verifyToken, requireRole('faculty'), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -240,7 +240,7 @@ router.post("/", verifyToken, requireRole('faculty'), upload.single('file'), asy
 
 // List assignments (students and faculty). Query by class and section.
 router.get("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -270,7 +270,7 @@ router.get("/", verifyToken, async (req, res) => {
 
 // Student: submit an assignment answer (file optional)
 router.post("/:id/submit", verifyToken, upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -316,7 +316,7 @@ router.post("/:id/submit", verifyToken, upload.single('file'), async (req, res) 
 
 // Faculty: list submissions for an assignment
 router.get("/:id/submissions", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -335,7 +335,7 @@ router.get("/:id/submissions", verifyToken, requireRole('faculty'), async (req, 
 
 // Faculty: extend due date (edit assignment)
 router.put("/:id/extend", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -385,7 +385,7 @@ router.get("/", verifyToken, async (req, res) => {
 // Create assignment (faculty or admin)
 router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('file'), async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const body = req.body || {};
@@ -415,7 +415,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 // Student: submit an assignment (optional file)
 router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('file'), async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const aid = req.params.id;
@@ -452,7 +452,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), upload.single('f
 // List submissions for an assignment. Faculty/admin see all, student sees only their own, parent must specify studentId
 router.get("/:id/submissions", verifyToken, async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const aid = req.params.id;

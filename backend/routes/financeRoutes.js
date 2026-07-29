@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Parent/Admin: get receipts by studentId
 router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'parent', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -178,7 +178,7 @@ router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'paren
 
 // Admin: compute student rank analytics by class/section
 router.get("/fee-structure", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -191,7 +191,7 @@ router.get("/fee-structure", verifyToken, requireRole('admin'), async (req, res)
   }
 });
 router.get("/fee-structure/public", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -224,7 +224,7 @@ router.get("/fee-structure/public", verifyToken, async (req, res) => {
   }
 });
 router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -440,7 +440,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
   }
 });
 router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -497,7 +497,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
   }
 });
 router.get("/receipts", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -512,7 +512,7 @@ router.get("/receipts", verifyToken, requireRole('admin'), async (req, res) => {
   }
 });
 router.get("/receipts/my", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -529,7 +529,7 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
   }
 });
 router.post("/create-order", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -565,7 +565,7 @@ router.post("/create-order", verifyToken, async (req, res) => {
   }
 });
 router.post("/assign-fee", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -640,7 +640,7 @@ router.post("/assign-fee", verifyToken, requireRole('admin'), async (req, res) =
   }
 });
 router.post("/confirm-payment", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

@@ -1,4 +1,56 @@
 import { clearAuth } from '../utils/session'
+import axios from 'axios';
+
+const apiClient = axios.create();
+
+apiClient.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    console.error('Axios Error Interceptor:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Wrapper to seamlessly use axios for all existing fetch calls in this file
+const fetch = async (url, options = {}) => {
+  const method = options.method || 'GET';
+  const headers = options.headers || {};
+  let data = options.body;
+
+  if (typeof data === 'string') {
+    try {
+      if (headers['Content-Type'] === 'application/json' || data.startsWith('{') || data.startsWith('[')) {
+         data = JSON.parse(data);
+      }
+    } catch(e) {}
+  }
+
+  try {
+    const response = await apiClient.request({
+      url,
+      method,
+      headers,
+      data
+    });
+
+    return {
+      ok: true,
+      status: response.status,
+      json: async () => response.data,
+      text: async () => typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+    };
+  } catch (error) {
+    if (error.response) {
+      return {
+        ok: false,
+        status: error.response.status,
+        json: async () => error.response.data,
+        text: async () => typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)
+      };
+    }
+    throw error;
+  }
+};
 
 // Transport allocation and receipts (admin)
 export async function getTransportAllocations(query = {}, token) {

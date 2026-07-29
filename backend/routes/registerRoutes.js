@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -41,7 +41,7 @@ router.post("/", async (req, res) => {
     parentOf,
     avatar
   } = req.body || {};
-  if (dbConnected) {
+  if (true) {
     const exists = await User.findOne({
       username
     }).lean();

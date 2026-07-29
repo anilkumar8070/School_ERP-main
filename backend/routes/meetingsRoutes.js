@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -24,7 +24,7 @@ module.exports = function(helpers) {
 // Meetings
 // Admin can create meetings targeted to students (all / class / section / specific student)
 router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -105,7 +105,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
 
 // Admin: list meetings
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -123,7 +123,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // My meetings - for students (and generic for other roles)
 router.get("/my", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

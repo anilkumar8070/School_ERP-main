@@ -1,5 +1,3 @@
-const TransportAllocation = require('./models/TransportAllocation');
-const TransportReceipt = require('./models/TransportReceipt');
 
 // Consolidate pdfkit require in one place to avoid duplicate declarations
 var PDFDocument;
@@ -14,49 +12,11 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
+const prisma = require('./prisma/client');
+const adapters = require('./mongoose_to_prisma');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const User = require('./models/User');
-const Complaint = require('./models/Complaint');
-const Event = require('./models/Event');
-const Syllabus = require('./models/Syllabus');
-const Leave = require('./models/Leave');
-const Message = require('./models/Message');
-const Student = require('./models/Student');
-const Faculty = require('./models/Faculty');
-const ContactQuery = require('./models/ContactQuery');
-const DeletionRequest = require('./models/DeletionRequest');
-const Meeting = require('./models/Meeting');
-const FeeStructure = require('./models/FeeStructure');
-const Receipt = require('./models/Receipt');
-const ReportCard = require('./models/ReportCard');
-const Assignment = require('./models/Assignment');
-const Submission = require('./models/Submission');
-const Timetable = require('./models/Timetable');
-const FacultyRegistration = require('./models/FacultyRegistration');
-const StudentRegistration = require('./models/StudentRegistration');
-const PasswordReset = require('./models/PasswordReset');
-const Attendance = require('./models/Attendance');
-const FacultyAttendance = require('./models/FacultyAttendance');
-const StaffAttendance = require('./models/StaffAttendance');
-const Mark = require('./models/Mark');
-const Notice = require('./models/Notice');
-const Resource = require('./models/Resource');
-const TestSeries = require('./models/TestSeries');
-const ClassModel = require('./models/Class');
-const TestResult = require('./models/TestResult');
-const Question = require('./models/Question');
-const SalaryPayment = require('./models/SalaryPayment');
-const StaffSalaryPayment = require('./models/StaffSalaryPayment');
-const IDCard = require('./models/IDCard');
-const HostelAllocation = require('./models/HostelAllocation');
-const Hostel = require('./models/Hostel');
-const FrontOffice = require('./models/FrontOffice');
-const AdmissionEnquiry = require('./models/AdmissionEnquiry');
-const OnlineAdmission = require('./models/OnlineAdmission');
-const Discount = require('./models/Discount');
 const {
   normalizeText,
   levenshtein,
@@ -82,11 +42,7 @@ const JSON_BODY_LIMIT = process.env.JSON_BODY_LIMIT || process.env.MAX_JSON_BODY
 const SUBJECTIVE_THRESHOLD = Number(process.env.SUBJECTIVE_THRESHOLD || 0.7);
 const SUBJECTIVE_SCORING = process.env.SUBJECTIVE_SCORING || 'proportional'; // 'proportional' or 'binary'
 const DEBUG_MATCH_THRESHOLD = Number(process.env.DEBUG_MATCH_THRESHOLD || 40); // percent under which to return raw block for debug
-const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  console.error('MONGODB_URI not set. Please set MONGODB_URI in your environment or .env (no hardcoded defaults).');
-  process.exit(1);
-}
+
 const JWT_SECRET = process.env.JWT_SECRET;
 if (process.env.NODE_ENV === 'production') {
   if (!JWT_SECRET || JWT_SECRET === 'change-this-secret') {
@@ -181,6 +137,7 @@ const apiLimiter = rateLimit({
   // Limit each IP to 300 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: {
     message: 'Too many requests from this IP, please try again after 15 minutes.'
   }
@@ -191,6 +148,7 @@ const authLimiter = rateLimit({
   // Limit each IP to 30 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
   message: {
     message: 'Too many login attempts from this IP, please try again after 15 minutes.'
   }
@@ -231,9 +189,8 @@ try {
   // provide dependencies to the module for consistency
   registerAdmitCardRoutes && registerAdmitCardRoutes(app, {
     uploadsDir,
-    Student,
-    User,
-    AdmitCard: require('./models/AdmitCard'),
+    Student: adapters.Student,
+    User: adapters.User,
     PDFDocument: PDFDocument
   });
 } catch (e) {
@@ -729,133 +686,7 @@ function makeId(prefix = '') {
   return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// Register Mongoose connection event listeners
-mongoose.connection.on('error', err => {
-  console.error('Mongoose default connection error:', err);
-});
-mongoose.connection.on('disconnected', () => {
-  console.warn('Mongoose default connection disconnected');
-  dbConnected = false;
-});
-mongoose.connection.on('connected', () => {
-  console.log('Mongoose default connection connected');
-  dbConnected = true;
-});
-async function connectDb() {
-  if (!MONGODB_URI) return;
-  const isProd = process.env.NODE_ENV === 'production';
-  const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    // Timeout after 5s instead of 30s
-    socketTimeoutMS: 45000 // Close sockets after 45s of inactivity
-  };
-  try {
-    await mongoose.connect(MONGODB_URI, options);
-    dbConnected = true;
-    console.log('Connected to MongoDB');
 
-    // Log whether Razorpay env vars are present (mask the actual values)
-    try {
-      const rId = process.env.RAZORPAY_KEY_ID || '';
-      const hasId = !!rId;
-      const maskedId = hasId ? rId.slice(0, 8) + '...' : '<none>';
-      const hasSecret = !!process.env.RAZORPAY_KEY_SECRET;
-      console.log('Razorpay config - keyIdPresent:', hasId, 'keyId(masked):', maskedId, 'secretPresent:', hasSecret);
-    } catch (e) {
-      // ignore
-    }
-
-    // Demo seeding: only run when `AUTO_SEED` env var is explicitly set to 'true'
-    // This prevents accidental population of demo accounts on every server start.
-    const AUTO_SEED = String(process.env.AUTO_SEED || '').toLowerCase() === 'true';
-    if (AUTO_SEED) {
-      try {
-        // seed demo users if none exist
-        const count = await User.countDocuments().catch(() => 0);
-        if (count === 0) {
-          console.log('Seeding demo users into MongoDB');
-          const bcrypt = require('bcryptjs');
-          const seed = demoUsers.map(u => ({
-            username: u.username,
-            password: u.password,
-            role: u.role,
-            name: u.name
-          }));
-          await User.insertMany(seed);
-        }
-
-        // seed some demo students if none exist
-        const sCount = await Student.countDocuments().catch(() => 0);
-        if (sCount === 0) {
-          console.log('Seeding demo students into MongoDB');
-          const sample = [];
-          const sections = ['A', 'B', 'C'];
-          for (let cls = 1; cls <= 12; cls++) {
-            for (let i = 1; i <= 3; i++) {
-              const section = sections[(i - 1) % sections.length];
-              sample.push({
-                name: `Student ${cls}-${section}${i}`,
-                email: `student${cls}${section}${i}@school.local`,
-                class: String(cls),
-                section,
-                rollNo: `${cls}${section}${i}`
-              });
-            }
-          }
-          await Student.insertMany(sample);
-        }
-
-        // seed demo faculty if none exist
-        const fCount = await Faculty.countDocuments().catch(() => 0);
-        if (fCount === 0) {
-          console.log('Seeding demo faculty into MongoDB');
-          const subjects = ['Math', 'Science', 'English', 'History', 'Computer'];
-          const sampleF = [];
-          for (let i = 1; i <= 12; i++) {
-            sampleF.push({
-              name: `Faculty ${i}`,
-              email: `faculty${i}@school.local`,
-              employeeId: `EMP${1000 + i}`,
-              subject: subjects[i % subjects.length],
-              contact: `+100000000${i}`
-            });
-          }
-          await Faculty.insertMany(sampleF);
-        }
-      } catch (e) {
-        console.warn('Failed to auto-seed demo data:', e && e.message);
-      }
-    } else {
-      console.log('AUTO_SEED not enabled — skipping demo data seeding');
-    }
-  } catch (err) {
-    console.error('Failed to connect to MongoDB:', err.message);
-    dbConnected = false;
-    if (isProd) {
-      console.error('FATAL ERROR: MongoDB connection failed in production. Exiting process.');
-      process.exit(1);
-    }
-    // Common issue on Windows: `localhost` may resolve to IPv6 ::1 while mongod is listening on 127.0.0.1.
-    // If the URI uses localhost, try again with 127.0.0.1 (IPv4) as a fallback.
-    try {
-      if (MONGODB_URI.includes('localhost')) {
-        const alt = MONGODB_URI.replace('localhost', '127.0.0.1');
-        console.log('Retrying MongoDB connection using', alt);
-        await mongoose.connect(alt, options);
-        dbConnected = true;
-        console.log('Connected to MongoDB (via 127.0.0.1)');
-      }
-    } catch (err2) {
-      console.error('Retry with 127.0.0.1 failed:', err2.message);
-      dbConnected = false;
-    }
-  }
-}
-
-// attempt database connection (non-blocking)
-connectDb();
 
 // Basic health
 
@@ -1447,7 +1278,6 @@ function classAliases(value) {
 
 // Gallery endpoints: Admin can create gallery entries (label + multiple images). Public can list.
 try {
-  const Gallery = require('./models/Gallery');
 
   // Create gallery item (admin only)
 
@@ -1502,7 +1332,6 @@ try {
 // Leaves
 
 // Certificates: admin can generate/send certificates; users can list their certificates
-const Certificate = require('./models/Certificate');
 
 // Admin: create/generate a certificate (multipart: optional signature image + optional uploaded file)
 
@@ -1532,7 +1361,6 @@ app.use(express.static(frontendDist));
 // Gallery image management (top-level routes)
 
 try {
-  const Gallery = require('./models/Gallery');
 
   // Add images to an existing gallery
 
@@ -1579,55 +1407,7 @@ app.get('*', (req, res, next) => {
 
 
 const helpers = {
-    User: require('./models/User'),
-    Complaint: require('./models/Complaint'),
-    Event: require('./models/Event'),
-    Syllabus: require('./models/Syllabus'),
-    Leave: require('./models/Leave'),
-    Message: require('./models/Message'),
-    Student: require('./models/Student'),
-    Faculty: require('./models/Faculty'),
-    ContactQuery: require('./models/ContactQuery'),
-    DeletionRequest: require('./models/DeletionRequest'),
-    Meeting: require('./models/Meeting'),
-    FeeStructure: require('./models/FeeStructure'),
-    Receipt: require('./models/Receipt'),
-    ReportCard: require('./models/ReportCard'),
-    Assignment: require('./models/Assignment'),
-    Submission: require('./models/Submission'),
-    Timetable: require('./models/Timetable'),
-    FacultyRegistration: require('./models/FacultyRegistration'),
-    StudentRegistration: require('./models/StudentRegistration'),
-    PasswordReset: require('./models/PasswordReset'),
-    Attendance: require('./models/Attendance'),
-    FacultyAttendance: require('./models/FacultyAttendance'),
-    StaffAttendance: require('./models/StaffAttendance'),
-    Mark: require('./models/Mark'),
-    Notice: require('./models/Notice'),
-    Resource: require('./models/Resource'),
-    TestSeries: require('./models/TestSeries'),
-    ClassModel: require('./models/Class'),
-    TestResult: require('./models/TestResult'),
-    Question: require('./models/Question'),
-    SalaryPayment: require('./models/SalaryPayment'),
-    StaffSalaryPayment: require('./models/StaffSalaryPayment'),
-    IDCard: require('./models/IDCard'),
-    HostelAllocation: require('./models/HostelAllocation'),
-    Hostel: require('./models/Hostel'),
-    FrontOffice: require('./models/FrontOffice'),
-    AdmissionEnquiry: require('./models/AdmissionEnquiry'),
-    OnlineAdmission: require('./models/OnlineAdmission'),
-    Discount: require('./models/Discount'),
-    LessonPlan: require('./models/LessonPlan'),
-    BehaviorRecord: require('./models/BehaviorRecord'),
-    CustomForm: require('./models/CustomForm'),
-    FormQuery: require('./models/FormQuery'),
-    Gallery: require('./models/Gallery'),
-    Certificate: require('./models/Certificate'),
-    NotificationSettings: require('./models/NotificationSettings'),
-    TransportAllocation: require('./models/TransportAllocation'),
-    TransportReceipt: require('./models/TransportReceipt'),
-    ReceiptModel: require('./models/Receipt'),
+    ...adapters,
     verifyToken: typeof verifyToken !== 'undefined' ? verifyToken : null,
     requireRole: typeof requireRole !== 'undefined' ? requireRole : null,
     generateReceiptPdf: typeof generateReceiptPdf !== 'undefined' ? generateReceiptPdf : null,
@@ -1768,7 +1548,7 @@ const server = app.listen(PORT, () => {
 // Ensure basic classes (1..12) exist for legacy frontend expectations
 (async () => {
   try {
-    const existing = await ClassModel.countDocuments().catch(() => 0);
+     const existing = await prisma.class.count().catch(() => 0);
     if (!existing || existing === 0) {
       const toCreate = Array.from({
         length: 12
@@ -1776,9 +1556,9 @@ const server = app.listen(PORT, () => {
         name: String(i + 1),
         subjects: []
       }));
-      await ClassModel.insertMany(toCreate);
+      await prisma.class.createMany({ data: toCreate });
       console.log('Seeded default classes 1..12');
-    }
+    };
   } catch (e) {
     console.warn('Could not seed default classes:', e && e.message);
   }
@@ -1790,7 +1570,6 @@ const server = app.listen(PORT, () => {
 
 // ===================== Twilio Notifications =====================
 const twilio = require('twilio');
-const NotificationSettings = require('./models/NotificationSettings');
 let twilioClient;
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   try {
@@ -1874,8 +1653,8 @@ const gracefulShutdown = signal => {
   console.log(`${signal} signal received: closing HTTP server`);
   server.close(() => {
     console.log('HTTP server closed');
-    if (mongoose.connection.readyState !== 0) {
-      mongoose.connection.close().then(() => {
+    if (false) {
+      Promise.resolve().then(() => {
         console.log('Mongoose connection closed');
         process.exit(0);
       }).catch(err => {

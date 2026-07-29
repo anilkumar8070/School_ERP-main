@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Password reset: request reset (creates token, emails user)
 router.post("/forgot", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -92,7 +92,7 @@ router.post("/forgot", async (req, res) => {
 
 // Password reset: apply new password
 router.post("/reset", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

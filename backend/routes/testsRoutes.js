@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -142,7 +142,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
     const secs = Array.isArray(sections) ? sections : sections ? String(sections).split(',').map(s => s.trim()).filter(Boolean) : [];
     const file = req.file;
     const filePath = file ? `/uploads/${file.filename}` : '';
-    if (!dbConnected) {
+    if (false) {
       // create in-memory test for development without DB
       const t = {
         _id: makeId('t_'),
@@ -191,7 +191,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 // Admin: list all tests
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    if (!dbConnected) return res.json(inMemoryTests);
+    if (false) return res.json(inMemoryTests);
     const items = await TestSeries.find().sort({
       start: -1
     }).populate('createdBy', 'name role').lean();
@@ -206,7 +206,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 // Update a test series (admin or faculty). Faculty may only update tests they created.
 router.put("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
   try {
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const id = req.params.id;
@@ -241,7 +241,7 @@ router.put("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req, r
 router.delete("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
   try {
     const id = req.params.id;
-    if (!dbConnected) {
+    if (false) {
       // remove from in-memory tests
       const idx = inMemoryTests.findIndex(t => String(t._id) === String(id));
       if (idx === -1) return res.status(404).json({
@@ -296,7 +296,7 @@ router.delete("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req
 router.get("/my", verifyToken, async (req, res) => {
   try {
     const role = req.user.role || 'student';
-    if (!dbConnected) {
+    if (false) {
       // Development mode: return in-memory tests for everyone so students can try the flow
       return res.json(inMemoryTests);
     }
@@ -395,7 +395,7 @@ router.get("/my", verifyToken, async (req, res) => {
 
 // Get results for a test (admin or faculty)
 router.get("/:id/results", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -433,7 +433,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
     // Allow admin/faculty to fetch questions for management — skip availability/attempt checks for them
     const now = new Date();
     const startedParam = String(req.query && req.query.started || '').toLowerCase() === 'true';
-    if (dbConnected) {
+    if (true) {
       const tdoc = await TestSeries.findById(testId).lean();
       if (!tdoc) return res.status(404).json({
         message: 'Test not found'
@@ -465,7 +465,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
         // count previous attempts and compare to allowed attempts on the test
         const allowedAttempts = tdoc.attempts ? Number(tdoc.attempts) : 1;
         let attemptsCount = 0;
-        if (dbConnected) {
+        if (true) {
           attemptsCount = await TestResult.countDocuments({
             test: testId,
             $or: [{
@@ -540,7 +540,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
 
     // check test availability and duplicate submission
     const now = new Date();
-    if (dbConnected) {
+    if (true) {
       const tdoc = await TestSeries.findById(testId).lean();
       if (!tdoc) return res.status(404).json({
         message: 'Test not found'
@@ -569,7 +569,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
       // count previous attempts and allow submission only if attempts < allowed
       const allowedAttempts2 = tdoc.attempts ? Number(tdoc.attempts) : 1;
       let prevCount = 0;
-      if (dbConnected) {
+      if (true) {
         prevCount = await TestResult.countDocuments({
           test: testId,
           $or: [{
@@ -588,7 +588,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
 
     // load questions
     let qs = [];
-    if (!dbConnected) {
+    if (false) {
       qs = inMemoryQuestions.filter(q => String(q.testId) === String(testId));
     } else {
       qs = await Question.find({
@@ -670,7 +670,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     // student info
     const username = req.user && req.user.username;
     let studentDoc = null;
-    if (dbConnected) {
+    if (true) {
       studentDoc = await Student.findOne({
         email: username
       }).lean().catch(() => null);
@@ -680,7 +680,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     let testTitle = '';
     let testSubject = '';
     try {
-      if (dbConnected) {
+      if (true) {
         const tdoc = await TestSeries.findById(testId).lean().catch(() => null);
         if (tdoc && tdoc.title) testTitle = tdoc.title;
         if (tdoc && tdoc.subject) testSubject = tdoc.subject;
@@ -694,7 +694,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     } catch (e) {}
     const wasAuto = req.body && req.body.isAuto === true;
     const resultPayload = {
-      test: dbConnected ? testId : testId,
+      test: true ? testId : testId,
       studentId: studentDoc && studentDoc._id ? studentDoc._id : undefined,
       name: studentDoc && studentDoc.name ? studentDoc.name : req.user && req.user.name || '',
       email: username || '',
@@ -719,7 +719,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
       status: hasSubjective === true ? 'pending' : 'final'
     };
     let created = null;
-    if (!dbConnected) {
+    if (false) {
       created = Object.assign({
         _id: makeId('r_'),
         createdAt: new Date(),
@@ -785,7 +785,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
 router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res) => {
   try {
     const testId = req.params.id;
-    if (!dbConnected) return res.status(503).json({
+    if (false) return res.status(503).json({
       message: 'Database not available'
     });
     const username = req.user && req.user.username;
@@ -849,7 +849,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
 
 // Upload bulk results as CSV and import into TestResult docs (admin/faculty)
 router.post("/:id/results/upload", verifyToken, requireRole(['admin', 'faculty']), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -914,7 +914,7 @@ router.post("/:id/results/upload", verifyToken, requireRole(['admin', 'faculty']
 
 // Parent/Admin: get test results for a specific student
 router.get("/results/by-student/:id", verifyToken, requireRole(['parent', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -926,7 +926,7 @@ router.get("/results/by-student/:id", verifyToken, requireRole(['parent', 'admin
       $or: [{
         studentId
       }, {
-        studentId: new mongoose.Types.ObjectId(studentId)
+        studentId: new ($1)
       }]
     }).sort({
       submittedAt: -1
@@ -1133,7 +1133,7 @@ router.post("/bulk", verifyToken, requireRole(['admin', 'faculty']), upload.sing
     const cls = Array.isArray(classes) ? classes : classes ? String(classes).split(',').map(s => s.trim()).filter(Boolean) : [];
     const secs = Array.isArray(sections) ? sections : sections ? String(sections).split(',').map(s => s.trim()).filter(Boolean) : [];
     let ts = null;
-    if (!dbConnected) {
+    if (false) {
       ts = {
         _id: makeId('t_'),
         title,
@@ -1175,7 +1175,7 @@ router.post("/bulk", verifyToken, requireRole(['admin', 'faculty']), upload.sing
       const opts = Array.isArray(q.options) ? q.options.filter(o => !!String(o || '').trim()) : [];
       if (!opts.length) continue;
       try {
-        if (!dbConnected) {
+        if (false) {
           const qdoc = {
             _id: makeId('q_'),
             testId: ts._id,
@@ -1381,7 +1381,7 @@ router.post("/:id/questions", verifyToken, requireRole(['admin', 'faculty']), as
       message: 'questions array required'
     });
     const created = [];
-    if (!dbConnected) {
+    if (false) {
       for (const q of questions) {
         if (!q || !q.questionText) continue;
         const opts = Array.isArray(q.options) ? q.options : [];

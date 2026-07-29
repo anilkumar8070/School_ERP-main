@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Behavior records: incidents, remarks, and counseling logs
 router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -48,7 +48,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
   }
 });
 router.get("/by-student/:id", verifyToken, requireRole(['parent', 'admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -74,7 +74,7 @@ router.get("/by-student/:id", verifyToken, requireRole(['parent', 'admin', 'facu
   }
 });
 router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -115,7 +115,7 @@ router.post("/", upload.single('attachment'), async (req, res) => {
 });
 // Public: submit a contact query (from Start page contact button)
 router.post("/", upload.single('attachment'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

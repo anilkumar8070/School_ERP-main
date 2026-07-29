@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -169,7 +169,7 @@ router.get("/staff/export", verifyToken, async (req, res) => {
 
 // Attendance endpoints
 router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -365,7 +365,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
   }
 });
 router.get("/", verifyToken, requireRole(['admin', 'faculty', 'student', 'parent']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -391,7 +391,7 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty', 'student', 'parent
 
 // Export student attendance history as CSV
 router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', 'parent']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -487,7 +487,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
 
 // Faculty attendance endpoints
 router.post("/faculty", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -541,7 +541,7 @@ router.post("/faculty", verifyToken, requireRole(['faculty', 'admin']), async (r
   }
 });
 router.get("/faculty", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -563,7 +563,7 @@ router.get("/faculty", verifyToken, requireRole(['admin', 'faculty']), async (re
 
 // Export faculty attendance history as CSV
 router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

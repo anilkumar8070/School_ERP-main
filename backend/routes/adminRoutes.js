@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -84,7 +84,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
 
 // admin-only route example
 router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -137,7 +137,7 @@ router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => 
 
 // Admin: custom form builder
 router.get("/custom-forms", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -153,7 +153,7 @@ router.get("/custom-forms", verifyToken, requireRole('admin'), async (req, res) 
   }
 });
 router.post("/custom-forms", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -194,7 +194,7 @@ router.post("/custom-forms", verifyToken, requireRole('admin'), async (req, res)
   }
 });
 router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -240,7 +240,7 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
   }
 });
 router.delete("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -263,7 +263,7 @@ router.delete("/custom-forms/:id", verifyToken, requireRole('admin'), async (req
 
 // Admin: list submitted contact queries
 router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -285,7 +285,7 @@ router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, re
 
 // Admin: update status of a contact query and optionally notify
 router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -329,7 +329,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
 
 // Admin: list submitted form queries
 router.get("/form-queries", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -351,7 +351,7 @@ router.get("/form-queries", verifyToken, requireRole('admin'), async (req, res) 
 
 // Admin: compute student rank analytics by class/section
 router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

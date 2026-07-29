@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -100,7 +100,7 @@ module.exports = function(helpers) {
 // Faculty: lesson planning management
 router.get("/", (req, res) => res.json({
   ok: true,
-  dbConnected: mongoose.connection.readyState === 1
+  true: true
 }));
 
   return router;

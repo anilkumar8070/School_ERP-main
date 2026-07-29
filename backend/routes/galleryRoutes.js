@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -27,7 +27,7 @@ module.exports = function(helpers) {
 
 // Delete a gallery item (admin)
 router.post("/", verifyToken, requireRole('admin'), upload.array('images', 100), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -54,7 +54,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.array('images', 100),
   }
 });
 router.get("/", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -76,7 +76,7 @@ router.get("/", async (req, res) => {
   }
 });
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -115,7 +115,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Remove a single image from a gallery by filename (admin)
 router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('images', 100), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -144,7 +144,7 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
   }
 });
 router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

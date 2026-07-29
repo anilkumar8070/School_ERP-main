@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -24,7 +24,7 @@ module.exports = function(helpers) {
 // Faculty: upload a resource (PDF) for students
 // Allow faculty and admin to upload resources (admin can upload forms)
 router.post("/", verifyToken, requireRole(['faculty', 'admin']), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -59,7 +59,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), upload.single('
 
 // Authenticated: list resources (students and faculty)
 router.get("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -85,7 +85,7 @@ router.get("/", verifyToken, async (req, res) => {
 
 // Faculty/Admin: delete a resource. Faculty can delete only their own uploads.
 router.delete("/:id", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -164,7 +164,7 @@ router.delete("/:id", verifyToken, requireRole(['faculty', 'admin']), async (req
 
 // Query timetables for a class/section. Returns history (newest-first).
 router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

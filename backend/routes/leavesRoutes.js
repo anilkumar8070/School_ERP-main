@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Leaves: student apply for leave
 router.post("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -86,7 +86,7 @@ router.post("/", verifyToken, async (req, res) => {
 
 // Get leaves: admins see all, others see their own
 router.get("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -160,7 +160,7 @@ router.get("/", verifyToken, async (req, res) => {
 
 // Get my leaves (explicit)
 router.get("/my", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -179,7 +179,7 @@ router.get("/my", verifyToken, async (req, res) => {
 
 // Update leave status (admin only) - accept optional note
 router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -247,7 +247,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
 // Admin: upload syllabus for a class/section
 
 router.post("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   const {
@@ -274,7 +274,7 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -289,7 +289,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   }
 });
 router.get("/my", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -26,7 +26,7 @@ module.exports = function(helpers) {
 // Admin helper: regenerate PDFs for timetables that have `content` but no `filePath`.
 // Useful after installing pdfkit if earlier saves didn't create PDFs.
 router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -188,7 +188,7 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
 
 // Regenerate PDF for a single timetable id
 router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -322,7 +322,7 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
 
 // Timetable endpoints - allow admin to upload a timetable (file or JSON content)
 router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -497,7 +497,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
 
 // Query timetables for a class/section. Returns history (newest-first).
 router.get("/", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

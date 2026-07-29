@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -24,7 +24,7 @@ module.exports = function(helpers) {
 // Admin: create a notice (target one or more roles)
 // Admin: create a notice (target one or more roles) - supports optional PDF upload and student filters
 router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -115,7 +115,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
 
 // Get notices: admin can optionally filter by role via ?role=student|faculty|parent
 router.get("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Marks endpoints (basic create/update/list)
 router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -121,7 +121,7 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
 
 // Bulk upsert marks: accepts array of marks
 router.post("/bulk", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -177,7 +177,7 @@ router.post("/bulk", verifyToken, requireRole('faculty'), async (req, res) => {
   }
 });
 router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -204,7 +204,7 @@ router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
   }
 });
 router.get("/", verifyToken, requireRole(['admin', 'faculty', 'parent', 'student']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -230,7 +230,7 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty', 'parent', 'student
 
 // Return marks for the logged-in student (or parent with studentId query)
 router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

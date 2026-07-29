@@ -11,17 +11,19 @@
         "sync-env": "node ../sync-env.js"
     },
     "dependencies": {
+        "@prisma/client": "^5.22.0",
         "@sendgrid/mail": "^8.0.0",
         "bcryptjs": "^2.4.3",
+        "compression": "^1.8.1",
         "cors": "^2.8.5",
         "dotenv": "^16.0.0",
         "express": "^4.18.2",
+        "express-async-errors": "^3.1.1",
         "express-rate-limit": "^8.5.2",
         "helmet": "^8.2.0",
         "jsonwebtoken": "^9.0.0",
         "jspdf": "^3.0.4",
         "mammoth": "^1.11.0",
-        "mongoose": "^7.5.0",
         "morgan": "^1.10.1",
         "multer": "^2.0.2",
         "nodemailer": "^7.0.11",
@@ -34,6 +36,7 @@
     },
     "devDependencies": {
         "jest": "^29.0.0",
-        "nodemon": "^2.0.22"
+        "nodemon": "^2.0.22",
+        "prisma": "^5.22.0"
     }
 }

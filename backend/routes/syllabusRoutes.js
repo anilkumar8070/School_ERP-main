@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Admin: upload syllabus for a class/section
 router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -59,7 +59,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
 
 // Public: get syllabus for a class and section (match specific section or ALL)
 router.get("/", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -94,7 +94,7 @@ router.get("/", async (req, res) => {
 
 // Admin: delete a syllabus entry (and its uploaded file)
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -135,7 +135,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Syllabus
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   const {
@@ -163,7 +163,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   }
 });
 router.get("/", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

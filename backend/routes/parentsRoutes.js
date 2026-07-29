@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -23,7 +23,7 @@ module.exports = function(helpers) {
 
 // Admin: list parents
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -100,7 +100,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: delete parent user
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -155,7 +155,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: block/unblock parent
 router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -214,7 +214,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
 
 // Admin: create parent user
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -261,7 +261,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Parent: link by student access code
 router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

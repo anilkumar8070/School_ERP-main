@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -162,7 +162,7 @@ router.get("/me", verifyToken, async (req, res) => {
 
 // Faculty registration endpoint (public) - stores registration for admin approval
 router.post("/register", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -257,7 +257,7 @@ router.post("/register", async (req, res) => {
 
 // Faculty: lesson planning management
 router.get("/lesson-plans", verifyToken, requireRole(['faculty', 'admin']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -293,7 +293,7 @@ router.get("/lesson-plans", verifyToken, requireRole(['faculty', 'admin']), asyn
   }
 });
 router.post("/lesson-plans", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -346,7 +346,7 @@ router.post("/lesson-plans", verifyToken, requireRole('faculty'), async (req, re
   }
 });
 router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -372,7 +372,7 @@ router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req,
   }
 });
 router.delete("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -395,7 +395,7 @@ router.delete("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (r
 });
 // Admin: list pending/processed faculty registrations
 router.get("/registrations", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -417,7 +417,7 @@ router.get("/registrations", verifyToken, requireRole('admin'), async (req, res)
 
 // Admin: approve registration -> create Faculty record and mark registration approved
 router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -575,7 +575,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
 
 // Admin: reject registration with optional note
 router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -601,7 +601,7 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
 
 // Faculty management: list, update, delete (admin only)
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -657,7 +657,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   }
 });
 router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -678,7 +678,7 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: block or unblock a faculty's user account (by faculty id)
 router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -716,7 +716,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
   }
 });
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

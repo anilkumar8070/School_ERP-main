@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -69,7 +69,7 @@ router.get("/", verifyToken, async (req, res) => {
 
 // Update profile: updates User fields and tries to sync Student/Faculty when possible
 router.put("/", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {

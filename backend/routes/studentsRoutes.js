@@ -1,6 +1,6 @@
 
 const express = require('express');
-const mongoose = require('mongoose');
+
 
 module.exports = function(helpers) {
   const router = express.Router();
@@ -84,7 +84,7 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
 // 2) Otherwise, try to resolve by `req.user.username` (email)
 // 3) If still not found, return 404
 router.get("/me", verifyToken, async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -222,7 +222,7 @@ router.post("/bulk-change-house", verifyToken, requireRole('admin'), async (req,
 
 // Student registration (public) -> admin approval
 router.post("/register", async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -310,7 +310,7 @@ router.post("/register", async (req, res) => {
 
 // Admin: list student registrations
 router.get("/registrations", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -332,7 +332,7 @@ router.get("/registrations", verifyToken, requireRole('admin'), async (req, res)
 
 // Faculty/Admin: list students by class/section
 router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res, next) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -368,7 +368,7 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res,
 
 // Student: get or generate parent access code for the logged-in student
 router.get("/parent-code", verifyToken, requireRole('student'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -448,7 +448,7 @@ router.get("/parent-code", verifyToken, requireRole('student'), async (req, res)
 
 // Password reset: apply new password
 router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -574,7 +574,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
   }
 });
 router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -623,7 +623,7 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
   }
 });
 router.get("/:id/basic", verifyToken, requireRole(['admin', 'parent']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -651,7 +651,7 @@ router.get("/:id/basic", verifyToken, requireRole(['admin', 'parent']), async (r
 });
 // Students - list/filter (admin or faculty)
 router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -716,7 +716,7 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res)
 
 // Admin: create student directly (auto-assign section and rollNo, create login user and email credentials)
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -889,7 +889,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: delete a student (remove student record and associated user, notify student)
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -956,7 +956,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Admin: update a student's class/section/roll/name and optional demographics
 router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1112,7 +1112,7 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
 // Faculty: change a student's class (assign new section & roll no automatically)
 router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1244,7 +1244,7 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
 
 // Faculty: set a student's stream (only permitted for faculty role)
 router.put("/:id/stream", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1283,7 +1283,7 @@ router.put("/:id/stream", verifyToken, requireRole('faculty'), async (req, res) 
 
 // Faculty: block/unblock student (faculty-initiated)
 router.put("/:id/block-by-faculty", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1346,7 +1346,7 @@ router.put("/:id/block-by-faculty", verifyToken, requireRole('faculty'), async (
 
 // Faculty: create a delete request for a student (goes to admin approvals)
 router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1393,7 +1393,7 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
 
 // Admin: list delete requests
 router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1410,7 +1410,7 @@ router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, re
 
 // Admin: approve a delete request (deletes student and user)
 router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1470,7 +1470,7 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
 
 // Admin: block/unblock a student's login account (by student id)
 router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1556,7 +1556,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
 
 // Faculty: request deletion of a student (creates a DeletionRequest)
 router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1597,7 +1597,7 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
 
 // Admin: list deletion requests
 router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
@@ -1614,7 +1614,7 @@ router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, re
 
 // Admin: approve a deletion request (deletes the student and associated user)
 router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), async (req, res) => {
-  if (!dbConnected) return res.status(503).json({
+  if (false) return res.status(503).json({
     message: 'Database not available'
   });
   try {
