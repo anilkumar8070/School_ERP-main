@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -61,9 +62,9 @@ router.get("/", verifyToken, async (req, res) => {
   });
   try {
     if (req.user.role === 'admin') {
-      const all = await Message.find().sort({
+      const all = await prisma.message.findMany().sort({
         createdAt: -1
-      }).lean();
+      });
       return res.json(all);
     }
     // non-admins can only see their own messages
@@ -71,7 +72,7 @@ router.get("/", verifyToken, async (req, res) => {
       createdBy: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -88,7 +89,7 @@ router.get("/my", verifyToken, async (req, res) => {
       createdBy: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -105,7 +106,7 @@ router.put("/:id/status", verifyToken, async (req, res) => {
     message: 'status required'
   });
   try {
-    const m = await Message.findById(req.params.id);
+    const m = await prisma.message.findUnique({ where: { id: String(req.params.id) } });
     if (!m) return res.status(404).json({
       message: 'Message not found'
     });

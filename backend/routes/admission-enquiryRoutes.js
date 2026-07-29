@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -26,7 +27,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const payload = req.body || {};
     payload.createdBy = req.user && req.user.sub;
-    const doc = await AdmissionEnquiry.create(payload);
+    const doc = await prisma.admissionenquiry.create({ data: payload });
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({
@@ -36,9 +37,9 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await AdmissionEnquiry.find({}).sort({
+    const list = await prisma.AdmissionEnquiry.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -57,7 +58,7 @@ router.patch("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     }
     const doc = await AdmissionEnquiry.findByIdAndUpdate(id, update, {
       new: true
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'not found'
     });

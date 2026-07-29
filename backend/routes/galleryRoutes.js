@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -58,9 +59,9 @@ router.get("/", async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const items = await Gallery.find({}).sort({
+    const items = await prisma.Gallery.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       images: (it.images || []).map(img => ({
@@ -84,7 +85,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const g = await Gallery.findById(id).catch(() => null);
+    const g = await prisma.gallery.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!g) return res.status(404).json({
       message: 'Gallery item not found'
     });
@@ -123,7 +124,7 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const gallery = await Gallery.findById(id).catch(() => null);
+    const gallery = await prisma.gallery.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!gallery) return res.status(404).json({
       message: 'Gallery not found'
     });
@@ -153,7 +154,7 @@ router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res)
     if (!id || !filename) return res.status(400).json({
       message: 'id and filename required'
     });
-    const gallery = await Gallery.findById(id).catch(() => null);
+    const gallery = await prisma.gallery.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!gallery) return res.status(404).json({
       message: 'Gallery not found'
     });

@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -48,9 +49,9 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         }]
       };
     }
-    const admins = await User.find(filter).select('name fatherName username disabled contact address designation createdAt').sort({
+    const admins = await prisma.user.findMany({ where: filter }).select('name fatherName username disabled contact address designation createdAt').sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(admins);
   } catch (e) {
     return res.status(500).json({
@@ -78,7 +79,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
     let existing = await User.findOne({
       username: email
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (existing) return res.status(409).json({
       message: 'User already exists'
     });
@@ -146,7 +147,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });
@@ -179,7 +180,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });
@@ -223,7 +224,7 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });

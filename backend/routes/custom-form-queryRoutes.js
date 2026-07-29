@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -36,7 +37,7 @@ router.post("/", upload.any(), async (req, res) => {
     if (!formId) return res.status(400).json({
       message: 'formId required'
     });
-    const form = await CustomForm.findById(formId).lean().catch(() => null);
+    const form = await prisma.customform.findUnique({ where: { id: String(formId) } }).catch(() => null);
     if (!form || form.status !== 'active') return res.status(404).json({
       message: 'Form not available'
     });

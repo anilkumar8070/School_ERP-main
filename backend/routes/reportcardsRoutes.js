@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -42,7 +43,7 @@ router.get("/my", verifyToken, async (req, res) => {
       if (username) {
         const stud = await Student.findOne({
           email: username
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (stud && stud._id) filter.$or.push({
           recipientId: String(stud._id)
         });
@@ -50,9 +51,9 @@ router.get("/my", verifyToken, async (req, res) => {
     } catch (e) {/* ignore */}
     // If no filters could be assembled, return empty
     if (!filter.$or || filter.$or.length === 0) return res.json([]);
-    const list = await ReportCard.find(filter).sort({
+    const list = await prisma.reportcard.findMany({ where: filter }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list || []);
   } catch (e) {
     return res.status(500).json({
@@ -68,7 +69,7 @@ router.get("/:id/download", verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const rc = await ReportCard.findById(id).lean().catch(() => null);
+    const rc = await prisma.reportcard.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!rc) return res.status(404).json({
       message: 'Report card not found'
     });
@@ -241,7 +242,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
         try {
           const s = await Student.findOne({
             email: recipientEmail
-          }).lean();
+          });
           const phone = s ? s.contact : null;
           await notifyEvent({
             event: 'exam_result',
@@ -269,9 +270,9 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 // List all report cards (admin)
 router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
   try {
-    const list = await ReportCard.find({}).sort({
+    const list = await prisma.ReportCard.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -291,7 +292,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
       recipientEmail: req.user.username
     }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -307,12 +308,12 @@ router.get("/by-student/:id", verifyToken, requireRole(['student', 'parent', 'ad
     if (!id) return res.status(400).json({
       message: 'student id required'
     });
-    const student = await Student.findById(id).lean().catch(() => null);
+    const student = await prisma.student.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
     if (req.user.role === 'parent') {
-      const parent = await User.findById(req.user.sub).lean().catch(() => null);
+      const parent = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(id));
       if (!linked) return res.status(403).json({
         message: 'Parent is not linked to this student'
@@ -339,7 +340,7 @@ router.get("/by-student/:id", verifyToken, requireRole(['student', 'parent', 'ad
       }]
     }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -357,7 +358,7 @@ router.get("/:id/download", verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ReportCard.findById(id).lean().catch(() => null);
+    const doc = await prisma.reportcard.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!doc || !doc.filePath) return res.status(404).json({
       message: 'File not found'
     });

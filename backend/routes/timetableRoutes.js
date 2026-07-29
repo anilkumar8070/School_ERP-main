@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -44,7 +45,7 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
       }, {
         filePath: ''
       }]
-    }).lean();
+    });
     if (!items || items.length === 0) return res.json({
       regenerated: 0,
       message: 'No timetables need regeneration'
@@ -193,7 +194,7 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
   });
   try {
     const id = req.params.id;
-    const t = await Timetable.findById(id).lean();
+    const t = await prisma.timetable.findUnique({ where: { id: String(id) } });
     if (!t) return res.status(404).json({
       message: 'Timetable not found'
     });
@@ -308,7 +309,7 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
       mime: 'application/pdf'
     }, {
       new: true
-    }).lean();
+    });
     return res.json(updated);
   } catch (e) {
     console.error('Failed to regenerate single timetable PDF:', e && e.message);
@@ -344,7 +345,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
       doc.filePath = `/uploads/${req.file.filename}`;
     }
     if (content) doc.content = content;
-    let created = await Timetable.create(doc);
+    let created = await prisma.timetable.create({ data: doc });
 
     // If JSON content was provided and no file uploaded, generate a PDF snapshot and save it to uploads
     try {
@@ -514,9 +515,9 @@ router.get("/", async (req, res) => {
         section: 'ALL'
       }];
     }
-    const items = await Timetable.find(q).sort({
+    const items = await prisma.timetable.findMany({ where: q }).sort({
       uploadedAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

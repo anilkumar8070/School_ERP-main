@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -29,14 +30,14 @@ router.get("/", async (req, res) => {
   try {
     const Resource = require('./models/Resource');
     const CustomForm = require('./models/CustomForm');
-    const items = await Resource.find().sort({
+    const items = await prisma.resource.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const customForms = await CustomForm.find({
       status: 'active'
     }).sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const mappedResources = (items || []).map(it => ({
       _id: it._id,
       kind: 'resource',

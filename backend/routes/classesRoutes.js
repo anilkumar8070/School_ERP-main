@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -25,9 +26,9 @@ module.exports = function(helpers) {
 // Basic CRUD for admin UI. Uses `Class` model to store class names and subjects.
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await ClassModel.find({}).sort({
+    const list = await prisma.ClassModel.findMany().sort({
       name: 1
-    }).lean();
+    });
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -37,7 +38,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 });
 router.get("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const cls = await ClassModel.findById(req.params.id).lean();
+    const cls = await prisma.classmodel.findUnique({ where: { id: String(req.params.id) } });
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
@@ -81,7 +82,7 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
     if (!subject || !String(subject).trim()) return res.status(400).json({
       message: 'subject required'
     });
-    const cls = await ClassModel.findById(req.params.id);
+    const cls = await prisma.classmodel.findUnique({ where: { id: String(req.params.id) } });
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
@@ -101,7 +102,7 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
 router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const subjectParam = decodeURIComponent(req.params.subject || '');
-    const cls = await ClassModel.findById(req.params.id);
+    const cls = await prisma.classmodel.findUnique({ where: { id: String(req.params.id) } });
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
@@ -118,7 +119,7 @@ router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async
 });
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const cls = await ClassModel.findById(req.params.id);
+    const cls = await prisma.classmodel.findUnique({ where: { id: String(req.params.id) } });
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });

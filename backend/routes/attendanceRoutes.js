@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -34,7 +35,7 @@ router.get("/faculty/export", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await FacultyAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.facultyattendance.findMany({ where: filter }).catch(() => []);
     const rows = [];
     rows.push(['Date', 'Faculty', 'EmployeeId', 'Status']);
     for (const d of list) {
@@ -43,7 +44,7 @@ router.get("/faculty/export", verifyToken, async (req, res) => {
         if (facultyId && String(r.facultyId) !== String(facultyId)) continue;
         let fac = null;
         try {
-          fac = await Faculty.findById(r.facultyId).lean().catch(() => null);
+          fac = await prisma.faculty.findUnique({ where: { id: String(r.facultyId) } }).catch(() => null);
         } catch {}
         rows.push([d.date, fac ? fac.name : String(r.facultyId), fac ? fac.employeeId || '' : '', r.status || '']);
       }
@@ -77,7 +78,7 @@ router.get("/staff", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await StaffAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.staffattendance.findMany({ where: filter }).catch(() => []);
     const narrowed = userId ? list.map(d => ({
       ...d,
       records: Array.isArray(d.records) ? d.records.filter(r => String(r.userId) === String(userId)) : []
@@ -137,7 +138,7 @@ router.get("/staff/export", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await StaffAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.staffattendance.findMany({ where: filter }).catch(() => []);
     const rows = [];
     rows.push(['Date', 'Staff', 'StaffId', 'Status']);
     for (const d of list) {
@@ -146,7 +147,7 @@ router.get("/staff/export", verifyToken, async (req, res) => {
         if (userId && String(r.userId) !== String(userId)) continue;
         let u = null;
         try {
-          u = await User.findById(r.userId).lean().catch(() => null);
+          u = await prisma.user.findUnique({ where: { id: String(r.userId) } }).catch(() => null);
         } catch {}
         const staffId = u ? `STF-${String(u._id).slice(-6).toUpperCase()}` : '';
         rows.push([d.date, u ? u.name || u.username : String(r.userId), staffId, r.status || '']);
@@ -193,19 +194,19 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
 
     // If the caller is a faculty, ensure they are assigned to this class/section
     if (req.user && req.user.role === 'faculty') {
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!u) return res.status(403).json({
         message: 'Unauthorized'
       });
       let fac = await Faculty.findOne({
         email: u.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.name) fac = await Faculty.findOne({
         name: u.name
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.contact) fac = await Faculty.findOne({
         contact: u.contact
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac) return res.status(403).json({
         message: 'Faculty record not linked'
       });
@@ -247,7 +248,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
           _id: {
             $in: ids
           }
-        }).lean();
+        });
         if (!studs || studs.length !== ids.length) return res.status(400).json({
           message: 'Some student records not found'
         });
@@ -266,7 +267,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
       });
     }
     // upsert: replace records if exists
-    let att = await Attendance.findOne(q);
+    let att = await prisma.attendance.findFirst({ where: q });
     // build a map of previous statuses to detect changes for emails
     const previousMap = {};
     if (att && Array.isArray(att.records)) {
@@ -315,7 +316,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
           _id: {
             $in: ids
           }
-        }).lean();
+        });
         const byId = {};
         students.forEach(s => {
           byId[String(s._id)] = s;
@@ -378,9 +379,9 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty', 'student', 'parent
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
     if (date) q.date = String(date);
-    const items = await Attendance.find(q).sort({
+    const items = await prisma.attendance.findMany({ where: q }).sort({
       date: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -408,7 +409,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
     if (role === 'student') {
       const me = await Student.findOne({
         email: req.user.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!me) return res.status(404).json({
         message: 'Student record not found'
       });
@@ -417,7 +418,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
       if (!rawStudentId) return res.status(400).json({
         message: 'studentId required for parent'
       });
-      const user = await User.findById(req.user.sub).lean().catch(() => null);
+      const user = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!user || user.role !== 'parent') return res.status(403).json({
         message: 'Unauthorized'
       });
@@ -435,9 +436,9 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
       if (from) q.date.$gte = String(from);
       if (to) q.date.$lte = String(to);
     }
-    const items = await Attendance.find(q).sort({
+    const items = await prisma.attendance.findMany({ where: q }).sort({
       date: 1
-    }).lean();
+    });
     // collect student ids present
     const ids = new Set();
     (items || []).forEach(it => {
@@ -453,7 +454,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
         _id: {
           $in: Array.from(ids)
         }
-      }).lean();
+      });
       (docs || []).forEach(s => {
         byId[String(s._id)] = s;
       });
@@ -550,9 +551,9 @@ router.get("/faculty", verifyToken, requireRole(['admin', 'faculty']), async (re
     } = req.query || {};
     const q = {};
     if (date) q.date = String(date);
-    const items = await FacultyAttendance.find(q).sort({
+    const items = await prisma.facultyattendance.findMany({ where: q }).sort({
       date: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -578,9 +579,9 @@ router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), as
       if (from) q.date.$gte = String(from);
       if (to) q.date.$lte = String(to);
     }
-    const items = await FacultyAttendance.find(q).sort({
+    const items = await prisma.facultyattendance.findMany({ where: q }).sort({
       date: 1
-    }).lean();
+    });
     const ids = new Set();
     (items || []).forEach(it => {
       ;
@@ -594,7 +595,7 @@ router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), as
         _id: {
           $in: Array.from(ids)
         }
-      }).lean();
+      });
       (docs || []).forEach(f => {
         fById[String(f._id)] = f;
       });
@@ -643,7 +644,7 @@ router.get("/faculty", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await FacultyAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.facultyattendance.findMany({ where: filter }).catch(() => []);
     // Narrow per faculty if requested
     const narrowed = facultyId ? list.map(d => ({
       ...d,
@@ -668,11 +669,11 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
     // Try to resolve current user's mapped Faculty record for self-marking
     let currentFaculty = null;
     try {
-      const meUser = await User.findById(req.user.sub).lean().catch(() => null);
+      const meUser = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (meUser && meUser.username) {
         currentFaculty = await Faculty.findOne({
           email: meUser.username
-        }).lean().catch(() => null);
+        }).catch(() => null);
       }
     } catch {}
     let doc = await FacultyAttendance.findOne({
@@ -690,7 +691,7 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
       if (!fid && rec && rec.employeeId) {
         const byEmp = await Faculty.findOne({
           employeeId: rec.employeeId
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (byEmp) fid = byEmp._id;
       }
       if (!fid) continue; // skip if we cannot resolve a faculty id
@@ -729,7 +730,7 @@ router.get("/faculty/export", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await FacultyAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.facultyattendance.findMany({ where: filter }).catch(() => []);
     const rows = [];
     rows.push(['Date', 'Faculty', 'EmployeeId', 'Status']);
     for (const d of list) {
@@ -738,7 +739,7 @@ router.get("/faculty/export", verifyToken, async (req, res) => {
         if (facultyId && String(r.facultyId) !== String(facultyId)) continue;
         let fac = null;
         try {
-          fac = await Faculty.findById(r.facultyId).lean().catch(() => null);
+          fac = await prisma.faculty.findUnique({ where: { id: String(r.facultyId) } }).catch(() => null);
         } catch {}
         rows.push([d.date, fac ? fac.name : String(r.facultyId), fac ? fac.employeeId || '' : '', r.status || '']);
       }

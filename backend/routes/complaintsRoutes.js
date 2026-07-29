@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -53,16 +54,16 @@ router.get("/", verifyToken, async (req, res) => {
   });
   try {
     if (req.user.role === 'admin') {
-      const all = await Complaint.find().sort({
+      const all = await prisma.complaint.findMany().sort({
         createdAt: -1
-      }).lean();
+      });
       return res.json(all);
     }
     const mine = await Complaint.find({
       userId: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -79,7 +80,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     message: 'status required'
   });
   try {
-    const c = await Complaint.findById(req.params.id);
+    const c = await prisma.complaint.findUnique({ where: { id: String(req.params.id) } });
     if (!c) return res.status(404).json({
       message: 'Complaint not found'
     });

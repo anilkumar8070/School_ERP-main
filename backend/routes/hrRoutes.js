@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -51,9 +52,9 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         }]
       };
     }
-    const list = await User.find(filter).select('name fatherName username disabled contact address designation gender age religion category createdAt').sort({
+    const list = await prisma.user.findMany({ where: filter }).select('name fatherName username disabled contact address designation gender age religion category createdAt').sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -84,7 +85,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
     let existing = await User.findOne({
       username: email
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (existing) return res.status(409).json({
       message: 'User already exists'
     });
@@ -148,14 +149,14 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'HR not found'
     });
     if (user.role !== 'staff' || !user.hr) return res.status(400).json({
       message: 'Not an HR account'
     });
-    await User.findByIdAndDelete(id);
+    await prisma.user.delete({ where: { id: String(id) } });
     return res.json({
       ok: true
     });
@@ -177,7 +178,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'HR not found'
     });
@@ -211,7 +212,7 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: String(id) } });
     if (!user) return res.status(404).json({
       message: 'HR not found'
     });

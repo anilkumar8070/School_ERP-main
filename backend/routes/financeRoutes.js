@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -31,12 +32,12 @@ router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'paren
     if (!id) return res.status(400).json({
       message: 'student id required'
     });
-    const student = await Student.findById(id).lean().catch(() => null);
+    const student = await prisma.student.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
     if ((req.user && req.user.role) === 'parent') {
-      const parent = await User.findById(req.user.sub).lean().catch(() => null);
+      const parent = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(id));
       if (!linked) return res.status(403).json({
         message: 'Parent is not linked to this student'
@@ -51,7 +52,7 @@ router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'paren
       }]
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -182,7 +183,7 @@ router.get("/fee-structure", verifyToken, requireRole('admin'), async (req, res)
     message: 'Database not available'
   });
   try {
-    const items = await FeeStructure.find().lean();
+    const items = await prisma.feestructure.findMany();
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -205,7 +206,7 @@ router.get("/fee-structure/public", verifyToken, async (req, res) => {
         $in: classValues
       },
       section
-    }).lean();
+    });
     if (!item && section !== 'ALL') {
       // fallback to ALL
       item = await FeeStructure.findOne({
@@ -213,7 +214,7 @@ router.get("/fee-structure/public", verifyToken, async (req, res) => {
           $in: classValues
         },
         section: 'ALL'
-      }).lean();
+      });
     }
     if (!item) return res.json([]);
     return res.json([item]);
@@ -285,7 +286,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
         if (sec && sec !== 'ALL') studentQuery.section = sec;
         // Term1 handling
         if (Number(term1 || 0) > 0) {
-          const students = await Student.find(studentQuery).lean();
+          const students = await prisma.student.findMany({ where: studentQuery });
           for (const s of students || []) {
             const id = s._id;
             const hasT1 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term1');
@@ -328,7 +329,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
         }
         // Term2 handling
         if (Number(term2 || 0) > 0) {
-          const students = await Student.find(studentQuery).lean();
+          const students = await prisma.student.findMany({ where: studentQuery });
           for (const s of students || []) {
             const id = s._id;
             const hasT2 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term2');
@@ -453,7 +454,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
     });
 
     // Load the document and manipulate history in JS to avoid ObjectId cast errors
-    const fee = await FeeStructure.findById(id);
+    const fee = await prisma.feestructure.findUnique({ where: { id: String(id) } });
     if (!fee) return res.status(404).json({
       message: 'Fee structure not found'
     });
@@ -485,7 +486,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
       message: 'History entry not found'
     });
     await fee.save();
-    const updated = await FeeStructure.findById(id).lean();
+    const updated = await prisma.feestructure.findUnique({ where: { id: String(id) } });
     return res.json({
       ok: true,
       fee: updated
@@ -501,9 +502,9 @@ router.get("/receipts", verifyToken, requireRole('admin'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const items = await Receipt.find().sort({
+    const items = await prisma.receipt.findMany().sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -520,7 +521,7 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
       studentEmail: req.user.username
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -595,7 +596,7 @@ router.post("/assign-fee", verifyToken, requireRole('admin'), async (req, res) =
       };
       if (section && section !== 'ALL') q.section = section;
     }
-    const students = await Student.find(q).lean();
+    const students = await prisma.student.findMany({ where: q });
     if (!students || students.length === 0) return res.status(404).json({
       message: 'No students found for the selected filter'
     });
@@ -751,9 +752,9 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
             // If we have allocation info, include it
             try {
               if (rec.allocationId) {
-                const alloc = await HostelAllocation.findById(rec.allocationId).lean().catch(() => null);
+                const alloc = await prisma.hostelallocation.findUnique({ where: { id: String(rec.allocationId) } }).catch(() => null);
                 if (alloc) {
-                  const hostel = alloc.hostelId && (await Hostel.findById(alloc.hostelId).lean().catch(() => null)) || null;
+                  const hostel = alloc.hostelId && (await prisma.hostel.findUnique({ where: { id: String(alloc.hostelId) } }).catch(() => null)) || null;
                   doc.moveDown(0.5);
                   doc.text(`Hostel: ${hostel ? hostel.name || '' : alloc.hostelId || ''}`);
                   doc.text(`Room: ${alloc.floorNo} / ${alloc.roomNo} / ${Number(alloc.bedIndex) + 1}`);
@@ -783,7 +784,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
     // If this receipt references a hostel allocation, update that allocation's payments and paid flag
     try {
       if (allocationId) {
-        const alloc = await HostelAllocation.findById(allocationId).catch(() => null);
+        const alloc = await prisma.hostelallocation.findUnique({ where: { id: String(allocationId) } }).catch(() => null);
         if (alloc) {
           // determine part index from term string e.g., 'Term 1'
           let partIndex = null;

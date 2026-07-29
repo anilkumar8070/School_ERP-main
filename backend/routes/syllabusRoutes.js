@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -67,9 +68,9 @@ router.get("/", async (req, res) => {
     const section = req.query.section || req.query.sec || null;
     // If no class provided, return all syllabus entries (legacy callers expect this)
     if (!cls) {
-      const items = await Syllabus.find().sort({
+      const items = await prisma.syllabus.findMany().sort({
         uploadedAt: -1
-      }).lean();
+      });
       return res.json(items);
     }
     // prefer exact section, but include ALL as fallback; return most recent
@@ -81,9 +82,9 @@ router.get("/", async (req, res) => {
     }, {
       section: 'ALL'
     }];
-    const items = await Syllabus.find(q).sort({
+    const items = await prisma.syllabus.findMany({ where: q }).sort({
       uploadedAt: -1
-    }).lean();
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -102,7 +103,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await Syllabus.findById(id);
+    const doc = await prisma.syllabus.findUnique({ where: { id: String(id) } });
     if (!doc) return res.status(404).json({
       message: 'Syllabus not found'
     });
@@ -167,7 +168,7 @@ router.get("/", async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const items = await Syllabus.find().lean();
+    const items = await prisma.syllabus.findMany();
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -36,7 +37,7 @@ router.get("/", verifyToken, async (req, res) => {
       $gte: from,
       $lte: to
     };
-    const list = await FacultyAttendance.find(filter).lean().catch(() => []);
+    const list = await prisma.facultyattendance.findMany({ where: filter }).catch(() => []);
     const narrowed = facultyId ? list.map(d => ({
       ...d,
       records: Array.isArray(d.records) ? d.records.filter(r => String(r.facultyId) === String(facultyId)) : []

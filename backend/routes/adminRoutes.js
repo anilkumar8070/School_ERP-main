@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -24,9 +25,9 @@ module.exports = function(helpers) {
 // Admin: list contact queries
 router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await ContactQuery.find({}).sort({
+    const list = await prisma.ContactQuery.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     // Attach URL for downloads
     const out = (list || []).map(it => ({
       ...it,
@@ -52,7 +53,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ContactQuery.findById(id);
+    const doc = await prisma.contactquery.findUnique({ where: { id: String(id) } });
     if (!doc) return res.status(404).json({
       message: 'not found'
     });
@@ -70,7 +71,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     await doc.save();
 
     // Return updated document (lean-like)
-    const out = (await ContactQuery.findById(id).lean()) || {};
+    const out = (await prisma.contactquery.findUnique({ where: { id: String(id) } })) || {};
     out.url = out.filename ? `/uploads/${out.filename}` : undefined;
     return res.json(out);
   } catch (e) {
@@ -89,10 +90,10 @@ router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => 
   });
   try {
     // Total number of students
-    const studentsCount = await Student.countDocuments().catch(() => 0);
+    const studentsCount = await prisma.student.count().catch(() => 0);
 
     // Total number of teachers/faculty
-    const teachersCount = await Faculty.countDocuments().catch(() => 0);
+    const teachersCount = await prisma.faculty.count().catch(() => 0);
 
     // Number of distinct classes (from students)
     let classesCount = 0;
@@ -142,9 +143,9 @@ router.get("/custom-forms", verifyToken, requireRole('admin'), async (req, res) 
   });
   try {
     const CustomForm = require('./models/CustomForm');
-    const items = await CustomForm.find().sort({
+    const items = await prisma.customform.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -228,7 +229,7 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
       fields: cleanFields
     }, {
       new: true
-    }).lean();
+    });
     if (!doc) return res.status(404).json({
       message: 'Form not found'
     });
@@ -245,7 +246,7 @@ router.delete("/custom-forms/:id", verifyToken, requireRole('admin'), async (req
   });
   try {
     const CustomForm = require('./models/CustomForm');
-    const doc = await CustomForm.findByIdAndDelete(req.params.id).lean();
+    const doc = await prisma.customform.delete({ where: { id: String(req.params.id) } });
     if (!doc) return res.status(404).json({
       message: 'Form not found'
     });
@@ -268,9 +269,9 @@ router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, re
   });
   try {
     const ContactQuery = require('./models/ContactQuery');
-    const items = await ContactQuery.find().sort({
+    const items = await prisma.contactquery.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       url: it.filename ? `/uploads/${it.filename}` : undefined
@@ -299,7 +300,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ContactQuery.findById(id).catch(() => null);
+    const doc = await prisma.contactquery.findUnique({ where: { id: String(id) } }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Not found'
     });
@@ -334,9 +335,9 @@ router.get("/form-queries", verifyToken, requireRole('admin'), async (req, res) 
   });
   try {
     const FormQuery = require('./models/FormQuery');
-    const items = await FormQuery.find().sort({
+    const items = await prisma.formquery.findMany().sort({
       createdAt: -1
-    }).lean().catch(() => []);
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       url: it.filename ? `/uploads/${it.filename}` : undefined
@@ -425,7 +426,7 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (from || to) q.submittedAt = {};
       if (from) q.submittedAt.$gte = from;
       if (to) q.submittedAt.$lte = to;
-      const results = await TestResult.find(q).lean().catch(() => []);
+      const results = await prisma.testresult.findMany({ where: q }).catch(() => []);
       for (const r of results || []) {
         const key = r.studentId ? String(r.studentId) : `${r.email || r.name || ''}::${r.class || ''}::${r.section || ''}`;
         pushTestResult(key, r);
@@ -440,7 +441,7 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (from || to) q.createdAt = {};
       if (from) q.createdAt.$gte = from;
       if (to) q.createdAt.$lte = to;
-      const cards = await ReportCard.find(q).lean().catch(() => []);
+      const cards = await prisma.reportcard.findMany({ where: q }).catch(() => []);
       for (const c of cards || []) {
         const key = c.recipientId ? String(c.recipientId) : `${c.recipientEmail || c.recipientName || ''}::${c.className || ''}::${c.section || ''}`;
         pushReportCard(key, c);
@@ -487,7 +488,7 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       const sq = {};
       if (cls) sq.class = cls;
       if (section) sq.section = section;
-      const students = await Student.find(sq).lean().catch(() => []);
+      const students = await prisma.student.findMany({ where: sq }).catch(() => []);
       for (const s of students || []) {
         const skey = s._id ? String(s._id) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
         const exists = rows.some(r => r.key === skey);

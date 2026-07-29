@@ -1,3 +1,4 @@
+const prisma = require('../prisma/client');
 
 const express = require('express');
 
@@ -42,14 +43,14 @@ router.post("/", verifyToken, async (req, res) => {
     try {
       student = await Student.findOne({
         email: req.user.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
     } catch (e) {
       student = null;
     }
     try {
       faculty = await Faculty.findOne({
         email: req.user.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
     } catch (e) {
       faculty = null;
     }
@@ -67,7 +68,7 @@ router.post("/", verifyToken, async (req, res) => {
       reason: reason || '',
       status: 'Pending'
     };
-    const doc = await Leave.create(leaveData);
+    const doc = await prisma.leave.create({ data: leaveData });
     // notify admin UIs via SSE
     try {
       sendSseEvent('leave_created', {
@@ -94,27 +95,27 @@ router.get("/", verifyToken, async (req, res) => {
       // allow admin to filter by role (student/faculty) using query param
       const q = {};
       if (req.query && req.query.role) q.role = req.query.role;
-      const items = await Leave.find(q).sort({
+      const items = await prisma.leave.findMany({ where: q }).sort({
         createdAt: -1
-      }).lean();
+      });
       return res.json(items);
     }
     // Faculty may request student leaves for their assigned classes via ?role=student
     if (req.user && req.user.role === 'faculty' && req.query && req.query.role === 'student') {
       // resolve faculty record
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({ where: { id: String(req.user.sub) } }).catch(() => null);
       if (!u) return res.status(403).json({
         message: 'Unauthorized'
       });
       let fac = await Faculty.findOne({
         email: u.username
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.name) fac = await Faculty.findOne({
         name: u.name
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac && u.contact) fac = await Faculty.findOne({
         contact: u.contact
-      }).lean().catch(() => null);
+      }).catch(() => null);
       if (!fac) return res.status(403).json({
         message: 'Faculty record not linked'
       });
@@ -139,9 +140,9 @@ router.get("/", verifyToken, async (req, res) => {
       }
       if (orClauses.length === 0) return res.json([]);
       q.$or = orClauses;
-      const items = await Leave.find(q).sort({
+      const items = await prisma.leave.findMany({ where: q }).sort({
         createdAt: -1
-      }).lean();
+      });
       return res.json(items);
     }
     // non-admins: list only own leaves
@@ -149,7 +150,7 @@ router.get("/", verifyToken, async (req, res) => {
       userId: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -168,7 +169,7 @@ router.get("/my", verifyToken, async (req, res) => {
       userId: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -191,7 +192,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       message: 'status required'
     });
     const id = req.params.id;
-    const l = await Leave.findById(id);
+    const l = await prisma.leave.findUnique({ where: { id: String(id) } });
     if (!l) return res.status(404).json({
       message: 'Leave not found'
     });
@@ -278,9 +279,9 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const all = await Leave.find().sort({
+    const all = await prisma.leave.findMany().sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(all);
   } catch (e) {
     return res.status(500).json({
@@ -297,7 +298,7 @@ router.get("/my", verifyToken, async (req, res) => {
       userId: req.user.sub
     }).sort({
       createdAt: -1
-    }).lean();
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -317,7 +318,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     message: 'status required'
   });
   try {
-    const leave = await Leave.findById(req.params.id);
+    const leave = await prisma.leave.findUnique({ where: { id: String(req.params.id) } });
     if (!leave) return res.status(404).json({
       message: 'Leave not found'
     });
@@ -333,13 +334,13 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
         // find faculty by email/username
         let faculty = await Faculty.findOne({
           email: leave.username
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (!faculty && leave.userId) {
           // attempt via userId mapping: if there's a Faculty with contact/email matching user
-          const u = await User.findById(leave.userId).lean().catch(() => null);
+          const u = await prisma.user.findUnique({ where: { id: String(leave.userId) } }).catch(() => null);
           if (u && u.username) faculty = await Faculty.findOne({
             email: u.username
-          }).lean().catch(() => null);
+          }).catch(() => null);
         }
         if (faculty && faculty._id && leave.from && leave.to) {
           const start = new Date(leave.from);
@@ -385,12 +386,12 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       if (!recipient) {
         const student = await Student.findOne({
           name: leave.username
-        }).lean().catch(() => null);
+        }).catch(() => null);
         if (student && student.email) recipient = student.email;
       }
       // as a fallback, try to locate a User with the id and use its contact/email-like fields
       if (!recipient && leave.userId) {
-        const u = await User.findById(leave.userId).lean().catch(() => null);
+        const u = await prisma.user.findUnique({ where: { id: String(leave.userId) } }).catch(() => null);
         if (u && u.contact && String(u.contact).includes('@')) recipient = u.contact;
       }
       if (recipient) {
