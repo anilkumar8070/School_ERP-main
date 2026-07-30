@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -32,21 +34,28 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
     const filter = {};
     if (studentId) filter['student.id'] = studentId;
     if (hostelId) filter.hostelId = hostelId;
-    const list = await HostelAllocation.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.hostelAllocation.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     // Attach latest receipt info (if any) to each allocation for admin convenience
     try {
       const allocIds = list.map(l => l._id).filter(Boolean);
       if (allocIds.length > 0) {
-        const Receipt = require('./models/Receipt');
-        const recs = await Receipt.find({
-          allocationId: {
-            $in: allocIds
+        const recs = await prisma.receipt.findMany({
+          where: {
+            allocationId: {
+              in: allocIds
+            }
+          },
+
+          orderBy: {
+            createdAt: "desc"
           }
-        }).sort({
-          createdAt: -1
-        }).lean().catch(() => []);
+        }).catch(() => []);
         const map = {};
         for (const r of recs) {
           const key = String(r.allocationId || r.allocationId);
@@ -81,7 +90,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
         message: `${k} required`
       });
     }
-    const doc = await HostelAllocation.create(payload);
+    const doc = await prisma.hostelAllocation.create({ data: payload });
 
     // Map parts to academic terms for clarity
     function mapPartToTerm(idx) {
@@ -105,16 +114,20 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
               by: req.user && req.user.sub
             });
           }
-          await Student.findByIdAndUpdate(payload.student.id, {
-            $push: {
-              assignedFees: {
-                $each: termEntries
+          await prisma.student.update({
+            where: {
+              id: String(payload.student.id)
+            },
+
+            data: {
+              push: {
+                assignedFees: {
+                  $each: termEntries
+                }
               }
             }
-          }).lean().catch(() => null);
+          }).catch(() => null);
         } else if (String(payload.fee.option) === 'pay-now') {
-          // Create a single receipt stub for immediate payment (integration can update ids later)
-          const Receipt = require('./models/Receipt');
           await Receipt.create({
             studentId: payload.student.id,
             studentName: payload.student.name,
@@ -142,7 +155,11 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
     const {
       id
     } = req.params;
-    const alloc = await HostelAllocation.findById(id).catch(() => null);
+    const alloc = await prisma.hostelAllocation.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!alloc) return res.status(404).json({
       message: 'Allocation not found'
     });
@@ -152,7 +169,6 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
     if (!isOwner && !isAdmin) return res.status(403).json({
       message: 'Forbidden'
     });
-    const ReceiptModel = require('./models/Receipt');
     // create receipt document
     const receiptDoc = await ReceiptModel.create({
       studentId: alloc.student.id,
@@ -168,16 +184,22 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
       let sdoc = null;
       if (alloc && alloc.student && alloc.student.id) {
         try {
-          sdoc = await Student.findById(alloc.student.id).lean().catch(() => null);
+          sdoc = await prisma.student.findUnique({
+            where: {
+              id: String(alloc.student.id)
+            }
+          }).catch(() => null);
         } catch (e) {
           sdoc = null;
         }
       }
       if (!sdoc && receiptDoc.studentEmail) {
         try {
-          sdoc = await Student.findOne({
-            email: receiptDoc.studentEmail
-          }).lean().catch(() => null);
+          sdoc = await prisma.student.findFirst({
+            where: {
+              email: receiptDoc.studentEmail
+            }
+          }).catch(() => null);
         } catch (e) {
           sdoc = null;
         }
@@ -191,7 +213,7 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
     }
     // try generate PDF and attach
     try {
-      const gen = await generateReceiptPdf(receiptDoc.toObject ? receiptDoc.toObject() : receiptDoc, alloc.toObject ? alloc.toObject() : alloc);
+      const gen = await generateReceiptPdf(receiptDoc.toObject ? receiptDoc : receiptDoc, alloc.toObject ? alloc : alloc);
       if (gen) {
         receiptDoc.pdfPath = gen.pdfPath;
         receiptDoc.pdfUrl = gen.pdfUrl;
@@ -214,11 +236,28 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
       alloc.payments = alloc.payments || [];
       alloc.payments.push(p);
       alloc.paid = true;
-      await alloc.save();
+      // Transpiled save()
+    if (alloc && alloc.id) {
+      const { id: _id_unused, ..._updateData } = alloc;
+      await prisma.hostelAllocation.update({
+        where: { id: String(alloc.id) },
+        data: _updateData
+      });
+    } else if (alloc && alloc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = alloc;
+      await prisma.hostelAllocation.update({
+        where: { id: String(alloc._id) },
+        data: _updateData2
+      });
+    }
     } catch (e) {
       console.warn('Failed to update allocation with receipt', e && e.message);
     }
-    const updated = await HostelAllocation.findById(id).lean().catch(() => null);
+    const updated = await prisma.hostelAllocation.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     return res.json(updated);
   } catch (e) {
     return res.status(500).json({
@@ -232,7 +271,6 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
 // Hostel receipts: list my hostel receipts (separate from generic receipts list)
 router.get("/receipts/my", verifyToken, async (req, res) => {
   try {
-    const Receipt = require('./models/Receipt');
     const userId = req.user && req.user.sub;
     if (!userId) return res.status(401).json({
       message: 'Not authenticated'
@@ -241,7 +279,11 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     // Resolve Student document (allocations embed student.id as Student._id). Fall back to matching by user email.
     let studentDoc = null;
     try {
-      studentDoc = await Student.findById(userId).lean().catch(() => null);
+      studentDoc = await prisma.student.findUnique({
+        where: {
+          id: String(userId)
+        }
+      }).catch(() => null);
     } catch (e) {
       studentDoc = null;
     }
@@ -250,21 +292,29 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     let allocs = [];
     try {
       if (studentDoc && studentDoc._id) {
-        allocs = await HostelAllocation.find({
-          'student.id': studentDoc._id
-        }).lean().catch(() => []);
+        allocs = await prisma.hostelAllocation.findMany({
+          where: {
+            'student.id': studentDoc._id
+          }
+        }).catch(() => []);
       } else {
         // try matching by user.username (email) stored in embedded allocation student.email
         let u = null;
         try {
-          u = await User.findById(userId).lean().catch(() => null);
+          u = await prisma.user.findUnique({
+            where: {
+              id: String(userId)
+            }
+          }).catch(() => null);
         } catch (e) {
           u = null;
         }
         if (u && u.username) {
-          allocs = await HostelAllocation.find({
-            'student.email': u.username
-          }).lean().catch(() => []);
+          allocs = await prisma.hostelAllocation.findMany({
+            where: {
+              'student.email': u.username
+            }
+          }).catch(() => []);
         }
       }
     } catch (e) {
@@ -278,23 +328,27 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
 
     // Query receipts that belong to this student (by id) or are tied to one of the student's hostel allocations
     const filter = allocIds.length > 0 ? {
-      $or: [{
+      OR: [{
         studentId: {
-          $in: studentIds
+          in: studentIds
         }
       }, {
         allocationId: {
-          $in: allocIds
+          in: allocIds
         }
       }]
     } : {
       studentId: {
-        $in: studentIds
+        in: studentIds
       }
     };
-    const list = await Receipt.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.receipt.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -306,43 +360,54 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
 // Admin: backfill/complete missing hostel receipts (populate rollNo/class/pdfUrl where possible)
 router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const ReceiptModel = require('./models/Receipt');
     // Find receipts that are likely incomplete: missing rollNo or missing pdfUrl
-    const candidates = await ReceiptModel.find({
-      $or: [{
-        rollNo: {
-          $exists: false
-        }
-      }, {
-        rollNo: ''
-      }, {
-        pdfUrl: {
-          $exists: false
-        }
-      }, {
-        pdfUrl: ''
-      }]
-    }).limit(500).lean().catch(() => []);
+    const candidates = await prisma.receiptModel.findMany({
+      where: {
+        OR: [{
+          rollNo: {
+            $exists: false
+          }
+        }, {
+          rollNo: ''
+        }, {
+          pdfUrl: {
+            $exists: false
+          }
+        }, {
+          pdfUrl: ''
+        }]
+      }
+    }).limit(500).catch(() => []);
     const results = [];
     for (const r of candidates) {
       try {
         let updated = false;
-        let doc = await ReceiptModel.findById(r._id).catch(() => null);
+        let doc = await prisma.receiptModel.findUnique({
+          where: {
+            id: String(r._id)
+          }
+        }).catch(() => null);
         if (!doc) continue;
         // attempt to fill student info
         let sdoc = null;
         if (doc.studentId) {
           try {
-            sdoc = await Student.findById(doc.studentId).lean().catch(() => null);
+            sdoc = await prisma.student.findUnique({
+              where: {
+                id: String(doc.studentId)
+              }
+            }).catch(() => null);
           } catch (e) {
             sdoc = null;
           }
         }
         if (!sdoc && doc.studentEmail) {
           try {
-            sdoc = await Student.findOne({
-              email: doc.studentEmail
-            }).lean().catch(() => null);
+            sdoc = await prisma.student.findFirst({
+              where: {
+                email: doc.studentEmail
+              }
+            }).catch(() => null);
           } catch (e) {
             sdoc = null;
           }
@@ -365,14 +430,18 @@ router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req,
         let alloc = null;
         if (doc.allocationId) {
           try {
-            alloc = await HostelAllocation.findById(doc.allocationId).lean().catch(() => null);
+            alloc = await prisma.hostelAllocation.findUnique({
+              where: {
+                id: String(doc.allocationId)
+              }
+            }).catch(() => null);
           } catch (e) {
             alloc = null;
           }
         }
         if ((!doc.pdfUrl || doc.pdfUrl === '') && doc._id) {
           try {
-            const gen = await generateReceiptPdf(doc.toObject ? doc.toObject() : doc, alloc && alloc.toObject ? alloc.toObject() : alloc);
+            const gen = await generateReceiptPdf(doc.toObject ? doc : doc, alloc && alloc.toObject ? alloc : alloc);
             if (gen) {
               doc.pdfPath = gen.pdfPath;
               doc.pdfUrl = gen.pdfUrl;
@@ -406,7 +475,7 @@ router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req,
 // Delete all allocations (admin-only)
 router.delete("/allocations", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    await HostelAllocation.deleteMany({});
+    await prisma.hostelAllocation.deleteMany();
     return res.json({
       ok: true
     });
@@ -431,7 +500,11 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
     // Try to resolve a Student document for this authenticated user
     let studentDoc = null;
     try {
-      studentDoc = await Student.findById(userId).lean().catch(() => null);
+      studentDoc = await prisma.student.findUnique({
+        where: {
+          id: String(userId)
+        }
+      }).catch(() => null);
     } catch {}
     if (studentDoc && studentDoc._id) {
       filter['student.id'] = studentDoc._id;
@@ -439,7 +512,11 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
       // Fallback: match by email/username in embedded allocation data
       let u = null;
       try {
-        u = await User.findById(userId).lean().catch(() => null);
+        u = await prisma.user.findUnique({
+          where: {
+            id: String(userId)
+          }
+        }).catch(() => null);
       } catch {}
       if (u && u.username) {
         filter['student.email'] = u.username;
@@ -448,9 +525,13 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
         filter['student.id'] = userId;
       }
     }
-    const list = await HostelAllocation.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.hostelAllocation.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({

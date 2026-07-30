@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -25,13 +27,11 @@ module.exports = function(helpers) {
 // List all staff users (minimal fields)
 router.get("/staff", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await User.find({
-      role: 'staff'
-    }, {
-      name: 1,
-      username: 1,
-      contact: 1
-    }).lean().catch(() => []);
+    const list = await prisma.user.findMany({
+      where: {
+        role: 'staff'
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -51,7 +51,11 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     if (!userId || !month || !amount) return res.status(400).json({
       message: 'userId, month, amount required'
     });
-    const staff = await User.findById(userId).lean().catch(() => null);
+    const staff = await prisma.user.findUnique({
+      where: {
+        id: String(userId)
+      }
+    }).catch(() => null);
     if (!staff || staff.role !== 'staff') return res.status(404).json({
       message: 'Staff not found'
     });
@@ -72,7 +76,7 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     payment.razorpaySignature = razorpaySignature;
     payment.receiptNo = receiptNo;
     payment.status = 'paid';
-    await payment.save();
+    /* FIXME: Mongoose .save() */ await payment.save();
     return res.status(201).json(payment);
   } catch (e) {
     return res.status(500).json({
@@ -96,7 +100,11 @@ router.post("/slips", verifyToken, requireRole('admin'), async (req, res) => {
     if (!userId || !month) return res.status(400).json({
       message: 'userId and month required'
     });
-    const staff = await User.findById(userId).lean().catch(() => null);
+    const staff = await prisma.user.findUnique({
+      where: {
+        id: String(userId)
+      }
+    }).catch(() => null);
     if (!staff || staff.role !== 'staff') return res.status(404).json({
       message: 'Staff not found'
     });
@@ -137,7 +145,11 @@ router.patch("/payments/:id/mark-paid", verifyToken, requireRole('admin'), async
       paymentDate,
       notes
     } = req.body || {};
-    const pay = await StaffSalaryPayment.findById(id).catch(() => null);
+    const pay = await prisma.staffSalaryPayment.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!pay) return res.status(404).json({
       message: 'Salary slip not found'
     });
@@ -147,7 +159,20 @@ router.patch("/payments/:id/mark-paid", verifyToken, requireRole('admin'), async
     if (notes !== undefined) pay.notes = String(notes || '');
     if (!pay.receiptNo) pay.receiptNo = `SSL-${new Date().getFullYear()}-${String(pay._id).slice(-6).toUpperCase()}`;
     if (!pay.razorpayPaymentId) pay.razorpayPaymentId = `manual_${makeId('pay_')}`;
-    await pay.save();
+    // Transpiled save()
+    if (pay && pay.id) {
+      const { id: _id_unused, ..._updateData } = pay;
+      await prisma.staffSalaryPayment.update({
+        where: { id: String(pay.id) },
+        data: _updateData
+      });
+    } else if (pay && pay._id) {
+      const { _id: _id_unused2, ..._updateData2 } = pay;
+      await prisma.staffSalaryPayment.update({
+        where: { id: String(pay._id) },
+        data: _updateData2
+      });
+    }
     return res.json(pay);
   } catch (e) {
     return res.status(500).json({
@@ -167,7 +192,11 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
     if (!userId || !month || !amount) return res.status(400).json({
       message: 'userId, month, amount required'
     });
-    const staff = await User.findById(userId).lean().catch(() => null);
+    const staff = await prisma.user.findUnique({
+      where: {
+        id: String(userId)
+      }
+    }).catch(() => null);
     if (!staff || staff.role !== 'staff') return res.status(404).json({
       message: 'Staff not found'
     });
@@ -236,7 +265,11 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
     if (!userId || !month || !amount || !orderId || !paymentId) return res.status(400).json({
       message: 'required fields missing'
     });
-    const staff = await User.findById(userId).lean().catch(() => null);
+    const staff = await prisma.user.findUnique({
+      where: {
+        id: String(userId)
+      }
+    }).catch(() => null);
     if (!staff || staff.role !== 'staff') return res.status(404).json({
       message: 'Staff not found'
     });
@@ -263,9 +296,11 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
 // List all staff salary payments
 router.get("/payments", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await StaffSalaryPayment.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.staffSalaryPayment.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -278,11 +313,15 @@ router.get("/payments", verifyToken, requireRole('admin'), async (req, res) => {
 router.get("/my-payments", verifyToken, requireRole('staff'), async (req, res) => {
   try {
     const userId = String(req.user && req.user.sub);
-    const list = await StaffSalaryPayment.find({
-      userId
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.staffSalaryPayment.findMany({
+      where: {
+        userId
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -295,7 +334,11 @@ router.get("/my-payments", verifyToken, requireRole('staff'), async (req, res) =
 router.get("/receipt/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
-    const pay = await StaffSalaryPayment.findById(id).lean().catch(() => null);
+    const pay = await prisma.staffSalaryPayment.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!pay) return res.status(404).send('Receipt not found');
     const isAdmin = req.user && req.user.role === 'admin';
     const isOwner = req.user && String(req.user.sub) === String(pay.userId);
@@ -349,7 +392,11 @@ router.get("/receipt/:id", verifyToken, async (req, res) => {
 router.get("/receipt/:id.pdf", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
-    const pay = await StaffSalaryPayment.findById(id).lean().catch(() => null);
+    const pay = await prisma.staffSalaryPayment.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!pay) return res.status(404).json({
       message: 'Receipt not found'
     });

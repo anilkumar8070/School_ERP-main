@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -26,7 +28,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const payload = req.body || {};
     payload.createdBy = req.user && req.user.sub;
-    const doc = await AdmissionEnquiry.create(payload);
+    const doc = await prisma.admissionEnquiry.create({ data: payload });
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({
@@ -36,9 +38,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await AdmissionEnquiry.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.admissionEnquiry.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -55,9 +59,13 @@ router.patch("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     for (const k of allowed) {
       if (payload[k] !== undefined) update[k] = payload[k];
     }
-    const doc = await AdmissionEnquiry.findByIdAndUpdate(id, update, {
-      new: true
-    }).lean().catch(() => null);
+    const doc = await prisma.admissionEnquiry.update({
+      where: {
+        id: String(id)
+      },
+
+      data: update
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'not found'
     });

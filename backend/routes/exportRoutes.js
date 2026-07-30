@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -38,9 +40,13 @@ router.get("/attendance-excel", verifyToken, requireRole(['admin', 'faculty']), 
       if (from) q.date.$gte = String(from);
       if (to) q.date.$lte = String(to);
     }
-    const items = await Attendance.find(q).sort({
-      date: 1
-    }).lean();
+    const items = await prisma.attendance.findMany({
+      where: q,
+
+      orderBy: {
+        date: "asc"
+      }
+    });
     const rows = items.map(i => ({
       Date: i.date,
       Class: i.class,
@@ -77,15 +83,19 @@ router.get("/fees-excel", verifyToken, requireRole(['admin']), async (req, res) 
     const q = {};
     // Depending on schema, we might filter receipts or students. We'll filter students for a comprehensive fee report.
     if (cls) q.class = String(cls);
-    const students = await Student.find(q).lean();
+    const students = await prisma.student.findMany({
+      where: q
+    });
     let rows = [];
     for (const st of students) {
       const fees = st.assignedFees || [];
       for (const fee of fees) {
         if (term && fee.term !== term) continue;
-        const paidReceipts = await Receipt.countDocuments({
-          studentEmail: st.email,
-          term: fee.term
+        const paidReceipts = await prisma.receipt.count({
+          where: {
+            studentEmail: st.email,
+            term: fee.term
+          }
         });
         const currentStatus = paidReceipts > 0 ? 'Paid' : 'Unpaid';
         if (status && currentStatus.toLowerCase() !== status.toLowerCase()) continue;
@@ -127,9 +137,13 @@ router.get("/marks-excel", verifyToken, requireRole(['admin', 'faculty']), async
     const q = {};
     if (cls) q.class = String(cls);
     if (examName) q.examName = String(examName);
-    const items = await Mark.find(q).sort({
-      studentId: 1
-    }).lean();
+    const items = await prisma.mark.findMany({
+      where: q,
+
+      orderBy: {
+        studentId: "asc"
+      }
+    });
     const rows = items.map(i => ({
       'Student ID': i.studentId,
       'Class': i.class,

@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -32,20 +34,28 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
     const filter = {};
     if (studentId) filter['student.id'] = studentId;
     if (routeId) filter.routeId = routeId;
-    const list = await TransportAllocation.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.transportAllocation.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     // Attach latest receipt info (if any) to each allocation for admin convenience
     try {
       const allocIds = list.map(l => l._id).filter(Boolean);
       if (allocIds.length > 0) {
-        const recs = await TransportReceipt.find({
-          allocationId: {
-            $in: allocIds
+        const recs = await prisma.transportReceipt.findMany({
+          where: {
+            allocationId: {
+              in: allocIds
+            }
+          },
+
+          orderBy: {
+            createdAt: "desc"
           }
-        }).sort({
-          createdAt: -1
-        }).lean().catch(() => []);
+        }).catch(() => []);
         const map = {};
         for (const r of recs) {
           const key = String(r.allocationId || r.allocationId);
@@ -80,7 +90,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
         message: `${k} required`
       });
     }
-    const doc = await TransportAllocation.create(payload);
+    const doc = await prisma.transportAllocation.create({ data: payload });
     // Optionally, add fee to student's assignedFees or create a receipt stub
     try {
       if (payload.fee && payload.student && payload.student.id) {
@@ -92,11 +102,17 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
             note,
             by: req.user && req.user.sub
           };
-          await Student.findByIdAndUpdate(payload.student.id, {
-            $push: {
-              assignedFees: entry
+          await prisma.student.update({
+            where: {
+              id: String(payload.student.id)
+            },
+
+            data: {
+              push: {
+                assignedFees: entry
+              }
             }
-          }).lean().catch(() => null);
+          }).catch(() => null);
         } else if (String(payload.fee.option) === 'pay-now') {
           try {
             // create a transport receipt record (minimal fields)
@@ -125,7 +141,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
 
             // generate PDF
             try {
-              const gen = await generateReceiptPdf(receipt.toObject ? receipt.toObject() : receipt, alloc && alloc.toObject ? alloc.toObject() : alloc, 'transport');
+              const gen = await generateReceiptPdf(receipt.toObject ? receipt : receipt, alloc && alloc.toObject ? alloc : alloc, 'transport');
               if (gen) {
                 receipt.pdfPath = gen.pdfPath;
                 receipt.pdfUrl = gen.pdfUrl;
@@ -149,7 +165,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
                 payments.push(p);
                 alloc.payments = payments;
                 alloc.paid = true;
-                await alloc.save();
+                /* FIXME: Mongoose .save() */ await alloc.save();
                 console.log('Updated allocation as paid', alloc._id);
               }
             } catch (e) {
@@ -186,9 +202,13 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
     const username = req.user && req.user.username;
     const filter = {};
     if (userId) filter['student.id'] = userId;else if (username) filter['student.email'] = username;
-    const list = await TransportAllocation.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.transportAllocation.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -203,9 +223,13 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     const username = req.user && req.user.username;
     const filter = {};
     if (username) filter.studentEmail = username;
-    const items = await TransportReceipt.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.transportReceipt.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

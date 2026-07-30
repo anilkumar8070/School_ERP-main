@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -36,7 +38,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       const re = new RegExp(q.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i');
       filter = {
         $and: [base, {
-          $or: [{
+          OR: [{
             name: re
           }, {
             username: re
@@ -48,9 +50,24 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         }]
       };
     }
-    let parents = await User.find(filter).select('name username disabled contact address createdAt parentOf avatar').sort({
-      createdAt: -1
-    }).lean();
+    let parents = await prisma.user.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      },
+
+      select: {
+        name: true,
+        username: true,
+        disabled: true,
+        contact: true,
+        address: true,
+        createdAt: true,
+        parentOf: true,
+        avatar: true
+      }
+    });
 
     // Resolve parentOf entries to student names when they appear to be student IDs
     try {
@@ -65,11 +82,18 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       });
       if (idCandidates.size > 0) {
         const ids = Array.from(idCandidates);
-        const students = await Student.find({
-          _id: {
-            $in: ids
+        const students = await prisma.student.findMany({
+          where: {
+            _id: {
+              in: ids
+            }
+          },
+
+          select: {
+            name: true,
+            id: true
           }
-        }).select('name _id').lean();
+        });
         const idToName = {};
         students.forEach(s => {
           idToName[String(s._id)] = s.name;
@@ -108,7 +132,11 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'Parent not found'
     });
@@ -166,7 +194,11 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'Parent not found'
     });
@@ -174,7 +206,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       message: 'Not a parent account'
     });
     user.disabled = !!block;
-    await user.save();
+    // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
 
     // notify parent by email about block/unblock (best-effort)
     try {
@@ -230,9 +275,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (!name || !email || !password) return res.status(400).json({
       message: 'name, email and password required'
     });
-    const exists = await User.findOne({
-      username: email
-    }).lean().catch(() => null);
+    const exists = await prisma.user.findFirst({
+      where: {
+        username: email
+      }
+    }).catch(() => null);
     if (exists) return res.status(409).json({
       message: 'User already exists'
     });
@@ -271,13 +318,19 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     if (!code) return res.status(400).json({
       message: 'code required'
     });
-    const student = await Student.findOne({
-      parentAccessCode: String(code).trim().toUpperCase()
-    }).lean().catch(() => null);
+    const student = await prisma.student.findFirst({
+      where: {
+        parentAccessCode: String(code).trim().toUpperCase()
+      }
+    }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Invalid code'
     });
-    const user = await User.findById(req.user.sub);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(req.user.sub)
+      }
+    });
     if (!user || user.role !== 'parent') return res.status(403).json({
       message: 'Unauthorized'
     });
@@ -286,7 +339,20 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     if (!exists) {
       if (!Array.isArray(user.parentOf)) user.parentOf = [];
       user.parentOf.push(sid);
-      await user.save();
+      // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
     }
     return res.json({
       ok: true,

@@ -169,6 +169,37 @@ app.use(express.urlencoded({
   limit: JSON_BODY_LIMIT,
   extended: true
 }));
+
+// Compatibility middleware: Prisma returns { id }, but the frontend expects { _id }
+// This intercepts all JSON responses and dynamically adds `_id` if `id` is present.
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(body) {
+    function addUnderscoreId(obj, seen = new Set()) {
+      if (!obj || typeof obj !== 'object') return;
+      if (seen.has(obj)) return;
+      seen.add(obj);
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) addUnderscoreId(obj[i], seen);
+      } else {
+        if (obj.id !== undefined && obj._id === undefined) {
+          obj._id = obj.id;
+        }
+        for (const key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            addUnderscoreId(obj[key], seen);
+          }
+        }
+      }
+    }
+    if (body && typeof body === 'object') {
+      addUnderscoreId(body);
+    }
+    return originalJson.call(this, body);
+  };
+  next();
+});
+
 // serve uploaded files
 const uploadsDir = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsDir));
@@ -774,7 +805,7 @@ function mapBehaviorRecord(record) {
   };
 }
 async function ensureParentLinked(parentUserId, studentId) {
-  const parent = await User.findById(parentUserId).lean().catch(() => null);
+  const parent = await prisma.user.findUnique({ where: { id: String(parentUserId) } }).catch(() => null);
   return !!(parent && parent.role === 'parent' && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(studentId)));
 }
 
@@ -945,9 +976,9 @@ async function buildAttendanceReportRows(query) {
   if (section) q.section = String(section);
   const dateFilter = reportDateFilter(from, to);
   if (dateFilter) q.date = dateFilter;
-  const items = await Attendance.find(q).sort({
+  const items = await prisma.attendance.findMany({ where: q }).sort({
     date: 1
-  }).lean();
+  });
   const ids = new Set();
   (items || []).forEach(item => {
     ;
@@ -959,7 +990,7 @@ async function buildAttendanceReportRows(query) {
     _id: {
       $in: Array.from(ids)
     }
-  }).lean() : [];
+  }) : [];
   const byId = {};
   (students || []).forEach(student => {
     byId[String(student._id)] = student;
@@ -989,12 +1020,12 @@ async function buildFeesReportRows(query) {
   if (cls) studentsQuery.class = String(cls);
   if (section) studentsQuery.section = String(section);
   if (studentId) studentsQuery._id = studentId;
-  const students = await Student.find(studentsQuery).sort({
+  const students = await prisma.student.findMany({ where: studentsQuery }).sort({
     class: 1,
     section: 1,
     rollNo: 1,
     name: 1
-  }).lean();
+  });
   const studentIds = students.map(s => String(s._id));
   const receiptQuery = {};
   if (studentIds.length) receiptQuery.studentId = {
@@ -1005,9 +1036,9 @@ async function buildFeesReportRows(query) {
   };
   const createdAtFilter = reportCreatedAtFilter(from, to);
   if (createdAtFilter) receiptQuery.createdAt = createdAtFilter;
-  const receipts = await Receipt.find(receiptQuery).sort({
+  const receipts = await prisma.receipt.findMany({ where: receiptQuery }).sort({
     createdAt: -1
-  }).lean();
+  });
   const paidKeys = new Set();
   (receipts || []).forEach(r => paidKeys.add(`${String(r.studentId || '')}|${String(r.term || '')}`));
   const receiptByKey = {};
@@ -1056,18 +1087,18 @@ async function buildMarksReportRows(query) {
   };
   const createdAtFilter = reportCreatedAtFilter(from, to);
   if (createdAtFilter) q.createdAt = createdAtFilter;
-  const marks = await Mark.find(q).sort({
+  const marks = await prisma.mark.findMany({ where: q }).sort({
     class: 1,
     section: 1,
     subject: 1,
     createdAt: -1
-  }).lean();
+  });
   const ids = Array.from(new Set((marks || []).map(m => String(m.studentId)).filter(Boolean)));
   const students = ids.length ? await Student.find({
     _id: {
       $in: ids
     }
-  }).lean() : [];
+  }) : [];
   const byId = {};
   (students || []).forEach(student => {
     byId[String(student._id)] = student;
@@ -1408,6 +1439,7 @@ app.get('*', (req, res, next) => {
 
 const helpers = {
     ...adapters,
+    prisma,
     verifyToken: typeof verifyToken !== 'undefined' ? verifyToken : null,
     requireRole: typeof requireRole !== 'undefined' ? requireRole : null,
     generateReceiptPdf: typeof generateReceiptPdf !== 'undefined' ? generateReceiptPdf : null,
@@ -1619,7 +1651,7 @@ async function notifyEvent({
   try {
     const config = await NotificationSettings.findOne({
       event
-    }).lean();
+    });
     if (!config) return; // if no config exists, we don't send SMS/WA (emails are handled by legacy logic if any)
 
     if (config.sms && phone) {

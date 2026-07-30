@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -27,22 +29,24 @@ router.get("/my", verifyToken, async (req, res) => {
     const username = req.user && req.user.username;
     const userId = req.user && req.user.sub;
     const filter = {
-      $or: []
+      OR: []
     };
     if (userId) filter.$or.push({
       recipientId: userId
     });
     if (username) filter.$or.push({
       recipientEmail: {
-        $regex: new RegExp('^' + username + '$', 'i')
+        contains: new RegExp('^' + username + '$', 'i')
       }
     });
     // If this user is a student, also attempt to find the Student document and match by its id
     try {
       if (username) {
-        const stud = await Student.findOne({
-          email: username
-        }).lean().catch(() => null);
+        const stud = await prisma.student.findFirst({
+          where: {
+            email: username
+          }
+        }).catch(() => null);
         if (stud && stud._id) filter.$or.push({
           recipientId: String(stud._id)
         });
@@ -50,9 +54,13 @@ router.get("/my", verifyToken, async (req, res) => {
     } catch (e) {/* ignore */}
     // If no filters could be assembled, return empty
     if (!filter.$or || filter.$or.length === 0) return res.json([]);
-    const list = await ReportCard.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.reportCard.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list || []);
   } catch (e) {
     return res.status(500).json({
@@ -68,7 +76,11 @@ router.get("/:id/download", verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const rc = await ReportCard.findById(id).lean().catch(() => null);
+    const rc = await prisma.reportCard.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!rc) return res.status(404).json({
       message: 'Report card not found'
     });
@@ -166,8 +178,14 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
       try {
         const sigF = req.file.filename;
         const sigPath = `/uploads/${sigF}`;
-        await ReportCard.findByIdAndUpdate(doc._id, {
-          signaturePath: sigPath
+        await prisma.reportCard.update({
+          where: {
+            id: String(doc._id)
+          },
+
+          data: {
+            signaturePath: sigPath
+          }
         }).catch(() => null);
         // update doc object for immediate PDF generation
         doc.signaturePath = sigPath;
@@ -237,11 +255,13 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
         await new Promise(resolve => stream.on('finish', resolve));
         doc.filePath = `/uploads/${fname}`;
         doc.mime = 'application/pdf';
-        await doc.save();
+        /* FIXME: Mongoose .save() */ await doc.save();
         try {
-          const s = await Student.findOne({
-            email: recipientEmail
-          }).lean();
+          const s = await prisma.student.findFirst({
+            where: {
+              email: recipientEmail
+            }
+          });
           const phone = s ? s.contact : null;
           await notifyEvent({
             event: 'exam_result',
@@ -269,9 +289,11 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 // List all report cards (admin)
 router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res) => {
   try {
-    const list = await ReportCard.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.reportCard.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -287,11 +309,15 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
     if (!userId) return res.status(401).json({
       message: 'Not authenticated'
     });
-    const list = await ReportCard.find({
-      recipientEmail: req.user.username
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.reportCard.findMany({
+      where: {
+        recipientEmail: req.user.username
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -307,12 +333,20 @@ router.get("/by-student/:id", verifyToken, requireRole(['student', 'parent', 'ad
     if (!id) return res.status(400).json({
       message: 'student id required'
     });
-    const student = await Student.findById(id).lean().catch(() => null);
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
     if (req.user.role === 'parent') {
-      const parent = await User.findById(req.user.sub).lean().catch(() => null);
+      const parent = await prisma.user.findUnique({
+        where: {
+          id: String(req.user.sub)
+        }
+      }).catch(() => null);
       const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(id));
       if (!linked) return res.status(403).json({
         message: 'Parent is not linked to this student'
@@ -323,23 +357,27 @@ router.get("/by-student/:id", verifyToken, requireRole(['student', 'parent', 'ad
         message: 'Forbidden'
       });
     }
-    const list = await ReportCard.find({
-      $or: [{
-        recipientEmail: student.email
-      }, {
-        recipientId: student._id
-      }, {
-        recipientName: student.name,
-        className: student.class,
-        section: student.section
-      }, {
-        rollNumber: student.rollNo,
-        className: student.class,
-        section: student.section
-      }]
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.reportCard.findMany({
+      where: {
+        OR: [{
+          recipientEmail: student.email
+        }, {
+          recipientId: student._id
+        }, {
+          recipientName: student.name,
+          className: student.class,
+          section: student.section
+        }, {
+          rollNumber: student.rollNo,
+          className: student.class,
+          section: student.section
+        }]
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -357,7 +395,11 @@ router.get("/:id/download", verifyToken, async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ReportCard.findById(id).lean().catch(() => null);
+    const doc = await prisma.reportCard.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!doc || !doc.filePath) return res.status(404).json({
       message: 'File not found'
     });
@@ -416,9 +458,15 @@ router.get("/:id/download", verifyToken, async (req, res) => {
 
         // update DB document with filePath
         try {
-          await ReportCard.findByIdAndUpdate(id, {
-            filePath: `/uploads/${fname}`,
-            mime: 'application/pdf'
+          await prisma.reportCard.update({
+            where: {
+              id: String(id)
+            },
+
+            data: {
+              filePath: `/uploads/${fname}`,
+              mime: 'application/pdf'
+            }
           }).catch(() => null);
         } catch (e) {
           console.warn('Failed to update reportcard doc with filePath', e && e.message);

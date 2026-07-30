@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -76,14 +78,16 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
             if (doc.studentClass) q.class = doc.studentClass;
             if (doc.studentSection) q.section = doc.studentSection;
           }
-          const studs = await Student.find(q).lean();
+          const studs = await prisma.student.findMany({
+            where: q
+          });
           studs.forEach(s => s.contact && phoneTargets.push({
             phone: s.contact,
             email: s.email
           }));
         }
         if (doc.targets.includes('all') || doc.targets.includes('faculty')) {
-          const facs = await Faculty.find().lean();
+          const facs = await prisma.faculty.findMany();
           facs.forEach(f => f.contact && phoneTargets.push({
             phone: f.contact,
             email: f.email
@@ -123,22 +127,30 @@ router.get("/", verifyToken, async (req, res) => {
     if (req.user && req.user.role === 'admin') {
       const q = {};
       if (req.query && req.query.role) q.targets = req.query.role;
-      const items = await Notice.find(q).sort({
-        createdAt: -1
-      }).lean();
+      const items = await prisma.notice.findMany({
+        where: q,
+
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
       return res.json(items);
     }
     // Non-admins: return notices targeted to their role or 'all'
     const role = req.user && req.user.role;
-    const items = await Notice.find({
-      $or: [{
-        targets: 'all'
-      }, {
-        targets: role
-      }]
-    }).sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.notice.findMany({
+      where: {
+        OR: [{
+          targets: 'all'
+        }, {
+          targets: role
+        }]
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

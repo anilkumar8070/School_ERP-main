@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -24,9 +26,11 @@ module.exports = function(helpers) {
 // Student deletion requests (admin): list and approve
 router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await DeletionRequest.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.deletionRequest.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list || []);
   } catch (e) {
     return res.status(500).json({
@@ -40,7 +44,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const reqDoc = await DeletionRequest.findById(id).lean().catch(() => null);
+    const reqDoc = await prisma.deletionRequest.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!reqDoc) return res.status(404).json({
       message: 'Request not found'
     });
@@ -48,7 +56,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
     // delete student record if present
     try {
       if (reqDoc.studentId) {
-        await Student.findByIdAndDelete(reqDoc.studentId).catch(() => null);
+        await prisma.student.delete({
+          where: {
+            id: String(reqDoc.studentId)
+          }
+        }).catch(() => null);
       }
     } catch (e) {/* ignore */}
 
@@ -63,7 +75,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
 
     // remove the deletion request document
     try {
-      await DeletionRequest.findByIdAndDelete(id).catch(() => null);
+      await prisma.deletionRequest.delete({
+        where: {
+          id: String(id)
+        }
+      }).catch(() => null);
     } catch (e) {/* ignore */}
     return res.json({
       ok: true,
@@ -93,16 +109,22 @@ router.get("/me", verifyToken, async (req, res) => {
     let s = null;
     if (userId) {
       try {
-        s = await Student.findById(userId).lean().catch(() => null);
+        s = await prisma.student.findUnique({
+          where: {
+            id: String(userId)
+          }
+        }).catch(() => null);
       } catch (e) {
         s = null;
       }
     }
     if (!s && username) {
       try {
-        s = await Student.findOne({
-          email: username
-        }).lean().catch(() => null);
+        s = await prisma.student.findFirst({
+          where: {
+            email: username
+          }
+        }).catch(() => null);
       } catch (e) {
         s = null;
       }
@@ -132,13 +154,15 @@ router.put("/:id/change-house", verifyToken, requireRole('admin'), async (req, r
     if (!allowed.includes(String(house))) return res.status(400).json({
       message: 'Invalid house'
     });
-    const doc = await Student.findByIdAndUpdate(id, {
-      $set: {
+    const doc = await prisma.student.update({
+      where: {
+        id: String(id)
+      },
+
+      data: {
         house
       }
-    }, {
-      new: true
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Student not found'
     });
@@ -159,13 +183,15 @@ router.put("/:id/house-role", verifyToken, requireRole('admin'), async (req, res
     const {
       role
     } = req.body || {};
-    const doc = await Student.findByIdAndUpdate(id, {
-      $set: {
+    const doc = await prisma.student.update({
+      where: {
+        id: String(id)
+      },
+
+      data: {
         houseRole: role || ''
       }
-    }, {
-      new: true
-    }).lean().catch(() => null);
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Student not found'
     });
@@ -193,9 +219,7 @@ router.post("/bulk-change-house", verifyToken, requireRole('admin'), async (req,
           _id: u.id
         },
         update: {
-          $set: {
-            house: u.house
-          }
+          house: u.house
         }
       }
     }));
@@ -239,9 +263,11 @@ router.post("/register", async (req, res) => {
     if (!name || !email) return res.status(400).json({
       message: 'name and email required'
     });
-    const exists = await StudentRegistration.findOne({
-      email
-    }).lean().catch(() => null);
+    const exists = await prisma.studentRegistration.findFirst({
+      where: {
+        email
+      }
+    }).catch(() => null);
     if (exists && exists.status === 'pending') return res.status(409).json({
       message: 'Registration already submitted'
     });
@@ -319,9 +345,13 @@ router.get("/registrations", verifyToken, requireRole('admin'), async (req, res)
     } = req.query || {};
     const q = {};
     if (status) q.status = status;
-    const items = await StudentRegistration.find(q).sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.studentRegistration.findMany({
+      where: q,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -350,11 +380,17 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res,
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
     if (stream) q.stream = String(stream);
-    const items = await Student.find(q).sort({
-      class: 1,
-      section: 1,
-      rollNo: 1
-    }).lean();
+    const items = await prisma.student.findMany({
+      where: q,
+
+      orderBy: [{
+        class: "asc"
+      }, {
+        section: "asc"
+      }, {
+        rollNo: "asc"
+      }]
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -372,15 +408,30 @@ router.get("/parent-code", verifyToken, requireRole('student'), async (req, res)
     message: 'Database not available'
   });
   try {
-    const s = await Student.findOne({
-      email: req.user.username
+    const s = await prisma.student.findFirst({
+      where: {
+        email: req.user.username
+      }
     });
     if (!s) return res.status(404).json({
       message: 'Student record not found'
     });
     if (!s.parentAccessCode) {
       s.parentAccessCode = generateParentCode();
-      await s.save();
+      // Transpiled save()
+    if (s && s.id) {
+      const { id: _id_unused, ..._updateData } = s;
+      await prisma.student.update({
+        where: { id: String(s.id) },
+        data: _updateData
+      });
+    } else if (s && s._id) {
+      const { _id: _id_unused2, ..._updateData2 } = s;
+      await prisma.student.update({
+        where: { id: String(s._id) },
+        data: _updateData2
+      });
+    }
     }
     return res.json({
       code: s.parentAccessCode
@@ -452,15 +503,21 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     message: 'Database not available'
   });
   try {
-    const reg = await StudentRegistration.findById(req.params.id);
+    const reg = await prisma.studentRegistration.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!reg) return res.status(404).json({
       message: 'Registration not found'
     });
 
     // Block if email is already used by any account (admin/faculty/student/staff)
-    const existingAccount = await User.findOne({
-      username: reg.email
-    }).lean().catch(() => null);
+    const existingAccount = await prisma.user.findFirst({
+      where: {
+        username: reg.email
+      }
+    }).catch(() => null);
     if (existingAccount) return res.status(409).json({
       message: 'This email is already in use for another account'
     });
@@ -469,9 +526,11 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     const sections = ['A', 'B', 'C', 'D'];
     let assignedSection = null;
     for (const s of sections) {
-      const count = await Student.countDocuments({
-        class: reg.class,
-        section: s
+      const count = await prisma.student.count({
+        where: {
+          class: reg.class,
+          section: s
+        }
       });
       if (count < 50) {
         assignedSection = s;
@@ -483,9 +542,11 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     });
 
     // roll number: class + section + next number
-    const existing = await Student.countDocuments({
-      class: reg.class,
-      section: assignedSection
+    const existing = await prisma.student.count({
+      where: {
+        class: reg.class,
+        section: assignedSection
+      }
     });
     const rollNo = `${reg.class}${assignedSection}${existing + 1}`;
     const studentDoc = await Student.create({
@@ -510,7 +571,20 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       name: reg.name
     });
     reg.status = 'approved';
-    await reg.save();
+    // Transpiled save()
+    if (reg && reg.id) {
+      const { id: _id_unused, ..._updateData } = reg;
+      await prisma.studentRegistration.update({
+        where: { id: String(reg.id) },
+        data: _updateData
+      });
+    } else if (reg && reg._id) {
+      const { _id: _id_unused2, ..._updateData2 } = reg;
+      await prisma.studentRegistration.update({
+        where: { id: String(reg._id) },
+        data: _updateData2
+      });
+    }
 
     // send congratulation email with credentials
     try {
@@ -560,8 +634,8 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       });
     } catch (e) {}
     return res.json({
-      registration: reg.toObject(),
-      student: studentDoc.toObject(),
+      registration: reg,
+      student: studentDoc,
       user: user ? {
         id: user._id,
         username: user.username
@@ -581,13 +655,30 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
     const {
       note
     } = req.body || {};
-    const reg = await StudentRegistration.findById(req.params.id);
+    const reg = await prisma.studentRegistration.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!reg) return res.status(404).json({
       message: 'Registration not found'
     });
     reg.status = 'rejected';
     reg.note = note || '';
-    await reg.save();
+    // Transpiled save()
+    if (reg && reg.id) {
+      const { id: _id_unused, ..._updateData } = reg;
+      await prisma.studentRegistration.update({
+        where: { id: String(reg.id) },
+        data: _updateData
+      });
+    } else if (reg && reg._id) {
+      const { _id: _id_unused2, ..._updateData2 } = reg;
+      await prisma.studentRegistration.update({
+        where: { id: String(reg._id) },
+        data: _updateData2
+      });
+    }
 
     // notify student by email
     try {
@@ -632,13 +723,29 @@ router.get("/:id/basic", verifyToken, requireRole(['admin', 'parent']), async (r
       message: 'id required'
     });
     if ((req.user && req.user.role) === 'parent') {
-      const parent = await User.findById(req.user.sub).lean().catch(() => null);
+      const parent = await prisma.user.findUnique({
+        where: {
+          id: String(req.user.sub)
+        }
+      }).catch(() => null);
       const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(id));
       if (!linked) return res.status(403).json({
         message: 'Parent is not linked to this student'
       });
     }
-    const s = await Student.findById(id).select('name class section email assignedFees').lean().catch(() => null);
+    const s = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      },
+
+      select: {
+        name: true,
+        class: true,
+        section: true,
+        email: true,
+        assignedFees: true
+      }
+    }).catch(() => null);
     if (!s) return res.status(404).json({
       message: 'Student not found'
     });
@@ -667,32 +774,40 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res)
     } = req.query || {};
     const q = {};
     if (name) q.name = {
-      $regex: name,
-      $options: 'i'
+      contains: name,
+      mode: "insensitive"
     };
     if (className) q.class = String(className);
     if (section) q.section = String(section);
     if (email) q.email = {
-      $regex: email,
-      $options: 'i'
+      contains: email,
+      mode: "insensitive"
     };
     if (house) q.house = String(house);
     if (gender) q.gender = String(gender);
     if (category) q.category = String(category);
     if (religion) q.religion = String(religion);
-    let items = await Student.find(q).sort({
-      class: 1,
-      section: 1,
-      rollNo: 1
-    }).lean();
+    let items = await prisma.student.findMany({
+      where: q,
+
+      orderBy: [{
+        class: "asc"
+      }, {
+        section: "asc"
+      }, {
+        rollNo: "asc"
+      }]
+    });
     // enrich with blocked status from User collection (if a user exists with same email)
     try {
       const emails = items.map(i => i.email).filter(Boolean);
-      const users = emails.length ? await User.find({
-        username: {
-          $in: emails
+      const users = emails.length ? await prisma.user.findMany({
+        where: {
+          username: {
+            in: emails
+          }
         }
-      }).lean() : [];
+      }) : [];
       const userMap = {};
       for (const u of users) userMap[u.username] = u;
       items = items.map(i => {
@@ -736,15 +851,19 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
 
     // prevent duplicate usage of the same email across ERP
-    const existingStudent = await Student.findOne({
-      email
-    }).lean().catch(() => null);
+    const existingStudent = await prisma.student.findFirst({
+      where: {
+        email
+      }
+    }).catch(() => null);
     if (existingStudent) return res.status(409).json({
       message: 'Student with this email already exists'
     });
-    const existingUserAnyRole = await User.findOne({
-      username: email
-    }).lean().catch(() => null);
+    const existingUserAnyRole = await prisma.user.findFirst({
+      where: {
+        username: email
+      }
+    }).catch(() => null);
     if (existingUserAnyRole) return res.status(409).json({
       message: 'This email is already in use for another account'
     });
@@ -753,9 +872,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     const sections = ['A', 'B', 'C', 'D'];
     let assignedSection = null;
     for (const s of sections) {
-      const count = await Student.countDocuments({
-        class: String(className),
-        section: s
+      const count = await prisma.student.count({
+        where: {
+          class: String(className),
+          section: s
+        }
       }).catch(() => 0);
       if (count < 50) {
         assignedSection = s;
@@ -767,9 +888,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
 
     // compute roll number: class + section + next number
-    const existingCount = await Student.countDocuments({
-      class: String(className),
-      section: assignedSection
+    const existingCount = await prisma.student.count({
+      where: {
+        class: String(className),
+        section: assignedSection
+      }
     }).catch(() => 0);
     const rollNo = `${String(className)}${assignedSection}${existingCount + 1}`;
 
@@ -800,8 +923,10 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     }
 
     // create login user for student if not exists
-    let user = await User.findOne({
-      username: email
+    let user = await prisma.user.findFirst({
+      where: {
+        username: email
+      }
     });
     let generatedPassword = null;
     if (!user) {
@@ -821,8 +946,10 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       } catch (err) {
         if (err && (err.code === 11000 || /duplicate key/i.test(String(err.message)))) {
           // Username already exists; keep existing user reference
-          user = await User.findOne({
-            username: email
+          user = await prisma.user.findFirst({
+            where: {
+              username: email
+            }
           });
         } else {
           throw err;
@@ -872,7 +999,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       });
     } catch (e) {}
     return res.status(201).json({
-      student: studentDoc.toObject(),
+      student: studentDoc,
       user: user ? {
         id: user._id,
         username: user.username
@@ -893,7 +1020,11 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const removed = await Student.findByIdAndDelete(req.params.id).lean();
+    const removed = await prisma.student.delete({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!removed) return res.status(404).json({
       message: 'Student not found'
     });
@@ -985,7 +1116,11 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const student = await Student.findById(id);
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
@@ -1011,9 +1146,11 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       const sections = ['A', 'B', 'C', 'D'];
       let assignedSection = null;
       for (const s of sections) {
-        const count = await Student.countDocuments({
-          class: String(student.class),
-          section: s
+        const count = await prisma.student.count({
+          where: {
+            class: String(student.class),
+            section: s
+          }
         });
         if (count < 50) {
           assignedSection = s;
@@ -1021,26 +1158,56 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
         }
       }
       if (assignedSection) {
-        const existingCount = await Student.countDocuments({
-          class: String(student.class),
-          section: assignedSection
+        const existingCount = await prisma.student.count({
+          where: {
+            class: String(student.class),
+            section: assignedSection
+          }
         });
         const newRollNo = `${String(student.class)}${assignedSection}${existingCount + 1}`;
         student.section = assignedSection;
         student.rollNo = newRollNo;
       }
     }
-    await student.save();
+    // Transpiled save()
+    if (student && student.id) {
+      const { id: _id_unused, ..._updateData } = student;
+      await prisma.student.update({
+        where: { id: String(student.id) },
+        data: _updateData
+      });
+    } else if (student && student._id) {
+      const { _id: _id_unused2, ..._updateData2 } = student;
+      await prisma.student.update({
+        where: { id: String(student._id) },
+        data: _updateData2
+      });
+    }
 
     // also update associated User.name if user exists
     try {
-      const user = await User.findOne({
-        username: student.email,
-        role: 'student'
+      const user = await prisma.user.findFirst({
+        where: {
+          username: student.email,
+          role: 'student'
+        }
       });
       if (user && name !== undefined) {
         user.name = String(name);
-        await user.save();
+        // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
       }
     } catch (e) {/* ignore */}
 
@@ -1124,7 +1291,11 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     if (!id || !newClass) return res.status(400).json({
       message: 'id and class required'
     });
-    const student = await Student.findById(id);
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
@@ -1134,14 +1305,20 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     let faculty = null;
     try {
       const me = req.user || {};
-      faculty = await Faculty.findOne({
-        email: me.username
+      faculty = await prisma.faculty.findFirst({
+        where: {
+          email: me.username
+        }
       }).catch(() => null);
-      if (!faculty && me.name) faculty = await Faculty.findOne({
-        name: me.name
+      if (!faculty && me.name) faculty = await prisma.faculty.findFirst({
+        where: {
+          name: me.name
+        }
       }).catch(() => null);
-      if (!faculty && me.contact) faculty = await Faculty.findOne({
-        contact: me.contact
+      if (!faculty && me.contact) faculty = await prisma.faculty.findFirst({
+        where: {
+          contact: me.contact
+        }
       }).catch(() => null);
     } catch (e) {
       faculty = null;
@@ -1162,9 +1339,11 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
       if (!sections.includes(normalized)) return res.status(400).json({
         message: 'Invalid section requested'
       });
-      const cnt = await Student.countDocuments({
-        class: String(newClass),
-        section: normalized
+      const cnt = await prisma.student.count({
+        where: {
+          class: String(newClass),
+          section: normalized
+        }
       });
       if (cnt >= 50) return res.status(400).json({
         message: 'Requested section is full'
@@ -1172,9 +1351,11 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
       assignedSection = normalized;
     } else {
       for (const s of sections) {
-        const count = await Student.countDocuments({
-          class: String(newClass),
-          section: s
+        const count = await prisma.student.count({
+          where: {
+            class: String(newClass),
+            section: s
+          }
         });
         if (count < 50) {
           assignedSection = s;
@@ -1185,9 +1366,11 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     if (!assignedSection) return res.status(400).json({
       message: 'No section available for the selected class'
     });
-    const existingCount = await Student.countDocuments({
-      class: String(newClass),
-      section: assignedSection
+    const existingCount = await prisma.student.count({
+      where: {
+        class: String(newClass),
+        section: assignedSection
+      }
     });
     const rollNo = `${String(newClass)}${assignedSection}${existingCount + 1}`;
     const before = {
@@ -1198,17 +1381,45 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     student.class = String(newClass);
     student.section = assignedSection;
     student.rollNo = rollNo;
-    await student.save();
+    // Transpiled save()
+    if (student && student.id) {
+      const { id: _id_unused, ..._updateData } = student;
+      await prisma.student.update({
+        where: { id: String(student.id) },
+        data: _updateData
+      });
+    } else if (student && student._id) {
+      const { _id: _id_unused2, ..._updateData2 } = student;
+      await prisma.student.update({
+        where: { id: String(student._id) },
+        data: _updateData2
+      });
+    }
 
     // update associated user name if exists
     try {
-      const user = await User.findOne({
-        username: student.email,
-        role: 'student'
+      const user = await prisma.user.findFirst({
+        where: {
+          username: student.email,
+          role: 'student'
+        }
       });
       if (user) {
         user.name = student.name || user.name;
-        await user.save();
+        // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
       }
     } catch (e) {}
 
@@ -1255,7 +1466,11 @@ router.put("/:id/stream", verifyToken, requireRole('faculty'), async (req, res) 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const student = await Student.findById(id);
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
@@ -1266,7 +1481,20 @@ router.put("/:id/stream", verifyToken, requireRole('faculty'), async (req, res) 
       message: 'Stream only applicable for class 11 and 12'
     });
     student.stream = stream ? String(stream).trim() : '';
-    await student.save();
+    // Transpiled save()
+    if (student && student.id) {
+      const { id: _id_unused, ..._updateData } = student;
+      await prisma.student.update({
+        where: { id: String(student.id) },
+        data: _updateData
+      });
+    } else if (student && student._id) {
+      const { _id: _id_unused2, ..._updateData2 } = student;
+      await prisma.student.update({
+        where: { id: String(student._id) },
+        data: _updateData2
+      });
+    }
     try {
       sendSseEvent('student_updated', {
         id: student._id,
@@ -1294,22 +1522,54 @@ router.put("/:id/block-by-faculty", verifyToken, requireRole('faculty'), async (
     if (block === undefined) return res.status(400).json({
       message: 'block required'
     });
-    const student = await Student.findById(id);
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
-    const user = await User.findOne({
-      username: student.email,
-      role: 'student'
+    const user = await prisma.user.findFirst({
+      where: {
+        username: student.email,
+        role: 'student'
+      }
     });
     let finalBlocked = !!block;
     if (user) {
       user.disabled = !!block;
-      await user.save();
+      // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
       finalBlocked = !!user.disabled;
     }
     student.blocked = !!block;
-    await student.save();
+    // Transpiled save()
+    if (student && student.id) {
+      const { id: _id_unused, ..._updateData } = student;
+      await prisma.student.update({
+        where: { id: String(student.id) },
+        data: _updateData
+      });
+    } else if (student && student._id) {
+      const { _id: _id_unused2, ..._updateData2 } = student;
+      await prisma.student.update({
+        where: { id: String(student._id) },
+        data: _updateData2
+      });
+    }
 
     // email notify
     try {
@@ -1357,14 +1617,20 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const student = await Student.findById(id).lean();
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
-    const existing = await DeletionRequest.findOne({
-      studentId: id,
-      status: 'pending'
-    }).lean();
+    const existing = await prisma.deletionRequest.findFirst({
+      where: {
+        studentId: id,
+        status: 'pending'
+      }
+    });
     if (existing) return res.status(409).json({
       message: 'Delete request already pending'
     });
@@ -1397,9 +1663,11 @@ router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, re
     message: 'Database not available'
   });
   try {
-    const items = await DeletionRequest.find().sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.deletionRequest.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -1415,14 +1683,22 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
   });
   try {
     const id = req.params.id;
-    const reqDoc = await DeletionRequest.findById(id);
+    const reqDoc = await prisma.deletionRequest.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!reqDoc) return res.status(404).json({
       message: 'Request not found'
     });
     if (reqDoc.status !== 'pending') return res.status(400).json({
       message: 'Request already processed'
     });
-    const student = await Student.findById(reqDoc.studentId).lean();
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(reqDoc.studentId)
+      }
+    });
     if (student) {
       await Student.deleteOne({
         _id: student._id
@@ -1435,7 +1711,20 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
       } catch (e) {}
     }
     reqDoc.status = 'approved';
-    await reqDoc.save();
+    // Transpiled save()
+    if (reqDoc && reqDoc.id) {
+      const { id: _id_unused, ..._updateData } = reqDoc;
+      await prisma.deletionRequest.update({
+        where: { id: String(reqDoc.id) },
+        data: _updateData
+      });
+    } else if (reqDoc && reqDoc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = reqDoc;
+      await prisma.deletionRequest.update({
+        where: { id: String(reqDoc._id) },
+        data: _updateData2
+      });
+    }
 
     // notify student by email
     try {
@@ -1483,28 +1772,60 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     });
 
     // load student document (not lean) so we can set a student-level blocked flag if needed
-    const studentDoc = await Student.findById(id);
+    const studentDoc = await prisma.student.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!studentDoc) return res.status(404).json({
       message: 'Student not found'
     });
 
     // try to find associated login user
-    const user = await User.findOne({
-      username: studentDoc.email,
-      role: 'student'
+    const user = await prisma.user.findFirst({
+      where: {
+        username: studentDoc.email,
+        role: 'student'
+      }
     });
 
     // if user exists, set its disabled flag
     let finalBlocked = !!block;
     if (user) {
       user.disabled = !!block;
-      await user.save();
+      // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
       finalBlocked = !!user.disabled;
     }
 
     // also persist blocked flag on student record so block state is visible even without a User
     studentDoc.blocked = !!block;
-    await studentDoc.save();
+    // Transpiled save()
+    if (studentDoc && studentDoc.id) {
+      const { id: _id_unused, ..._updateData } = studentDoc;
+      await prisma.student.update({
+        where: { id: String(studentDoc.id) },
+        data: _updateData
+      });
+    } else if (studentDoc && studentDoc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = studentDoc;
+      await prisma.student.update({
+        where: { id: String(studentDoc._id) },
+        data: _updateData2
+      });
+    }
 
     // send notification email to student about block/unblock only if email exists
     try {
@@ -1560,7 +1881,11 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
     message: 'Database not available'
   });
   try {
-    const student = await Student.findById(req.params.id).lean();
+    const student = await prisma.student.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!student) return res.status(404).json({
       message: 'Student not found'
     });
@@ -1579,7 +1904,7 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
       note: note || '',
       status: 'pending'
     };
-    const created = await DeletionRequest.create(doc);
+    const created = await prisma.deletionRequest.create({ data: doc });
     try {
       sendSseEvent('student_delete_requested', {
         id: created._id,
@@ -1601,9 +1926,11 @@ router.get("/delete-requests", verifyToken, requireRole('admin'), async (req, re
     message: 'Database not available'
   });
   try {
-    const items = await DeletionRequest.find().sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.deletionRequest.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -1618,7 +1945,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
     message: 'Database not available'
   });
   try {
-    const reqDoc = await DeletionRequest.findById(req.params.id);
+    const reqDoc = await prisma.deletionRequest.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!reqDoc) return res.status(404).json({
       message: 'Delete request not found'
     });
@@ -1626,7 +1957,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
     // delete student record if exists
     try {
       if (reqDoc.studentId) {
-        await Student.findByIdAndDelete(reqDoc.studentId).catch(() => null);
+        await prisma.student.delete({
+          where: {
+            id: String(reqDoc.studentId)
+          }
+        }).catch(() => null);
       }
       // also delete associated User (login) if exists
       if (reqDoc.studentEmail) {
@@ -1639,7 +1974,20 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
       console.warn('Error deleting student/user during approve:', inner && inner.message);
     }
     reqDoc.status = 'approved';
-    await reqDoc.save();
+    // Transpiled save()
+    if (reqDoc && reqDoc.id) {
+      const { id: _id_unused, ..._updateData } = reqDoc;
+      await prisma.deletionRequest.update({
+        where: { id: String(reqDoc.id) },
+        data: _updateData
+      });
+    } else if (reqDoc && reqDoc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = reqDoc;
+      await prisma.deletionRequest.update({
+        where: { id: String(reqDoc._id) },
+        data: _updateData2
+      });
+    }
 
     // notify requester and student by email (best-effort)
     try {
@@ -1660,7 +2008,11 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
         const html = `<div style="font-family:Arial,sans-serif;padding:20px;background:#f7f7fb"><div style="max-width:600px;margin:0 auto;background:#fff;padding:18px;border-radius:8px">Your delete request for ${reqDoc.studentEmail || reqDoc.studentName} has been approved and the student record removed.</div></div>`;
         // try to find the requester user and email
         try {
-          const requester = await User.findById(reqDoc.requestedBy).lean().catch(() => null);
+          const requester = await prisma.user.findUnique({
+            where: {
+              id: String(reqDoc.requestedBy)
+            }
+          }).catch(() => null);
           if (requester && requester.username && String(requester.username).includes('@')) {
             await sendMail({
               to: requester.username,

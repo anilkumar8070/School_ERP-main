@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -23,7 +25,7 @@ module.exports = function(helpers) {
 
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const settings = await NotificationSettings.find().lean();
+    const settings = await prisma.notificationSettings.findMany();
     res.json(settings);
   } catch (e) {
     res.status(500).json({

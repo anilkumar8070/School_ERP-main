@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { FaArrowRight, FaBookOpen, FaCalendarAlt, FaClipboardCheck, FaComments, FaFileAlt, FaGraduationCap, FaLayerGroup, FaRegClock } from 'react-icons/fa'
-import { getMyMeetings } from '../api'
+import { getMyMeetings, getStudentDashboardStats } from '../api'
 
 const quickLinks = [
     { title: 'Meetings', text: 'Live sessions and parent-teacher conversations.', href: '/student/meeting', icon: FaComments },
@@ -17,6 +17,24 @@ export default function StudentDashboard() {
     })()
     const profile = profileRaw ? JSON.parse(profileRaw) : { name: 'Student' }
     const firstName = (profile.name || 'Student').split(' ')[0]
+
+    const [stats, setStats] = useState({ attendance: '--', assignments: '--', tests: '--', schedule: '--', notices: '--' })
+    const token = sessionStorage.getItem('erp_token') || localStorage.getItem('erp_token')
+
+    useEffect(() => {
+        let mounted = true
+        async function fetchStats() {
+            try {
+                if (!token) return
+                const data = await getStudentDashboardStats(token)
+                if (mounted) setStats(data)
+            } catch (e) {
+                console.warn('Failed to load dashboard stats', e)
+            }
+        }
+        fetchStats()
+        return () => { mounted = false }
+    }, [token])
 
     return (
         <div className="parent-page parent-dashboard-shell">
@@ -41,19 +59,19 @@ export default function StudentDashboard() {
                     <div className="parent-hero-grid">
                         <div>
                             <span>Attendance</span>
-                            <strong>96%</strong>
+                            <strong>{stats.attendance}</strong>
                         </div>
                         <div>
                             <span>Assignments</span>
-                            <strong>08</strong>
+                            <strong>{stats.assignments}</strong>
                         </div>
                         <div>
                             <span>Tests</span>
-                            <strong>03</strong>
+                            <strong>{stats.tests}</strong>
                         </div>
                         <div>
                             <span>Notices</span>
-                            <strong>02</strong>
+                            <strong>{stats.notices}</strong>
                         </div>
                     </div>
                 </div>
@@ -64,7 +82,7 @@ export default function StudentDashboard() {
                     <div className="stat-icon" aria-hidden="true"><FaLayerGroup /></div>
                     <div className="stat-body">
                         <div className="stat-title">Attendance</div>
-                        <div className="stat-value">96%</div>
+                        <div className="stat-value">{stats.attendance}</div>
                         <div className="text-subtle" style={{ marginTop: 4 }}>Current session</div>
                     </div>
                 </article>
@@ -72,7 +90,7 @@ export default function StudentDashboard() {
                     <div className="stat-icon" aria-hidden="true"><FaClipboardCheck /></div>
                     <div className="stat-body">
                         <div className="stat-title">Assignments</div>
-                        <div className="stat-value">08</div>
+                        <div className="stat-value">{stats.assignments}</div>
                         <div className="text-subtle" style={{ marginTop: 4 }}>Active tasks</div>
                     </div>
                 </article>
@@ -80,7 +98,7 @@ export default function StudentDashboard() {
                     <div className="stat-icon" aria-hidden="true"><FaFileAlt /></div>
                     <div className="stat-body">
                         <div className="stat-title">Tests</div>
-                        <div className="stat-value">03</div>
+                        <div className="stat-value">{stats.tests}</div>
                         <div className="text-subtle" style={{ marginTop: 4 }}>Ready to attempt</div>
                     </div>
                 </article>
@@ -88,7 +106,7 @@ export default function StudentDashboard() {
                     <div className="stat-icon" aria-hidden="true"><FaCalendarAlt /></div>
                     <div className="stat-body">
                         <div className="stat-title">Schedule</div>
-                        <div className="stat-value">05</div>
+                        <div className="stat-value">{stats.schedule}</div>
                         <div className="text-subtle" style={{ marginTop: 4 }}>Classes today</div>
                     </div>
                 </article>

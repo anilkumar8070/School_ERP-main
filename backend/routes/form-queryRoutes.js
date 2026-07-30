@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -27,7 +29,6 @@ router.post("/", upload.single('attachment'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const FormQuery = require('./models/FormQuery');
     const {
       formId,
       formTitle,

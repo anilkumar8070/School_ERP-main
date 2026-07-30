@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -61,17 +63,23 @@ router.get("/", verifyToken, async (req, res) => {
   });
   try {
     if (req.user.role === 'admin') {
-      const all = await Message.find().sort({
-        createdAt: -1
-      }).lean();
+      const all = await prisma.message.findMany({
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
       return res.json(all);
     }
     // non-admins can only see their own messages
-    const mine = await Message.find({
-      createdBy: req.user.sub
-    }).sort({
-      createdAt: -1
-    }).lean();
+    const mine = await prisma.message.findMany({
+      where: {
+        createdBy: req.user.sub
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -84,11 +92,15 @@ router.get("/my", verifyToken, async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const mine = await Message.find({
-      createdBy: req.user.sub
-    }).sort({
-      createdAt: -1
-    }).lean();
+    const mine = await prisma.message.findMany({
+      where: {
+        createdBy: req.user.sub
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -105,7 +117,11 @@ router.put("/:id/status", verifyToken, async (req, res) => {
     message: 'status required'
   });
   try {
-    const m = await Message.findById(req.params.id);
+    const m = await prisma.message.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!m) return res.status(404).json({
       message: 'Message not found'
     });
@@ -130,7 +146,20 @@ router.put("/:id/status", verifyToken, async (req, res) => {
     m.status = status;
     m.history = m.history || [];
     m.history.push(entry);
-    const saved = await m.save();
+    const saved = m; // Transpiled save()
+    if (m && m.id) {
+      const { id: _id_unused, ..._updateData } = m;
+      await prisma.message.update({
+        where: { id: String(m.id) },
+        data: _updateData
+      });
+    } else if (m && m._id) {
+      const { _id: _id_unused2, ..._updateData2 } = m;
+      await prisma.message.update({
+        where: { id: String(m._id) },
+        data: _updateData2
+      });
+    }
     return res.json(saved);
   } catch (e) {
     return res.status(500).json({

@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -119,7 +121,6 @@ router.post("/", upload.single('attachment'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const ContactQuery = require('./models/ContactQuery');
     const {
       name,
       email,

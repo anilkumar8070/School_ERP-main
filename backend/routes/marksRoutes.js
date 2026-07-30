@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -41,19 +43,29 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
     });
     // Ensure faculty is assigned to this class/section and student belongs to it
     if (req.user && req.user.role === 'faculty') {
-      const u = await User.findById(req.user.sub).lean().catch(() => null);
+      const u = await prisma.user.findUnique({
+        where: {
+          id: String(req.user.sub)
+        }
+      }).catch(() => null);
       if (!u) return res.status(403).json({
         message: 'Unauthorized'
       });
-      let fac = await Faculty.findOne({
-        email: u.username
-      }).lean().catch(() => null);
-      if (!fac && u.name) fac = await Faculty.findOne({
-        name: u.name
-      }).lean().catch(() => null);
-      if (!fac && u.contact) fac = await Faculty.findOne({
-        contact: u.contact
-      }).lean().catch(() => null);
+      let fac = await prisma.faculty.findFirst({
+        where: {
+          email: u.username
+        }
+      }).catch(() => null);
+      if (!fac && u.name) fac = await prisma.faculty.findFirst({
+        where: {
+          name: u.name
+        }
+      }).catch(() => null);
+      if (!fac && u.contact) fac = await prisma.faculty.findFirst({
+        where: {
+          contact: u.contact
+        }
+      }).catch(() => null);
       if (!fac) return res.status(403).json({
         message: 'Faculty record not linked'
       });
@@ -75,7 +87,11 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
         message: 'Not assigned to this class/section'
       });
       // validate student belongs to class/section
-      const sdoc = await Student.findById(studentId).lean().catch(() => null);
+      const sdoc = await prisma.student.findUnique({
+        where: {
+          id: String(studentId)
+        }
+      }).catch(() => null);
       if (!sdoc) return res.status(400).json({
         message: 'Student not found'
       });
@@ -87,10 +103,12 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
       });
     }
     // Prevent duplicate: if a mark exists for student+subject+term, update it instead
-    const existing = await Mark.findOne({
-      studentId,
-      subject,
-      term: term || ''
+    const existing = await prisma.mark.findFirst({
+      where: {
+        studentId,
+        subject,
+        term: term || ''
+      }
     });
     if (existing) {
       existing.obtained = Number(obtained);
@@ -98,7 +116,20 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
       existing.class = String(cls);
       existing.section = section || '';
       existing.createdBy = req.user.sub;
-      await existing.save();
+      // Transpiled save()
+    if (existing && existing.id) {
+      const { id: _id_unused, ..._updateData } = existing;
+      await prisma.mark.update({
+        where: { id: String(existing.id) },
+        data: _updateData
+      });
+    } else if (existing && existing._id) {
+      const { _id: _id_unused2, ..._updateData2 } = existing;
+      await prisma.mark.update({
+        where: { id: String(existing._id) },
+        data: _updateData2
+      });
+    }
       return res.json(existing);
     }
     const m = await Mark.create({
@@ -146,14 +177,29 @@ router.post("/bulk", verifyToken, requireRole('faculty'), async (req, res) => {
         subject,
         term: term || ''
       };
-      let existing = await Mark.findOne(key);
+      let existing = await prisma.mark.findFirst({
+        where: key
+      });
       if (existing) {
         existing.obtained = Number(obtained);
         if (total !== undefined) existing.total = Number(total);
         existing.class = String(cls || existing.class);
         existing.section = section || existing.section;
         existing.createdBy = req.user.sub;
-        await existing.save();
+        // Transpiled save()
+    if (existing && existing.id) {
+      const { id: _id_unused, ..._updateData } = existing;
+      await prisma.mark.update({
+        where: { id: String(existing.id) },
+        data: _updateData
+      });
+    } else if (existing && existing._id) {
+      const { _id: _id_unused2, ..._updateData2 } = existing;
+      await prisma.mark.update({
+        where: { id: String(existing._id) },
+        data: _updateData2
+      });
+    }
         results.push(existing);
       } else {
         const created = await Mark.create({
@@ -181,7 +227,11 @@ router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const upd = await Mark.findById(req.params.id);
+    const upd = await prisma.mark.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!upd) return res.status(404).json({
       message: 'Not found'
     });
@@ -195,7 +245,20 @@ router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
     if (total !== undefined) upd.total = Number(total);
     if (subject !== undefined) upd.subject = subject;
     if (term !== undefined) upd.term = term;
-    await upd.save();
+    // Transpiled save()
+    if (upd && upd.id) {
+      const { id: _id_unused, ..._updateData } = upd;
+      await prisma.mark.update({
+        where: { id: String(upd.id) },
+        data: _updateData
+      });
+    } else if (upd && upd._id) {
+      const { _id: _id_unused2, ..._updateData2 } = upd;
+      await prisma.mark.update({
+        where: { id: String(upd._id) },
+        data: _updateData2
+      });
+    }
     return res.json(upd);
   } catch (e) {
     return res.status(500).json({
@@ -217,9 +280,13 @@ router.get("/", verifyToken, requireRole(['admin', 'faculty', 'parent', 'student
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
     if (studentId) q.studentId = studentId;
-    const items = await Mark.find(q).sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.mark.findMany({
+      where: q,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -237,17 +304,23 @@ router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'adm
     const role = req.user && req.user.role;
     if (role === 'student') {
       // find student by email = username
-      const s = await Student.findOne({
-        email: req.user.username
-      }).lean();
+      const s = await prisma.student.findFirst({
+        where: {
+          email: req.user.username
+        }
+      });
       if (!s) return res.status(404).json({
         message: 'Student record not found'
       });
-      const items = await Mark.find({
-        studentId: s._id
-      }).sort({
-        createdAt: -1
-      }).lean();
+      const items = await prisma.mark.findMany({
+        where: {
+          studentId: s._id
+        },
+
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
       return res.json(items);
     }
     // parent: require studentId query param
@@ -258,11 +331,15 @@ router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'adm
       if (!studentId) return res.status(400).json({
         message: 'studentId required for parent'
       });
-      const items = await Mark.find({
-        studentId
-      }).sort({
-        createdAt: -1
-      }).lean();
+      const items = await prisma.mark.findMany({
+        where: {
+          studentId
+        },
+
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
       return res.json(items);
     }
     // faculty/admin: support optional studentId query
@@ -271,9 +348,13 @@ router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'adm
     } = req.query || {};
     const q = {};
     if (studentId) q.studentId = studentId;
-    const items = await Mark.find(q).sort({
-      createdAt: -1
-    }).lean();
+    const items = await prisma.mark.findMany({
+      where: q,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

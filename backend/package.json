@@ -36,6 +36,7 @@
     },
     "devDependencies": {
         "jest": "^29.0.0",
+        "jscodeshift": "^17.4.0",
         "nodemon": "^2.0.22",
         "prisma": "^5.22.0"
     }

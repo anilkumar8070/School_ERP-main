@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -33,21 +35,28 @@ router.post("/generate", verifyToken, requireRole('admin'), async (req, res) => 
     if (!klass || !section) return res.status(400).json({
       message: 'class and section required'
     });
-    const students = await Student.find({
-      class: String(klass),
-      section: String(section)
-    }).lean().catch(() => []);
+    const students = await prisma.student.findMany({
+      where: {
+        class: String(klass),
+        section: String(section)
+      }
+    }).catch(() => []);
     const batchId = `batch_${Date.now()}`;
     const out = [];
     for (const st of students) {
       let latest = null;
       try {
-        latest = await IDCard.findOne({
-          studentId: st._id
-        }).sort({
-          version: -1,
-          createdAt: -1
-        }).lean().catch(() => null);
+        latest = await prisma.iDCard.findFirst({
+          where: {
+            studentId: st._id
+          },
+
+          orderBy: [{
+            version: "desc"
+          }, {
+            createdAt: "desc"
+          }]
+        }).catch(() => null);
       } catch {}
       const version = latest ? Number(latest.version || 1) + 1 : 1;
       let idCode = latest && latest.idCode ? latest.idCode : makeId('IDC_');
@@ -106,18 +115,23 @@ router.post("/generate-faculty", verifyToken, requireRole('admin'), async (req, 
     const schoolName = req.body && req.body.schoolName || 'SCHOOL NAME';
     const reqIssueDate = req.body && req.body.issueDate ? new Date(req.body.issueDate) : new Date();
     const reqValidUpto = req.body && req.body.validUpto ? new Date(req.body.validUpto) : new Date(reqIssueDate.getTime() + 365 * 24 * 60 * 60 * 1000);
-    const list = await Faculty.find({}).lean().catch(() => []);
+    const list = await prisma.faculty.findMany().catch(() => []);
     const batchId = `fac_${Date.now()}`;
     const out = [];
     for (const f of list) {
       let latest = null;
       try {
-        latest = await IDCard.findOne({
-          facultyId: f._id
-        }).sort({
-          version: -1,
-          createdAt: -1
-        }).lean().catch(() => null);
+        latest = await prisma.iDCard.findFirst({
+          where: {
+            facultyId: f._id
+          },
+
+          orderBy: [{
+            version: "desc"
+          }, {
+            createdAt: "desc"
+          }]
+        }).catch(() => null);
       } catch {}
       const version = latest ? Number(latest.version || 1) + 1 : 1;
       let idCode = latest && latest.idCode ? latest.idCode : makeId('IDF_');
@@ -176,20 +190,27 @@ router.post("/generate-staff", verifyToken, requireRole('admin'), async (req, re
     const schoolName = req.body && req.body.schoolName || 'SCHOOL NAME';
     const reqIssueDate = req.body && req.body.issueDate ? new Date(req.body.issueDate) : new Date();
     const reqValidUpto = req.body && req.body.validUpto ? new Date(req.body.validUpto) : new Date(reqIssueDate.getTime() + 365 * 24 * 60 * 60 * 1000);
-    const list = await User.find({
-      role: 'staff'
-    }).lean().catch(() => []);
+    const list = await prisma.user.findMany({
+      where: {
+        role: 'staff'
+      }
+    }).catch(() => []);
     const batchId = `stf_${Date.now()}`;
     const out = [];
     for (const u of list) {
       let latest = null;
       try {
-        latest = await IDCard.findOne({
-          userId: u._id
-        }).sort({
-          version: -1,
-          createdAt: -1
-        }).lean().catch(() => null);
+        latest = await prisma.iDCard.findFirst({
+          where: {
+            userId: u._id
+          },
+
+          orderBy: [{
+            version: "desc"
+          }, {
+            createdAt: "desc"
+          }]
+        }).catch(() => null);
       } catch {}
       const version = latest ? Number(latest.version || 1) + 1 : 1;
       let idCode = latest && latest.idCode ? latest.idCode : makeId('IDS_');
@@ -251,11 +272,15 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     const allowed = ['name', 'fatherName', 'rollNo', 'class', 'section', 'contact', 'email', 'designation', 'schoolName', 'photoUrl', 'template', 'issueDate', 'validUpto', 'medium', 'gender'];
     const patch = {};
     for (const k of allowed) if (req.body && Object.prototype.hasOwnProperty.call(req.body, k)) patch[k] = req.body[k];
-    const doc = await IDCard.findByIdAndUpdate(id, {
-      $set: patch
-    }, {
-      new: true
-    }).lean().catch(() => null);
+    const doc = await prisma.iDCard.update({
+      where: {
+        id: String(id)
+      },
+
+      data: {
+        $set: patch
+      }
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Card not found'
     });
@@ -278,9 +303,13 @@ router.get("/", verifyToken, async (req, res) => {
     const filter = {};
     if (klass) filter.class = String(klass);
     if (section) filter.section = String(section);
-    const list = await IDCard.find(filter).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.iDCard.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     if (String(latest) !== 'false') {
       const map = new Map();
       for (const c of list) {
@@ -348,11 +377,15 @@ router.get("/batches", verifyToken, async (req, res) => {
 // Get cards by batch id
 router.get("/by-batch/:batchId", verifyToken, async (req, res) => {
   try {
-    const list = await IDCard.find({
-      batchId: req.params.batchId
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.iDCard.findMany({
+      where: {
+        batchId: req.params.batchId
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -367,19 +400,28 @@ router.get("/student/:studentId", verifyToken, async (req, res) => {
     const {
       studentId
     } = req.params;
-    let doc = await IDCard.findOne({
-      studentId
-    }).sort({
-      version: -1,
-      createdAt: -1
-    }).lean().catch(() => null);
+    let doc = await prisma.iDCard.findFirst({
+      where: {
+        studentId
+      },
+
+      orderBy: [{
+        version: "desc"
+      }, {
+        createdAt: "desc"
+      }]
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'No card found'
     });
     // Enrich house and houseRole from current Student if missing or empty
     try {
       if (!doc.house || !doc.houseRole) {
-        const st = await Student.findById(studentId).lean().catch(() => null);
+        const st = await prisma.student.findUnique({
+          where: {
+            id: String(studentId)
+          }
+        }).catch(() => null);
         if (st) {
           doc = {
             ...doc,
@@ -404,12 +446,17 @@ router.get("/faculty/:facultyId", verifyToken, async (req, res) => {
     const {
       facultyId
     } = req.params;
-    const doc = await IDCard.findOne({
-      facultyId
-    }).sort({
-      version: -1,
-      createdAt: -1
-    }).lean().catch(() => null);
+    const doc = await prisma.iDCard.findFirst({
+      where: {
+        facultyId
+      },
+
+      orderBy: [{
+        version: "desc"
+      }, {
+        createdAt: "desc"
+      }]
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'No card found'
     });
@@ -427,13 +474,18 @@ router.get("/staff/:userId", verifyToken, async (req, res) => {
     const {
       userId
     } = req.params;
-    const doc = await IDCard.findOne({
-      userId,
-      type: 'staff'
-    }).sort({
-      version: -1,
-      createdAt: -1
-    }).lean().catch(() => null);
+    const doc = await prisma.iDCard.findFirst({
+      where: {
+        userId,
+        type: 'staff'
+      },
+
+      orderBy: [{
+        version: "desc"
+      }, {
+        createdAt: "desc"
+      }]
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'No card found'
     });
@@ -447,26 +499,26 @@ router.get("/staff/:userId", verifyToken, async (req, res) => {
 // Backfill idCode for existing cards missing the code
 router.post("/backfill-codes", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const cards = await IDCard.find({
-      $or: [{
-        idCode: {
-          $exists: false
-        }
-      }, {
-        idCode: null
-      }, {
-        idCode: ''
-      }]
-    }).lean().catch(() => []);
+    const cards = await prisma.iDCard.findMany({
+      where: {
+        OR: [{
+          idCode: {
+            $exists: false
+          }
+        }, {
+          idCode: null
+        }, {
+          idCode: ''
+        }]
+      }
+    }).catch(() => []);
     let updated = 0;
     for (const c of cards) {
       const code = makeId('IDC_');
       await IDCard.updateOne({
         _id: c._id
       }, {
-        $set: {
-          idCode: code
-        }
+        idCode: code
       }).catch(() => null);
       updated++;
     }
@@ -487,9 +539,11 @@ router.get("/verify/:code", async (req, res) => {
     if (!code) return res.status(400).json({
       message: 'code required'
     });
-    let doc = await IDCard.findOne({
-      idCode: code
-    }).lean().catch(() => null);
+    let doc = await prisma.iDCard.findFirst({
+      where: {
+        idCode: code
+      }
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Invalid code'
     });
@@ -503,7 +557,11 @@ router.get("/verify/:code", async (req, res) => {
     // Enrich missing fields based on type/owner document
     if (derivedType === 'student' && doc.studentId) {
       try {
-        const st = await Student.findById(doc.studentId).lean().catch(() => null);
+        const st = await prisma.student.findUnique({
+          where: {
+            id: String(doc.studentId)
+          }
+        }).catch(() => null);
         if (st) {
           if (!doc.house) doc.house = st.house || '';
           if (!doc.houseRole) doc.houseRole = st.houseRole || '';
@@ -518,7 +576,11 @@ router.get("/verify/:code", async (req, res) => {
     }
     if (derivedType === 'faculty' && doc.facultyId) {
       try {
-        const f = await Faculty.findById(doc.facultyId).lean().catch(() => null);
+        const f = await prisma.faculty.findUnique({
+          where: {
+            id: String(doc.facultyId)
+          }
+        }).catch(() => null);
         if (f) {
           if (!doc.photoUrl && f.avatar) doc.photoUrl = f.avatar;
           if (!doc.name && f.name) doc.name = f.name;
@@ -528,10 +590,12 @@ router.get("/verify/:code", async (req, res) => {
           // If still no photo, try User avatar linked by faculty email
           if (!doc.photoUrl && f.email) {
             try {
-              const u = await User.findOne({
-                role: 'faculty',
-                username: f.email
-              }).lean().catch(() => null);
+              const u = await prisma.user.findFirst({
+                where: {
+                  role: 'faculty',
+                  username: f.email
+                }
+              }).catch(() => null);
               if (u && u.avatar) doc.photoUrl = u.avatar;
             } catch {}
           }
@@ -540,7 +604,11 @@ router.get("/verify/:code", async (req, res) => {
     }
     if (derivedType === 'staff' && doc.userId) {
       try {
-        const u = await User.findById(doc.userId).lean().catch(() => null);
+        const u = await prisma.user.findUnique({
+          where: {
+            id: String(doc.userId)
+          }
+        }).catch(() => null);
         if (u) {
           if (!doc.photoUrl && u.avatar) doc.photoUrl = u.avatar;
           if (!doc.name && (u.name || u.username)) doc.name = u.name || u.username;

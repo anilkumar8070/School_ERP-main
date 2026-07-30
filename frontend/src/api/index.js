@@ -2281,3 +2281,14 @@ export async function updateNotificationSettings(payload, token) {
   if (!res.ok) { const err = await tryParseJson(res); throw new Error(err.message || 'Failed to update settings') }
   return res.json()
 }
+// student dashboard overview
+export async function getStudentDashboardStats(token) {
+  const res = await fetch(`${API_BASE}/api/profile/dashboard-stats`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  if (!res.ok) {
+    const err = await tryParseJson(res)
+    throw new Error(err.message || 'Failed to fetch dashboard stats')
+  }
+  return res.json()
+}

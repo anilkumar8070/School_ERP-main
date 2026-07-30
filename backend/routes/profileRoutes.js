@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -29,7 +31,11 @@ router.get("/", verifyToken, async (req, res) => {
     if (!uid) return res.json({
       user: req.user
     });
-    const user = await User.findById(uid).lean().catch(() => null);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(uid)
+      }
+    }).catch(() => null);
     if (!user) return res.json({
       user: req.user
     });
@@ -38,20 +44,30 @@ router.get("/", verifyToken, async (req, res) => {
     let student = null;
     let faculty = null;
     try {
-      student = await Student.findById(uid).lean().catch(() => null);
+      student = await prisma.student.findUnique({
+        where: {
+          id: String(uid)
+        }
+      }).catch(() => null);
     } catch (e) {
       student = null;
     }
     try {
-      faculty = await Faculty.findOne({
-        email: user.username
-      }).lean().catch(() => null);
-      if (!faculty && user.name) faculty = await Faculty.findOne({
-        name: user.name
-      }).lean().catch(() => null);
-      if (!faculty && user.contact) faculty = await Faculty.findOne({
-        contact: user.contact
-      }).lean().catch(() => null);
+      faculty = await prisma.faculty.findFirst({
+        where: {
+          email: user.username
+        }
+      }).catch(() => null);
+      if (!faculty && user.name) faculty = await prisma.faculty.findFirst({
+        where: {
+          name: user.name
+        }
+      }).catch(() => null);
+      if (!faculty && user.contact) faculty = await prisma.faculty.findFirst({
+        where: {
+          contact: user.contact
+        }
+      }).catch(() => null);
     } catch (e) {
       faculty = null;
     }
@@ -82,15 +98,23 @@ router.put("/", verifyToken, async (req, res) => {
     const allowed = ['name', 'contact', 'address', 'avatar', 'email'];
     const up = {};
     for (const k of allowed) if (payload[k] !== undefined) up[k] = payload[k];
-    const updatedUser = await User.findByIdAndUpdate(uid, up, {
-      new: true
-    }).lean().catch(() => null);
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: String(uid)
+      },
+
+      data: up
+    }).catch(() => null);
 
     // try to update student/faculty records if present
     let updatedStudent = null;
     let updatedFaculty = null;
     try {
-      let s = await Student.findById(uid).catch(() => null);
+      let s = await prisma.student.findUnique({
+        where: {
+          id: String(uid)
+        }
+      }).catch(() => null);
       if (s) {
         const su = {};
         if (up.name) su.name = up.name;
@@ -98,17 +122,34 @@ router.put("/", verifyToken, async (req, res) => {
         if (up.address) su.address = up.address;
         if (Object.keys(su).length > 0) {
           s.set(su);
-          await s.save();
-          updatedStudent = s.toObject();
+          // Transpiled save()
+    if (s && s.id) {
+      const { id: _id_unused, ..._updateData } = s;
+      await prisma.student.update({
+        where: { id: String(s.id) },
+        data: _updateData
+      });
+    } else if (s && s._id) {
+      const { _id: _id_unused2, ..._updateData2 } = s;
+      await prisma.student.update({
+        where: { id: String(s._id) },
+        data: _updateData2
+      });
+    }
+          updatedStudent = s;
         }
       }
     } catch (e) {/* ignore */}
     try {
-      let f = await Faculty.findOne({
-        email: updatedUser && updatedUser.username
+      let f = await prisma.faculty.findFirst({
+        where: {
+          email: updatedUser && updatedUser.username
+        }
       }).catch(() => null);
-      if (!f && updatedUser && updatedUser.name) f = await Faculty.findOne({
-        name: updatedUser.name
+      if (!f && updatedUser && updatedUser.name) f = await prisma.faculty.findFirst({
+        where: {
+          name: updatedUser.name
+        }
       }).catch(() => null);
       if (f) {
         const fu = {};
@@ -117,8 +158,21 @@ router.put("/", verifyToken, async (req, res) => {
         if (up.address) fu.address = up.address;
         if (Object.keys(fu).length > 0) {
           f.set(fu);
-          await f.save();
-          updatedFaculty = f.toObject();
+          // Transpiled save()
+    if (f && f.id) {
+      const { id: _id_unused, ..._updateData } = f;
+      await prisma.faculty.update({
+        where: { id: String(f.id) },
+        data: _updateData
+      });
+    } else if (f && f._id) {
+      const { _id: _id_unused2, ..._updateData2 } = f;
+      await prisma.faculty.update({
+        where: { id: String(f._id) },
+        data: _updateData2
+      });
+    }
+          updatedFaculty = f;
         }
       }
     } catch (e) {/* ignore */}
@@ -131,6 +185,86 @@ router.put("/", verifyToken, async (req, res) => {
     return res.status(500).json({
       message: e.message
     });
+  }
+});
+
+// Student dashboard stats overview
+router.get("/dashboard-stats", verifyToken, requireRole('student'), async (req, res) => {
+  try {
+    const student = await prisma.student.findFirst({
+      where: { OR: [ { id: String(req.user.sub) }, { email: req.user.username } ] }
+    });
+    
+    if (!student) {
+      return res.json({ attendance: '0%', assignments: '00', tests: '00', schedule: '00', notices: '00' });
+    }
+
+    const cls = student.class || '';
+    const sec = student.section || '';
+
+    // Attendance
+    let attendance = '0%';
+    try {
+      const atts = await prisma.attendance.findMany({ where: { class: cls } });
+      let totalDays = 0;
+      let presentDays = 0;
+      atts.forEach(a => {
+        if (a.section && a.section !== sec) return; // skip other sections if specified
+        totalDays++;
+        let records = a.records;
+        if (typeof records === 'string') { try { records = JSON.parse(records); } catch(e){} }
+        if (Array.isArray(records)) {
+          const rec = records.find(r => String(r.studentId) === String(student.id) || String(r.rollNo) === String(student.rollNo));
+          if (rec && rec.status === 'present') presentDays++;
+        }
+      });
+      if (totalDays > 0) attendance = Math.round((presentDays / totalDays) * 100) + '%';
+      else attendance = '100%';
+    } catch(e) {}
+
+    // Assignments
+    let assignments = '00';
+    try {
+      const totalAssigns = await prisma.assignment.count({ where: { class: cls } });
+      assignments = totalAssigns < 10 ? '0' + totalAssigns : String(totalAssigns);
+    } catch(e) {}
+
+    // Tests
+    let tests = '00';
+    try {
+      const allTests = await prisma.testSeries.findMany();
+      const relevant = allTests.filter(t => {
+         let cs = t.classes;
+         if (typeof cs === 'string') { try { cs = JSON.parse(cs) } catch(e){} }
+         if (Array.isArray(cs) && cs.length > 0) return cs.includes(cls);
+         return true;
+      });
+      tests = relevant.length < 10 ? '0' + relevant.length : String(relevant.length);
+    } catch(e) {}
+
+    // Schedule (Timetables)
+    let schedule = '00';
+    try {
+      const tt = await prisma.timetable.count({ where: { class: cls } });
+      schedule = tt < 10 ? '0' + tt : String(tt);
+    } catch(e) {}
+
+    // Notices
+    let notices = '00';
+    try {
+      const nts = await prisma.notice.findMany();
+      const relevantN = nts.filter(n => {
+         let targets = n.targetClasses;
+         if (typeof targets === 'string') { try { targets = JSON.parse(targets) } catch(e){} }
+         if (Array.isArray(targets) && targets.length > 0) return targets.includes(cls);
+         return true;
+      });
+      notices = relevantN.length < 10 ? '0' + relevantN.length : String(relevantN.length);
+    } catch(e) {}
+
+    res.json({ attendance, assignments, tests, schedule, notices });
+  } catch(e) {
+    res.status(500).json({ message: e.message });
   }
 });
 

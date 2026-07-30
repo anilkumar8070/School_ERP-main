@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -27,16 +29,20 @@ router.get("/", async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const Resource = require('./models/Resource');
-    const CustomForm = require('./models/CustomForm');
-    const items = await Resource.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
-    const customForms = await CustomForm.find({
-      status: 'active'
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.resource.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
+    const customForms = await prisma.customForm.findMany({
+      where: {
+        status: 'active'
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     const mappedResources = (items || []).map(it => ({
       _id: it._id,
       kind: 'resource',

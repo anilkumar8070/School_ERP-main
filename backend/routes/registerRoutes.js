@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -42,9 +44,11 @@ router.post("/", async (req, res) => {
     avatar
   } = req.body || {};
   if (true) {
-    const exists = await User.findOne({
-      username
-    }).lean();
+    const exists = await prisma.user.findFirst({
+      where: {
+        username
+      }
+    });
     if (exists) return res.status(409).json({
       message: 'User already exists'
     });

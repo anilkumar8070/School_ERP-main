@@ -164,10 +164,7 @@ export default function Assignments() {
                     <label>Section
                         <select value={section} onChange={e => setSection(e.target.value)}>
                             {
-                                // find selected class entry
-                                ((assigned || []).find(a => String(a.class) === String(klass)) || { sections: [], isClassTeacher: false }).isClassTeacher
-                                    ? [<option key="ALL" value="ALL">All</option>, ...(((assigned || []).find(a => String(a.class) === String(klass)) || { sections: [] }).sections.map(s => <option key={s} value={s}>{s}</option>))]
-                                    : [<option key="ALL" value="ALL">All</option>, ...(((assigned || []).find(a => String(a.class) === String(klass)) || { sections: [] }).sections.map(s => <option key={s} value={s}>{s}</option>))]
+                                [<option key="ALL" value="ALL">All Sections</option>, ...(((assigned || []).find(a => String(a.class) === String(klass)) || { sections: [] }).sections.filter(s => s !== 'ALL').map(s => <option key={s} value={s}>{s}</option>))]
                             }
                         </select>
                     </label>
@@ -176,7 +173,7 @@ export default function Assignments() {
                     </label>
 
                     <label className="full-width">Title
-                        <input value={title} onChange={e => setTitle(e.target.value)} />
+                        <input value={title} onChange={e => setTitle(e.target.value)} required />
                     </label>
                     <label className="full-width">Description
                         <textarea value={desc} onChange={e => setDesc(e.target.value)} />

@@ -202,8 +202,8 @@ module.exports = function registerAdmitCardRoutes(app, deps = {}) {
       if (!userId) return res.status(401).json({ message: 'Not authenticated' })
       const u = await _User.findById(userId).catch(() => null)
       const name = u && u.name ? u.name : ''
-      const q = { $or: [{ recipientId: userId }] }
-      if (name) q.$or.push({ recipientName: { $regex: name, $options: 'i' } })
+      const q = { OR: [{ recipientId: userId }] }
+      if (name) q.$or.push({ recipientName: { contains: name, mode: "insensitive" } })
       const list = await _AdmitCard.find(q).sort({ createdAt: -1 }).catch(() => [])
       return res.json(list)
     } catch (e) { return res.status(500).json({ message: e.message }) }

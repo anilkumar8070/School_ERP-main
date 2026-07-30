@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -24,9 +26,11 @@ module.exports = function(helpers) {
 // Admin: list contact queries
 router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await ContactQuery.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.contactQuery.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     // Attach URL for downloads
     const out = (list || []).map(it => ({
       ...it,
@@ -52,7 +56,11 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ContactQuery.findById(id);
+    const doc = await prisma.contactQuery.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!doc) return res.status(404).json({
       message: 'not found'
     });
@@ -67,10 +75,27 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
       doc.note = String(note || '');
     }
     if (notify) doc.notified = true;
-    await doc.save();
+    // Transpiled save()
+    if (doc && doc.id) {
+      const { id: _id_unused, ..._updateData } = doc;
+      await prisma.contactQuery.update({
+        where: { id: String(doc.id) },
+        data: _updateData
+      });
+    } else if (doc && doc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = doc;
+      await prisma.contactQuery.update({
+        where: { id: String(doc._id) },
+        data: _updateData2
+      });
+    }
 
     // Return updated document (lean-like)
-    const out = (await ContactQuery.findById(id).lean()) || {};
+    const out = (await prisma.contactQuery.findUnique({
+      where: {
+        id: String(id)
+      }
+    })) || {};
     out.url = out.filename ? `/uploads/${out.filename}` : undefined;
     return res.json(out);
   } catch (e) {
@@ -89,10 +114,10 @@ router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => 
   });
   try {
     // Total number of students
-    const studentsCount = await Student.countDocuments().catch(() => 0);
+    const studentsCount = await prisma.student.count().catch(() => 0);
 
     // Total number of teachers/faculty
-    const teachersCount = await Faculty.countDocuments().catch(() => 0);
+    const teachersCount = await prisma.faculty.count().catch(() => 0);
 
     // Number of distinct classes (from students)
     let classesCount = 0;
@@ -141,10 +166,11 @@ router.get("/custom-forms", verifyToken, requireRole('admin'), async (req, res) 
     message: 'Database not available'
   });
   try {
-    const CustomForm = require('./models/CustomForm');
-    const items = await CustomForm.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.customForm.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -157,7 +183,6 @@ router.post("/custom-forms", verifyToken, requireRole('admin'), async (req, res)
     message: 'Database not available'
   });
   try {
-    const CustomForm = require('./models/CustomForm');
     const {
       title,
       category = 'General',
@@ -198,7 +223,6 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
     message: 'Database not available'
   });
   try {
-    const CustomForm = require('./models/CustomForm');
     const {
       title,
       category = 'General',
@@ -220,15 +244,19 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
       placeholder: String(field.placeholder || ''),
       options: Array.isArray(field.options) ? field.options.map(opt => String(opt).trim()).filter(Boolean) : []
     }));
-    const doc = await CustomForm.findByIdAndUpdate(req.params.id, {
-      title: String(title),
-      category: String(category || 'General'),
-      description: String(description || ''),
-      status: String(status || 'active'),
-      fields: cleanFields
-    }, {
-      new: true
-    }).lean();
+    const doc = await prisma.customForm.update({
+      where: {
+        id: String(req.params.id)
+      },
+
+      data: {
+        title: String(title),
+        category: String(category || 'General'),
+        description: String(description || ''),
+        status: String(status || 'active'),
+        fields: cleanFields
+      }
+    });
     if (!doc) return res.status(404).json({
       message: 'Form not found'
     });
@@ -244,8 +272,11 @@ router.delete("/custom-forms/:id", verifyToken, requireRole('admin'), async (req
     message: 'Database not available'
   });
   try {
-    const CustomForm = require('./models/CustomForm');
-    const doc = await CustomForm.findByIdAndDelete(req.params.id).lean();
+    const doc = await prisma.customForm.delete({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!doc) return res.status(404).json({
       message: 'Form not found'
     });
@@ -267,10 +298,11 @@ router.get("/contact-queries", verifyToken, requireRole('admin'), async (req, re
     message: 'Database not available'
   });
   try {
-    const ContactQuery = require('./models/ContactQuery');
-    const items = await ContactQuery.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.contactQuery.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       url: it.filename ? `/uploads/${it.filename}` : undefined
@@ -289,7 +321,6 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     message: 'Database not available'
   });
   try {
-    const ContactQuery = require('./models/ContactQuery');
     const id = req.params && req.params.id;
     const {
       status,
@@ -299,12 +330,29 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const doc = await ContactQuery.findById(id).catch(() => null);
+    const doc = await prisma.contactQuery.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Not found'
     });
     if (status) doc.status = String(status);
-    await doc.save();
+    // Transpiled save()
+    if (doc && doc.id) {
+      const { id: _id_unused, ..._updateData } = doc;
+      await prisma.contactQuery.update({
+        where: { id: String(doc.id) },
+        data: _updateData
+      });
+    } else if (doc && doc._id) {
+      const { _id: _id_unused2, ..._updateData2 } = doc;
+      await prisma.contactQuery.update({
+        where: { id: String(doc._id) },
+        data: _updateData2
+      });
+    }
 
     // Send email to user if requested
     if (notify && doc.email) {
@@ -333,10 +381,11 @@ router.get("/form-queries", verifyToken, requireRole('admin'), async (req, res) 
     message: 'Database not available'
   });
   try {
-    const FormQuery = require('./models/FormQuery');
-    const items = await FormQuery.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.formQuery.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       url: it.filename ? `/uploads/${it.filename}` : undefined
@@ -355,10 +404,6 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
     message: 'Database not available'
   });
   try {
-    const TestResult = require('./models/TestResult');
-    const ReportCard = require('./models/ReportCard');
-    const Student = require('./models/Student');
-
     // filters: class, section, source (testResults|reportCards|both), from, to, limit
     const cls = req.query.class ? String(req.query.class) : null;
     const section = req.query.section ? String(req.query.section) : null;
@@ -425,7 +470,9 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (from || to) q.submittedAt = {};
       if (from) q.submittedAt.$gte = from;
       if (to) q.submittedAt.$lte = to;
-      const results = await TestResult.find(q).lean().catch(() => []);
+      const results = await prisma.testResult.findMany({
+        where: q
+      }).catch(() => []);
       for (const r of results || []) {
         const key = r.studentId ? String(r.studentId) : `${r.email || r.name || ''}::${r.class || ''}::${r.section || ''}`;
         pushTestResult(key, r);
@@ -440,7 +487,9 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (from || to) q.createdAt = {};
       if (from) q.createdAt.$gte = from;
       if (to) q.createdAt.$lte = to;
-      const cards = await ReportCard.find(q).lean().catch(() => []);
+      const cards = await prisma.reportCard.findMany({
+        where: q
+      }).catch(() => []);
       for (const c of cards || []) {
         const key = c.recipientId ? String(c.recipientId) : `${c.recipientEmail || c.recipientName || ''}::${c.className || ''}::${c.section || ''}`;
         pushReportCard(key, c);
@@ -487,7 +536,9 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       const sq = {};
       if (cls) sq.class = cls;
       if (section) sq.section = section;
-      const students = await Student.find(sq).lean().catch(() => []);
+      const students = await prisma.student.findMany({
+        where: sq
+      }).catch(() => []);
       for (const s of students || []) {
         const skey = s._id ? String(s._id) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
         const exists = rows.some(r => r.key === skey);

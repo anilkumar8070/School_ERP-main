@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -26,12 +28,7 @@ module.exports = function(helpers) {
 // List all faculty (minimal fields)
 router.get("/faculties", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await Faculty.find({}, {
-      name: 1,
-      email: 1,
-      employeeId: 1,
-      subject: 1
-    }).lean().catch(() => []);
+    const list = await prisma.faculty.findMany().catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -51,7 +48,11 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     if (!facultyId || !month || !amount) return res.status(400).json({
       message: 'facultyId, month, amount required'
     });
-    const fac = await Faculty.findById(facultyId).lean().catch(() => null);
+    const fac = await prisma.faculty.findUnique({
+      where: {
+        id: String(facultyId)
+      }
+    }).catch(() => null);
     if (!fac) return res.status(404).json({
       message: 'Faculty not found'
     });
@@ -78,7 +79,7 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     payment.razorpaySignature = razorpaySignature;
     payment.receiptNo = receiptNo;
     payment.status = 'paid';
-    await payment.save();
+    /* FIXME: Mongoose .save() */ await payment.save();
     return res.status(201).json(payment);
   } catch (e) {
     return res.status(500).json({
@@ -98,7 +99,11 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
     if (!facultyId || !month || !amount) return res.status(400).json({
       message: 'facultyId, month, amount required'
     });
-    const fac = await Faculty.findById(facultyId).lean().catch(() => null);
+    const fac = await prisma.faculty.findUnique({
+      where: {
+        id: String(facultyId)
+      }
+    }).catch(() => null);
     if (!fac) return res.status(404).json({
       message: 'Faculty not found'
     });
@@ -169,7 +174,11 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
     if (!facultyId || !month || !amount || !orderId || !paymentId) return res.status(400).json({
       message: 'required fields missing'
     });
-    const fac = await Faculty.findById(facultyId).lean().catch(() => null);
+    const fac = await prisma.faculty.findUnique({
+      where: {
+        id: String(facultyId)
+      }
+    }).catch(() => null);
     if (!fac) return res.status(404).json({
       message: 'Faculty not found'
     });
@@ -196,9 +205,11 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
 // List all salary payments (admin)
 router.get("/payments", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await SalaryPayment.find().sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.salaryPayment.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -211,27 +222,41 @@ router.get("/payments", verifyToken, requireRole('admin'), async (req, res) => {
 router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
   try {
     // Resolve faculty record for current user
-    const meUser = await User.findById(req.user.sub).lean().catch(() => null);
+    const meUser = await prisma.user.findUnique({
+      where: {
+        id: String(req.user.sub)
+      }
+    }).catch(() => null);
     if (!meUser) return res.status(404).json({
       message: 'User not found'
     });
-    let fac = await Faculty.findOne({
-      email: meUser.username
-    }).lean().catch(() => null);
-    if (!fac && meUser.name) fac = await Faculty.findOne({
-      name: meUser.name
-    }).lean().catch(() => null);
-    if (!fac && meUser.contact) fac = await Faculty.findOne({
-      contact: meUser.contact
-    }).lean().catch(() => null);
+    let fac = await prisma.faculty.findFirst({
+      where: {
+        email: meUser.username
+      }
+    }).catch(() => null);
+    if (!fac && meUser.name) fac = await prisma.faculty.findFirst({
+      where: {
+        name: meUser.name
+      }
+    }).catch(() => null);
+    if (!fac && meUser.contact) fac = await prisma.faculty.findFirst({
+      where: {
+        contact: meUser.contact
+      }
+    }).catch(() => null);
     if (!fac) return res.status(404).json({
       message: 'Faculty record not linked'
     });
-    const list = await SalaryPayment.find({
-      facultyId: fac._id
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.salaryPayment.findMany({
+      where: {
+        facultyId: fac._id
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -244,25 +269,35 @@ router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
 router.get("/receipt/:id", verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
-    const pay = await SalaryPayment.findById(id).lean().catch(() => null);
+    const pay = await prisma.salaryPayment.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!pay) return res.status(404).send('Receipt not found');
     // AuthZ: allow admin; allow the specific faculty for whom this receipt belongs
     const role = req.user && req.user.role;
     let allowed = role === 'admin';
     if (!allowed) {
       try {
-        const meUser = await User.findById(req.user.sub).lean().catch(() => null);
+        const meUser = await prisma.user.findUnique({
+          where: {
+            id: String(req.user.sub)
+          }
+        }).catch(() => null);
         let fac = null;
         if (meUser) {
-          fac = await Faculty.findOne({
-            $or: [{
-              email: meUser.username
-            }, {
-              name: meUser.name
-            }, {
-              contact: meUser.contact
-            }]
-          }).lean().catch(() => null);
+          fac = await prisma.faculty.findFirst({
+            where: {
+              OR: [{
+                email: meUser.username
+              }, {
+                name: meUser.name
+              }, {
+                contact: meUser.contact
+              }]
+            }
+          }).catch(() => null);
         }
         if (fac && String(fac._id) === String(pay.facultyId)) allowed = true;
       } catch {}
@@ -323,7 +358,11 @@ router.get("/receipt/:id.pdf", verifyToken, async (req, res) => {
       });
     }
     const id = req.params.id;
-    const pay = await SalaryPayment.findById(id).lean().catch(() => null);
+    const pay = await prisma.salaryPayment.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!pay) return res.status(404).json({
       message: 'Receipt not found'
     });
@@ -332,18 +371,24 @@ router.get("/receipt/:id.pdf", verifyToken, async (req, res) => {
     let allowed = role === 'admin';
     if (!allowed) {
       try {
-        const meUser = await User.findById(req.user.sub).lean().catch(() => null);
+        const meUser = await prisma.user.findUnique({
+          where: {
+            id: String(req.user.sub)
+          }
+        }).catch(() => null);
         let fac = null;
         if (meUser) {
-          fac = await Faculty.findOne({
-            $or: [{
-              email: meUser.username
-            }, {
-              name: meUser.name
-            }, {
-              contact: meUser.contact
-            }]
-          }).lean().catch(() => null);
+          fac = await prisma.faculty.findFirst({
+            where: {
+              OR: [{
+                email: meUser.username
+              }, {
+                name: meUser.name
+              }, {
+                contact: meUser.contact
+              }]
+            }
+          }).catch(() => null);
         }
         if (fac && String(fac._id) === String(pay.facultyId)) allowed = true;
       } catch {}

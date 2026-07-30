@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -89,23 +91,33 @@ router.post("/", verifyToken, requireRole('admin'), upload.fields([{
     // Try to resolve recipientId (Student/Faculty) to a login User id so recipients can fetch their certificates
     try {
       if (doc.recipientType === 'Student' && doc.recipientId) {
-        const Student = require('./models/Student');
-        const student = await Student.findById(doc.recipientId).lean().catch(() => null);
+        const student = await prisma.student.findUnique({
+          where: {
+            id: String(doc.recipientId)
+          }
+        }).catch(() => null);
         if (student && student.email) {
-          const user = await User.findOne({
-            username: student.email
-          }).lean().catch(() => null);
+          const user = await prisma.user.findFirst({
+            where: {
+              username: student.email
+            }
+          }).catch(() => null);
           if (user) {
             doc.recipientId = user._id;
           }
         }
       } else if (doc.recipientType === 'Faculty' && doc.recipientId) {
-        const Faculty = require('./models/Faculty');
-        const faculty = await Faculty.findById(doc.recipientId).lean().catch(() => null);
+        const faculty = await prisma.faculty.findUnique({
+          where: {
+            id: String(doc.recipientId)
+          }
+        }).catch(() => null);
         if (faculty && faculty.email) {
-          const user = await User.findOne({
-            username: faculty.email
-          }).lean().catch(() => null);
+          const user = await prisma.user.findFirst({
+            where: {
+              username: faculty.email
+            }
+          }).catch(() => null);
           if (user) {
             doc.recipientId = user._id;
           }
@@ -234,7 +246,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.fields([{
         console.warn('Certificate PDF generation failed', e && e.message);
       }
     }
-    const created = await Certificate.create(doc);
+    const created = await prisma.certificate.create({ data: doc });
     return res.status(201).json(created);
   } catch (e) {
     return res.status(500).json({
@@ -244,9 +256,11 @@ router.post("/", verifyToken, requireRole('admin'), upload.fields([{
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await Certificate.find({}).sort({
-      uploadedAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.certificate.findMany({
+      orderBy: {
+        uploadedAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -271,16 +285,20 @@ router.get("/my", verifyToken, async (req, res) => {
       }
       orClauses.push({
         recipientName: {
-          $regex: `^${escapeRegex(uname)}$`,
-          $options: 'i'
+          contains: `^${escapeRegex(uname)}$`,
+          mode: "insensitive"
         }
       });
     }
-    const list = await Certificate.find({
-      $or: orClauses
-    }).sort({
-      uploadedAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.certificate.findMany({
+      where: {
+        OR: orClauses
+      },
+
+      orderBy: {
+        uploadedAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({

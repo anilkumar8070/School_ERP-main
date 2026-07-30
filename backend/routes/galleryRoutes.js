@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -58,9 +60,11 @@ router.get("/", async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const items = await Gallery.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const items = await prisma.gallery.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     const mapped = (items || []).map(it => ({
       ...it,
       images: (it.images || []).map(img => ({
@@ -84,7 +88,11 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const g = await Gallery.findById(id).catch(() => null);
+    const g = await prisma.gallery.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!g) return res.status(404).json({
       message: 'Gallery item not found'
     });
@@ -123,7 +131,11 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const gallery = await Gallery.findById(id).catch(() => null);
+    const gallery = await prisma.gallery.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!gallery) return res.status(404).json({
       message: 'Gallery not found'
     });
@@ -135,7 +147,20 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
     }));
     gallery.images = gallery.images || [];
     gallery.images.push(...images);
-    await gallery.save();
+    // Transpiled save()
+    if (gallery && gallery.id) {
+      const { id: _id_unused, ..._updateData } = gallery;
+      await prisma.gallery.update({
+        where: { id: String(gallery.id) },
+        data: _updateData
+      });
+    } else if (gallery && gallery._id) {
+      const { _id: _id_unused2, ..._updateData2 } = gallery;
+      await prisma.gallery.update({
+        where: { id: String(gallery._id) },
+        data: _updateData2
+      });
+    }
     return res.json(gallery);
   } catch (e) {
     return res.status(500).json({
@@ -153,7 +178,11 @@ router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res)
     if (!id || !filename) return res.status(400).json({
       message: 'id and filename required'
     });
-    const gallery = await Gallery.findById(id).catch(() => null);
+    const gallery = await prisma.gallery.findUnique({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!gallery) return res.status(404).json({
       message: 'Gallery not found'
     });
@@ -174,7 +203,20 @@ router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res)
     });
     const im = gallery.images[idx];
     gallery.images.splice(idx, 1);
-    await gallery.save();
+    // Transpiled save()
+    if (gallery && gallery.id) {
+      const { id: _id_unused, ..._updateData } = gallery;
+      await prisma.gallery.update({
+        where: { id: String(gallery.id) },
+        data: _updateData
+      });
+    } else if (gallery && gallery._id) {
+      const { _id: _id_unused2, ..._updateData2 } = gallery;
+      await prisma.gallery.update({
+        where: { id: String(gallery._id) },
+        data: _updateData2
+      });
+    }
     // unlink file if exists
     try {
       if (im && im.filename) {

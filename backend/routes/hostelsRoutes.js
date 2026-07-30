@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -25,9 +27,11 @@ module.exports = function(helpers) {
 // List all hostels
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await Hostel.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.hostel.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -41,12 +45,11 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 // Public: minimal hostel list (no auth) for student display
 router.get("/public", async (req, res) => {
   try {
-    const list = await Hostel.find({}, {
-      name: 1,
-      floors: 1
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.hostel.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -94,9 +97,13 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       id
     } = req.params;
     const payload = req.body || {};
-    const doc = await Hostel.findByIdAndUpdate(id, payload, {
-      new: true
-    }).lean().catch(() => null);
+    const doc = await prisma.hostel.update({
+      where: {
+        id: String(id)
+      },
+
+      data: payload
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Hostel not found'
     });
@@ -114,7 +121,11 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     const {
       id
     } = req.params;
-    const doc = await Hostel.findByIdAndDelete(id).lean().catch(() => null);
+    const doc = await prisma.hostel.delete({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'Hostel not found'
     });

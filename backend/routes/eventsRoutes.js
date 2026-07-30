@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -53,9 +55,11 @@ router.get("/", async (req, res) => {
     message: 'Database not available'
   });
   try {
-    const items = await Event.find().sort({
-      date: 1
-    }).lean();
+    const items = await prisma.event.findMany({
+      orderBy: {
+        date: "asc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

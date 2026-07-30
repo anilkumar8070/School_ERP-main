@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -53,16 +55,22 @@ router.get("/", verifyToken, async (req, res) => {
   });
   try {
     if (req.user.role === 'admin') {
-      const all = await Complaint.find().sort({
-        createdAt: -1
-      }).lean();
+      const all = await prisma.complaint.findMany({
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
       return res.json(all);
     }
-    const mine = await Complaint.find({
-      userId: req.user.sub
-    }).sort({
-      createdAt: -1
-    }).lean();
+    const mine = await prisma.complaint.findMany({
+      where: {
+        userId: req.user.sub
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
     return res.json(mine);
   } catch (e) {
     return res.status(500).json({
@@ -79,7 +87,11 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     message: 'status required'
   });
   try {
-    const c = await Complaint.findById(req.params.id);
+    const c = await prisma.complaint.findUnique({
+      where: {
+        id: String(req.params.id)
+      }
+    });
     if (!c) return res.status(404).json({
       message: 'Complaint not found'
     });
@@ -96,7 +108,20 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     c.status = status;
     c.history = c.history || [];
     c.history.push(entry);
-    const saved = await c.save();
+    const saved = c; // Transpiled save()
+    if (c && c.id) {
+      const { id: _id_unused, ..._updateData } = c;
+      await prisma.complaint.update({
+        where: { id: String(c.id) },
+        data: _updateData
+      });
+    } else if (c && c._id) {
+      const { _id: _id_unused2, ..._updateData2 } = c;
+      await prisma.complaint.update({
+        where: { id: String(c._id) },
+        data: _updateData2
+      });
+    }
     return res.json(saved);
   } catch (e) {
     return res.status(500).json({

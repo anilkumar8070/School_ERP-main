@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -36,7 +38,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter = {
         $and: [base, {
-          $or: [{
+          OR: [{
             name: re
           }, {
             username: re
@@ -48,9 +50,24 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         }]
       };
     }
-    const admins = await User.find(filter).select('name fatherName username disabled contact address designation createdAt').sort({
-      createdAt: -1
-    }).lean();
+    const admins = await prisma.user.findMany({
+      where: filter,
+
+      orderBy: {
+        createdAt: "desc"
+      },
+
+      select: {
+        name: true,
+        fatherName: true,
+        username: true,
+        disabled: true,
+        contact: true,
+        address: true,
+        designation: true,
+        createdAt: true
+      }
+    });
     return res.json(admins);
   } catch (e) {
     return res.status(500).json({
@@ -76,9 +93,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (!name || !email) return res.status(400).json({
       message: 'name and email required'
     });
-    let existing = await User.findOne({
-      username: email
-    }).lean().catch(() => null);
+    let existing = await prisma.user.findFirst({
+      where: {
+        username: email
+      }
+    }).catch(() => null);
     if (existing) return res.status(409).json({
       message: 'User already exists'
     });
@@ -146,7 +165,11 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });
@@ -179,7 +202,11 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });
@@ -191,7 +218,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       message: 'Cannot block the main admin'
     });
     user.disabled = !!block;
-    await user.save();
+    // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
     return res.json({
       ok: true
     });
@@ -223,7 +263,11 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!id) return res.status(400).json({
       message: 'id required'
     });
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'Admin not found'
     });
@@ -237,7 +281,20 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (name !== undefined) user.name = name;
     if (fatherName !== undefined) user.fatherName = fatherName;
     if (address !== undefined) user.address = address;
-    await user.save();
+    // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
     return res.json({
       ok: true,
       admin: {

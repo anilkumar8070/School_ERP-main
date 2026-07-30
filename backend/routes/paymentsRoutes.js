@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -100,22 +102,31 @@ router.post("/confirm", verifyToken, async (req, res) => {
     if (studentId) {
       const role = req.user && req.user.role;
       if (role === 'parent') {
-        const parent = await User.findById(req.user.sub).lean().catch(() => null);
+        const parent = await prisma.user.findUnique({
+          where: {
+            id: String(req.user.sub)
+          }
+        }).catch(() => null);
         const linked = parent && Array.isArray(parent.parentOf) && parent.parentOf.some(x => String(x) === String(studentId));
         if (!linked) return res.status(403).json({
           message: 'Parent is not linked to this student'
         });
       } else if (role === 'student') {
-        const currentStudent = await Student.findOne({
-          email: req.user && req.user.username
-        }).lean().catch(() => null);
+        const currentStudent = await prisma.student.findFirst({
+          where: {
+            email: req.user && req.user.username
+          }
+        }).catch(() => null);
         if (!currentStudent || String(currentStudent._id) !== String(studentId)) return res.status(403).json({
           message: 'Cannot pay for another student'
         });
       }
     }
-    const ReceiptModel = require('./models/Receipt');
-    const alloc = allocationId ? await HostelAllocation.findById(allocationId).catch(() => null) : null;
+    const alloc = allocationId ? await prisma.hostelAllocation.findUnique({
+      where: {
+        id: String(allocationId)
+      }
+    }).catch(() => null) : null;
     const receipt = await ReceiptModel.create({
       studentId: studentId || alloc && alloc.student && alloc.student.id || null,
       allocationId: allocationId || alloc && alloc._id || null,
@@ -134,16 +145,22 @@ router.post("/confirm", verifyToken, async (req, res) => {
       let sdoc = null;
       if (sid) {
         try {
-          sdoc = await Student.findById(sid).lean().catch(() => null);
+          sdoc = await prisma.student.findUnique({
+            where: {
+              id: String(sid)
+            }
+          }).catch(() => null);
         } catch (e) {
           sdoc = null;
         }
       }
       if (!sdoc && receipt.studentEmail) {
         try {
-          sdoc = await Student.findOne({
-            email: receipt.studentEmail
-          }).lean().catch(() => null);
+          sdoc = await prisma.student.findFirst({
+            where: {
+              email: receipt.studentEmail
+            }
+          }).catch(() => null);
         } catch (e) {
           sdoc = null;
         }
@@ -160,7 +177,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
 
     // generate PDF
     try {
-      const gen = await generateReceiptPdf(receipt.toObject ? receipt.toObject() : receipt, alloc && alloc.toObject ? alloc.toObject() : alloc);
+      const gen = await generateReceiptPdf(receipt.toObject ? receipt : receipt, alloc && alloc.toObject ? alloc : alloc);
       if (gen) {
         receipt.pdfPath = gen.pdfPath;
         receipt.pdfUrl = gen.pdfUrl;
@@ -194,7 +211,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
           const paidCount = (payments || []).filter(x => x.status === 'paid').length;
           if (parts && paidCount >= parts) alloc.paid = true;
         } catch (e) {}
-        await alloc.save();
+        /* FIXME: Mongoose .save() */ await alloc.save();
       }
     } catch (e) {
       console.warn('Failed to update allocation payments on confirm', e && e.message);

@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -33,8 +35,10 @@ router.post("/forgot", async (req, res) => {
     if (!email) return res.status(400).json({
       message: 'email required'
     });
-    const user = await User.findOne({
-      username: email
+    const user = await prisma.user.findFirst({
+      where: {
+        username: email
+      }
     });
     if (!user) return res.status(404).json({
       message: 'No account found with that email'
@@ -103,8 +107,10 @@ router.post("/reset", async (req, res) => {
     if (!token || !password) return res.status(400).json({
       message: 'token and password required'
     });
-    const pr = await PasswordReset.findOne({
-      token
+    const pr = await prisma.passwordReset.findFirst({
+      where: {
+        token
+      }
     });
     if (!pr) return res.status(400).json({
       message: 'Invalid or expired token'
@@ -117,13 +123,30 @@ router.post("/reset", async (req, res) => {
         message: 'Token expired'
       });
     }
-    const user = await User.findById(pr.userId);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: String(pr.userId)
+      }
+    });
     if (!user) return res.status(404).json({
       message: 'User not found'
     });
     const hashed = await bcrypt.hash(password, 10);
     user.password = hashed;
-    await user.save();
+    // Transpiled save()
+    if (user && user.id) {
+      const { id: _id_unused, ..._updateData } = user;
+      await prisma.user.update({
+        where: { id: String(user.id) },
+        data: _updateData
+      });
+    } else if (user && user._id) {
+      const { _id: _id_unused2, ..._updateData2 } = user;
+      await prisma.user.update({
+        where: { id: String(user._id) },
+        data: _updateData2
+      });
+    }
 
     // cleanup tokens
     await PasswordReset.deleteMany({

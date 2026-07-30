@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -31,7 +33,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
         message: 'studentId, type, amount, term required'
       });
     }
-    const doc = await Discount.create(payload);
+    const doc = await prisma.discount.create({ data: payload });
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({
@@ -41,9 +43,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 });
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await Discount.find({}).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.discount.findMany({
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
@@ -54,7 +58,11 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const id = req.params.id;
-    const doc = await Discount.findByIdAndDelete(id).catch(() => null);
+    const doc = await prisma.discount.delete({
+      where: {
+        id: String(id)
+      }
+    }).catch(() => null);
     if (!doc) return res.status(404).json({
       message: 'not found'
     });

@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -30,21 +32,23 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
     message: 'Database not available'
   });
   try {
-    const items = await Timetable.find({
-      content: {
-        $exists: true,
-        $ne: null
-      },
-      $or: [{
-        filePath: {
-          $exists: false
-        }
-      }, {
-        filePath: null
-      }, {
-        filePath: ''
-      }]
-    }).lean();
+    const items = await prisma.timetable.findMany({
+      where: {
+        content: {
+          $exists: true,
+          not: null
+        },
+        OR: [{
+          filePath: {
+            $exists: false
+          }
+        }, {
+          filePath: null
+        }, {
+          filePath: ''
+        }]
+      }
+    });
     if (!items || items.length === 0) return res.json({
       regenerated: 0,
       message: 'No timetables need regeneration'
@@ -163,9 +167,15 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
           stream.on('error', reject);
         });
         const fileP = `/uploads/${filename}`;
-        await Timetable.findByIdAndUpdate(t._id, {
-          filePath: fileP,
-          mime: 'application/pdf'
+        await prisma.timetable.update({
+          where: {
+            id: String(t._id)
+          },
+
+          data: {
+            filePath: fileP,
+            mime: 'application/pdf'
+          }
         });
         results.push({
           id: t._id,
@@ -193,7 +203,11 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
   });
   try {
     const id = req.params.id;
-    const t = await Timetable.findById(id).lean();
+    const t = await prisma.timetable.findUnique({
+      where: {
+        id: String(id)
+      }
+    });
     if (!t) return res.status(404).json({
       message: 'Timetable not found'
     });
@@ -303,12 +317,16 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
       stream.on('error', reject);
     });
     const fileP = `/uploads/${filename}`;
-    const updated = await Timetable.findByIdAndUpdate(id, {
-      filePath: fileP,
-      mime: 'application/pdf'
-    }, {
-      new: true
-    }).lean();
+    const updated = await prisma.timetable.update({
+      where: {
+        id: String(id)
+      },
+
+      data: {
+        filePath: fileP,
+        mime: 'application/pdf'
+      }
+    });
     return res.json(updated);
   } catch (e) {
     console.error('Failed to regenerate single timetable PDF:', e && e.message);
@@ -344,7 +362,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
       doc.filePath = `/uploads/${req.file.filename}`;
     }
     if (content) doc.content = content;
-    let created = await Timetable.create(doc);
+    let created = await prisma.timetable.create({ data: doc });
 
     // If JSON content was provided and no file uploaded, generate a PDF snapshot and save it to uploads
     try {
@@ -466,11 +484,15 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
 
           // update timetable doc with filePath and mime
           const fileP = `/uploads/${filename}`;
-          created = await Timetable.findByIdAndUpdate(created._id, {
-            filePath: fileP,
-            mime: 'application/pdf'
-          }, {
-            new: true
+          created = await prisma.timetable.update({
+            where: {
+              id: String(created._id)
+            },
+
+            data: {
+              filePath: fileP,
+              mime: 'application/pdf'
+            }
           });
         } catch (pdfErr) {
           console.warn('Failed to generate timetable PDF:', pdfErr && (pdfErr.message || String(pdfErr)));
@@ -514,9 +536,13 @@ router.get("/", async (req, res) => {
         section: 'ALL'
       }];
     }
-    const items = await Timetable.find(q).sort({
-      uploadedAt: -1
-    }).lean();
+    const items = await prisma.timetable.findMany({
+      where: q,
+
+      orderBy: {
+        uploadedAt: "desc"
+      }
+    });
     return res.json(items);
   } catch (e) {
     return res.status(500).json({

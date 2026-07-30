@@ -1,3 +1,5 @@
+const prisma = require('../prisma/client');
+
 
 const express = require('express');
 
@@ -24,16 +26,19 @@ module.exports = function(helpers) {
 // Receipts: list my receipts
 router.get("/my", verifyToken, async (req, res) => {
   try {
-    const Receipt = require('./models/Receipt');
     const userId = req.user && req.user.sub;
     if (!userId) return res.status(401).json({
       message: 'Not authenticated'
     });
-    const list = await Receipt.find({
-      studentId: userId
-    }).sort({
-      createdAt: -1
-    }).lean().catch(() => []);
+    const list = await prisma.receipt.findMany({
+      where: {
+        studentId: userId
+      },
+
+      orderBy: {
+        createdAt: "desc"
+      }
+    }).catch(() => []);
     return res.json(list);
   } catch (e) {
     return res.status(500).json({
