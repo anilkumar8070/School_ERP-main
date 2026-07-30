@@ -1,3 +1,4 @@
+const prisma = require('./prisma/client');
 
 // Consolidate pdfkit require in one place to avoid duplicate declarations
 var PDFDocument;
