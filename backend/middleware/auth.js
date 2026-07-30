@@ -27,9 +27,9 @@ async function verifyToken(req, res, next) {
 
     // check whether the user account has been disabled (if using DB)
     try {
-      const User = require('../models/User')
+      const User = require('../mongoose_to_prisma').User
       if (payload && payload.sub) {
-        const u = await User.findById(payload.sub).lean().catch(() => null)
+        const u = await User.findById(payload.sub).catch(() => null)
         if (u && u.disabled) return res.status(403).json({ message: 'Account blocked' })
       }
     } catch (e) {

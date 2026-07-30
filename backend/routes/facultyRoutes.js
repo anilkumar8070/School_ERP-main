@@ -23,6 +23,20 @@ module.exports = function(helpers) {
     similarity, PDFDocument, fs, path, bcrypt, jwt
   } = helpers;
 
+// Admin: create new faculty member
+router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { name, email, subject, classGrade, contact, experience, employeeId } = req.body || {};
+    if (!name) return res.status(400).json({ message: 'name is required' });
+    const created = await prisma.faculty.create({
+      data: { name, email, subject, classGrade, contact, experience, employeeId, createdAt: new Date() }
+    });
+    return res.status(201).json(created);
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+});
+
 // Admin: update faculty fields (accept assignments, houses, role)
 router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {

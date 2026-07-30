@@ -13,7 +13,6 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const prisma = require('./prisma/client');
 const adapters = require('./mongoose_to_prisma');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -1441,6 +1440,8 @@ app.get('*', (req, res, next) => {
 const helpers = {
     ...adapters,
     prisma,
+    sendMail: typeof sendMail !== 'undefined' ? sendMail : async () => ({ sent: false }),
+    notifyEvent: typeof notifyEvent !== 'undefined' ? notifyEvent : (typeof sendSseEvent !== 'undefined' ? sendSseEvent : async () => {}),
     verifyToken: typeof verifyToken !== 'undefined' ? verifyToken : null,
     requireRole: typeof requireRole !== 'undefined' ? requireRole : null,
     generateReceiptPdf: typeof generateReceiptPdf !== 'undefined' ? generateReceiptPdf : null,

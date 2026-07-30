@@ -27,7 +27,9 @@ module.exports = function(helpers) {
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const payload = req.body || {};
-    payload.createdBy = req.user && req.user.sub;
+    payload.createdBy = req.user && req.user.sub ? String(req.user.sub) : 'admin';
+    payload.enquiryDate = payload.enquiryDate ? new Date(payload.enquiryDate) : new Date();
+    payload.createdAt = new Date();
     const doc = await prisma.admissionEnquiry.create({ data: payload });
     return res.status(201).json(doc);
   } catch (e) {

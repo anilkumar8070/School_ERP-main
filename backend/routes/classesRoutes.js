@@ -27,7 +27,7 @@ module.exports = function(helpers) {
 // Basic CRUD for admin UI. Uses `Class` model to store class names and subjects.
 router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const list = await prisma.classModel.findMany({
+    const list = await prisma.class.findMany({
       orderBy: {
         name: "asc"
       }
@@ -41,7 +41,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
 });
 router.get("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const cls = await prisma.classModel.findUnique({
+    const cls = await prisma.class.findUnique({
       where: {
         id: String(req.params.id)
       }
@@ -64,7 +64,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (!name || !String(name).trim()) return res.status(400).json({
       message: 'name required'
     });
-    const existing = await prisma.classModel.findFirst({
+    const existing = await prisma.class.findFirst({
       where: {
         name: String(name).trim()
       }
@@ -72,9 +72,11 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (existing) return res.status(409).json({
       message: 'Class already exists'
     });
-    const created = await ClassModel.create({
-      name: String(name).trim(),
-      subjects: []
+    const created = await prisma.class.create({
+      data: {
+        name: String(name).trim(),
+        subjects: []
+      }
     });
     return res.status(201).json(created);
   } catch (e) {
@@ -91,7 +93,7 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
     if (!subject || !String(subject).trim()) return res.status(400).json({
       message: 'subject required'
     });
-    const cls = await prisma.classModel.findUnique({
+    const cls = await prisma.class.findUnique({
       where: {
         id: String(req.params.id)
       }
@@ -99,26 +101,16 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
-    if (!Array.isArray(cls.subjects)) cls.subjects = [];
-    if (cls.subjects.includes(String(subject).trim())) return res.status(409).json({
+    const subjects = Array.isArray(cls.subjects) ? cls.subjects : [];
+    if (subjects.includes(String(subject).trim())) return res.status(409).json({
       message: 'Subject already exists'
     });
-    cls.subjects.push(String(subject).trim());
-    // Transpiled save()
-    if (cls && cls.id) {
-      const { id: _id_unused, ..._updateData } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls.id) },
-        data: _updateData
-      });
-    } else if (cls && cls._id) {
-      const { _id: _id_unused2, ..._updateData2 } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls._id) },
-        data: _updateData2
-      });
-    }
-    return res.json(cls);
+    subjects.push(String(subject).trim());
+    const updated = await prisma.class.update({
+      where: { id: String(cls.id) },
+      data: { subjects }
+    });
+    return res.json(updated);
   } catch (e) {
     return res.status(500).json({
       message: e.message
@@ -128,7 +120,7 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
 router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const subjectParam = decodeURIComponent(req.params.subject || '');
-    const cls = await prisma.classModel.findUnique({
+    const cls = await prisma.class.findUnique({
       where: {
         id: String(req.params.id)
       }
@@ -136,21 +128,11 @@ router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
-    cls.subjects = (cls.subjects || []).filter(s => s !== subjectParam);
-    // Transpiled save()
-    if (cls && cls.id) {
-      const { id: _id_unused, ..._updateData } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls.id) },
-        data: _updateData
-      });
-    } else if (cls && cls._id) {
-      const { _id: _id_unused2, ..._updateData2 } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls._id) },
-        data: _updateData2
-      });
-    }
+    const subjects = (Array.isArray(cls.subjects) ? cls.subjects : []).filter(s => s !== subjectParam);
+    await prisma.class.update({
+      where: { id: String(cls.id) },
+      data: { subjects }
+    });
     return res.json({
       message: 'Subject removed'
     });
@@ -162,7 +144,7 @@ router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async
 });
 router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const cls = await prisma.classModel.findUnique({
+    const cls = await prisma.class.findUnique({
       where: {
         id: String(req.params.id)
       }
@@ -170,7 +152,9 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
-    await cls.deleteOne();
+    await prisma.class.delete({
+      where: { id: String(cls.id) }
+    });
     return res.json({
       message: 'Class deleted'
     });
