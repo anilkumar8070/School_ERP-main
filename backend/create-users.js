@@ -1,9 +1,10 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const User = require('./models/User');
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/school-erp', {
+const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/school_erp';
+mongoose.connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {

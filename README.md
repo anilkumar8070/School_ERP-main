@@ -1,82 +1,102 @@
-# School ERP
+# School ERP — Full-Stack Management System
 
-A full-stack school management system built with a React + Vite frontend and a Node.js + Express backend.
+A comprehensive, full-stack school management system featuring a **React 19 + Vite** frontend and a **Node.js + Express + Prisma PostgreSQL** backend.
 
-This repository contains:
+---
 
-- `frontend/` — React application built with Vite, Tailwind CSS, React Router, and React Query.
-- `backend/` — Express API server with MongoDB data persistence, JWT authentication, role-based access control, file upload support, PDF generation, notifications, and school management modules.
-- `docker-compose.yaml` — local development composition for frontend, backend, and MongoDB.
-- `render.yaml` — deployment configuration for Render.
+## 🌟 Overview
 
-## Key Features
+The School ERP platform streamlines school administration, academic tracking, student performance, fee collection, notices, document generation, and parental oversight.
 
-- User authentication and role-based access control
-- Student, faculty, and parent dashboards
-- Attendance tracking and academic reports
-- Fee management, receipts, and finance workflows
-- Admissions, enquiries, and online admission forms
-- Events, notices, messaging, and document generation
-- File upload support for assignments, reports, and media
+### Key Capabilities
 
-## Architecture
+- 🔐 **Multi-Role Authentication**: Role-based access control for Admins, Teachers, Students, Parents, and Office Staff.
+- 👨‍🎓 **Student Management**: Admissions, enquiries, student directory, class/section assignments, and profile records.
+- 👩‍🏫 **Faculty Management**: Teacher directory, subject allocations, experience tracking, and class assignment.
+- 🏫 **Academic Management**: Class & subject configuration, timetables, syllabus uploading, assignments, and test series.
+- 💳 **Finance & Fees**: Term-based fee structure configuration, Razorpay integration, online fee payments, and automated PDF receipt generation.
+- 📜 **Documents & Certificates**: Generate official ID Cards, Admit Cards, Report Cards, and Leaving Certificates with PDF preview/download.
+- 📢 **Communication**: Announcements, notice broadcasting, parent-teacher messaging, and event scheduling.
 
-- Frontend: React + Vite + Tailwind
-- Backend: Node.js + Express + MongoDB + Mongoose
-- Local development: Docker Compose
+---
 
-## Getting Started
+## 🏗 Repository Layout
 
-### Backend
+- `backend/` — Express API server, Prisma PostgreSQL schema, JWT auth, routes, and PDF utilities.
+- `frontend/` — React 19 single-page app with Vite, Tailwind CSS, React Query, and Framer Motion.
+- `docker-compose.yaml` — Docker composition for local containerized deployment.
+- `render.yaml` — Deployment settings for hosting on Render platform.
 
-1. Copy `backend/.env.example` to `backend/.env`.
-2. Update the environment variables and provide a real `MONGODB_URI` and `JWT_SECRET`.
-3. Install dependencies:
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- PostgreSQL Server (v14+ running on port `5432` locally or remote connection URL)
+
+---
+
+### 1. Backend Setup
 
 ```powershell
 cd backend
+
+# Copy environment template
+cp .env.example .env
+
+# Install dependencies
 npm install
-```
 
-4. Start the backend server:
+# Push database schema to PostgreSQL
+npx prisma db push
 
-```powershell
+# Seed initial test accounts and records
+node prisma/seed.js
+
+# Start backend server
 npm run dev
 ```
 
-### Frontend
+The backend server runs at `http://localhost:4000`.
 
-1. Install dependencies:
+---
+
+### 2. Frontend Setup
+
+In a new terminal window:
 
 ```powershell
 cd frontend
+
+# Copy environment template
+cp .env.example .env
+
+# Install dependencies
 npm install
-```
 
-2. Start the frontend development server:
-
-```powershell
+# Start Vite dev server
 npm run dev
 ```
 
-### Full Local Stack with Docker
+The frontend web application runs at `http://localhost:5173`.
 
-```powershell
-docker-compose up --build
-```
+---
 
-This starts the React frontend, backend API, and MongoDB container.
+## 🧪 Default Test Accounts (Development)
 
-## Deployment
+| Role | Username | Password | Access Level |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin` | `admin123` | Full system administration & configuration |
+| **Faculty / Teacher** | `teacher1` | `teacher123` | Gradebooks, attendance, assignments, test series |
+| **Student** | `student1` | `student123` | View attendance, submit assignments, pay fees |
+| **Parent** | `parent1` | `parent123` | Child progress tracking, fee receipts, notices |
 
-The repository includes `render.yaml` for deployment to Render. The backend is configured to serve a built frontend from a static `dist` directory when `FRONTEND_DIST` is provided.
+---
 
-## Project Layout
+## 🔒 Security & Environment Guidelines
 
-- `backend/` — API server, MongoDB models, routes, middleware, and utilities.
-- `frontend/` — React application with app routes, UI components, and Tailwind styling.
-
-## Notes
-
-- Always replace demo credentials and secrets before production.
-- For backend-specific documentation, see `backend/README.md`.
+- **No Secrets in Source Control**: All sensitive database connection strings, JWT secrets, and API keys reside strictly in `.env` files.
+- `.env` files are ignored by `.gitignore` in both root and package subdirectories.
+- Safe templates with placeholder values are provided in `.env.example`.
