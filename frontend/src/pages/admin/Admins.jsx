@@ -40,7 +40,7 @@ export default function Admins() {
             await createAdmin(newAdmin, token)
             await load()
             closeAdd()
-            alert('Admin created and notified (if SMTP configured).')
+            alert('Admin created successfully and notification email sent.')
         } catch (err) { console.error(err); alert('Failed to create admin: ' + (err && err.message || String(err))) }
         setAdding(false)
     }

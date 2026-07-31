@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
 
 // Staff: list staff (non-admin employees)
@@ -123,30 +123,16 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
 
     // send email with credentials
     try {
-      const loginUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || 'http://localhost:5173/staff-login';
-      const subject = 'You have been selected as Staff';
-      const html = `
-        <div style="font-family:Inter,Arial,sans-serif;background:#f3f4f6;padding:20px">
-          <div style="max-width:680px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #eee">
-            <div style="background:linear-gradient(90deg,#06b6d4,#0ea5a4);padding:18px;color:#fff"><h2 style="margin:0">Welcome ${name}!</h2></div>
-            <div style="padding:16px;color:#333">
-              <p>You have been added as <strong>Staff</strong> on the ERP system. Below are your login details — keep them secure.</p>
-              <table style="width:100%;border-collapse:collapse;margin-top:8px">
-                <tr><td style="font-weight:700;padding:6px 0">Username</td><td style="padding:6px 0">${email}</td></tr>
-                <tr><td style="font-weight:700;padding:6px 0">Password</td><td style="padding:6px 0"><strong>${plainPassword}</strong></td></tr>
-                ${fatherName ? `<tr><td style="font-weight:700;padding:6px 0">Father Name</td><td style="padding:6px 0">${fatherName}</td></tr>` : ''}
-                <tr><td style="font-weight:700;padding:6px 0">Designation</td><td style="padding:6px 0">${designation || '-'}</td></tr>
-                <tr><td style="font-weight:700;padding:6px 0">Contact</td><td style="padding:6px 0">${contact || '-'}</td></tr>
-              </table>
-              <p style="margin-top:12px"><a href="${loginUrl}" style="display:inline-block;padding:10px 14px;background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;border-radius:8px;text-decoration:none">Login to ERP</a></p>
-            </div>
-          </div>
-        </div>
-      `;
-      await sendMail({
+      await sendCredentialEmail({
         to: email,
-        subject,
-        html
+        name: name,
+        role: 'Staff',
+        username: email,
+        password: plainPassword,
+        extraDetails: {
+          'Designation': designation || 'Staff',
+          'Contact': contact || '-'
+        }
       });
     } catch (mailErr) {
       console.warn('Failed to send staff creation email:', mailErr && (mailErr.message || String(mailErr)));
