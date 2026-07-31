@@ -13,7 +13,6 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const prisma = require('./prisma/client');
 const adapters = require('./mongoose_to_prisma');
 const helmet = require('helmet');
 const morgan = require('morgan');

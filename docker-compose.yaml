@@ -1,10 +1,10 @@
-version: "3.9"
-
 services:
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: "http://localhost:4000"
     container_name: school-erp-frontend
     restart: unless-stopped
     ports:
@@ -23,18 +23,31 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      MONGODB_URI: mongodb://mongo:27017/school_erp
+      PORT: "4000"
+      NODE_ENV: "production"
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/school_erp?schema=public"
+      ALLOW_ALL_ORIGINS: "true"
     depends_on:
-      - mongo
+      postgres:
+        condition: service_healthy
 
-  mongo:
-    image: mongo:7
-    container_name: school-erp-mongo
+  postgres:
+    image: postgres:16-alpine
+    container_name: school-erp-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: school_erp
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d school_erp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mongo_data:
+  postgres_data:
