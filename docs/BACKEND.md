@@ -1,4 +1,4 @@
-# School ERP — Backend API Service
+# School ERP — Backend Component Documentation
 
 Node.js and Express REST API server powering the School ERP platform. Features PostgreSQL data persistence via Prisma ORM, JWT authentication, role-based access control (RBAC), PDF document generation, file uploads, and administrative, academic, and financial modules.
 
@@ -18,7 +18,7 @@ Node.js and Express REST API server powering the School ERP platform. Features P
 
 ## Environment Configuration
 
-Copy `.env.example` to create the local `.env` file:
+Copy `.env.example` to create the local `.env` file inside `backend/`:
 
 ```bash
 cp .env.example .env

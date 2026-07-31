@@ -1,4 +1,4 @@
-# School ERP — Frontend Web Application
+# School ERP — Frontend Component Documentation
 
 Single-page web application built with React 19, Vite, and Tailwind CSS. Provides role-tailored dashboards and management workflows for Administrators, Teachers, Students, and Parents.
 
@@ -18,7 +18,7 @@ Single-page web application built with React 19, Vite, and Tailwind CSS. Provide
 
 ## Environment Configuration
 
-Copy `.env.example` to create the local `.env` file:
+Copy `.env.example` to create the local `.env` file inside `frontend/`:
 
 ```bash
 cp .env.example .env

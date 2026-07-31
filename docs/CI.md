@@ -100,7 +100,7 @@ Passwords, database connection strings, and JWT secrets are **never hardcoded** 
 ### How to Configure GitHub Secrets:
 
 1. Open your repository on GitHub.
-2. Go to **Settings** -> **Secrets and variables** -> **Actions** (as shown in your screenshot).
+2. Go to **Settings** -> **Secrets and variables** -> **Actions**.
 3. Under the **Secrets** tab, click **New repository secret**.
 4. Add the following recommended secrets:
 
