@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import FacultyLayout from '../../components/faculty/FacultyLayout'
 import { getAuth } from '../../utils/session'
 import { createAssignment, getAssignments, getSubmissions, extendAssignment, API_BASE, getMyFaculty } from '../../api'
 
@@ -65,7 +66,7 @@ export default function Assignments() {
         }
         resolve()
         return () => { mounted = false }
-         
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => { loadHistory() }, [klass, section, assigned, notAssigned])

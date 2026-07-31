@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getFaculty, updateFaculty, deleteFaculty, submitFacultyRegistration, approveFacultyRegistration, blockFaculty } from '../../api'
 import { getAuth } from '../../utils/session'

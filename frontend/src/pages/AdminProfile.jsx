@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import AdminLayout from '../components/admin/AdminLayout'
 import '../styles/ProfilePage.css'
 import { toast } from 'react-toastify'
 import { getProfile, updateProfile } from '../api'

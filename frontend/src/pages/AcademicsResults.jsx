@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import AdminLayout from '../components/admin/AdminLayout'
 import './Academics.css'
 import { getStudents } from '../api'
 import { getMarks } from '../api'

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import StudentLayout from '../../components/student/StudentLayout'
 import '../../styles/ProfilePage.css'
 import { toast } from 'react-toastify'
 import { getMyStudent, updateProfile } from '../../api'

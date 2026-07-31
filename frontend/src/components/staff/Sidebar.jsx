@@ -1,6 +1,16 @@
-import { useLocation } from 'react-router-dom'
-
-
+import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { FaTimes } from 'react-icons/fa'
+import {
+    MdDashboard,
+    MdEvent,
+    MdEventAvailable,
+    MdAnnouncement,
+    MdMeetingRoom,
+    MdBadge,
+    MdWorkspacePremium,
+    MdAttachMoney
+} from 'react-icons/md'
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation()

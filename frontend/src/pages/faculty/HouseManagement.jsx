@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import FacultyLayout from '../../components/faculty/FacultyLayout'
 import { getStudents, getMyFaculty } from '../../api'
 import { getAuth } from '../../utils/session'
 

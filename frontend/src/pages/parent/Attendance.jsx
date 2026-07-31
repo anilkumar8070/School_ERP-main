@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import ParentLayout from '../../components/parent/ParentLayout'
 import { getAuth } from '../../utils/session'
 import { getAttendance, getReceiptsByStudent, getStudentBasic, createRazorpayOrder, confirmPayment } from '../../api'
 

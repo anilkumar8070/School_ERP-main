@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getNotices, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

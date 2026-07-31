@@ -1,4 +1,6 @@
-import { FaChalkboardTeacher, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie } from 'react-icons/fa'
+import React from 'react'
+import { FaArrowLeft, FaArrowRight, FaChalkboardTeacher, FaIdBadge, FaLock, FaSchool, FaUser, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie } from 'react-icons/fa'
+import { Link } from 'react-router-dom'
 import './LoginLayout.css'
 
 const ROLE_META = {

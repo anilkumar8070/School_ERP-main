@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import ParentLayout from '../../components/parent/ParentLayout'
 import { getMyMeetings } from '../../api'
 import '../Student.css'
 

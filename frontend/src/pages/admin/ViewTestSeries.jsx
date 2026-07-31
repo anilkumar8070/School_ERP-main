@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import AdminLayout from '../../components/admin/AdminLayout'
 import { getTests, getTestQuestions, createTestQuestions, updateTest, deleteTest, uploadFile, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

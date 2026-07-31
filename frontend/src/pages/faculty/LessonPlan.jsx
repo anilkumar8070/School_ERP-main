@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import FacultyLayout from '../../components/faculty/FacultyLayout'
 import '../../pages/AdminPanel.css'
 import { getLessonPlans, addLessonPlan } from '../../api'
 import { getAuth } from '../../utils/session'
