@@ -48,7 +48,7 @@ export default function Attendance() {
             } catch (e) { console.warn('resolve assignments failed', e); setNotAssigned(true) }
         }
         resolve()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     useEffect(() => { loadStudents(); }, [klass, section, date, notAssigned])

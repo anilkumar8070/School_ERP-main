@@ -58,7 +58,7 @@ export default function Students() {
             } finally { setLoading(false) }
         }
         resolveAssignments()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     // load students whenever selection changes (but only if assigned)
@@ -88,7 +88,7 @@ export default function Students() {
             } finally { setLoading(false) }
         }
         if (klass) load()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [klass, section, gender, category, religion, notAssigned])
 
     // Load receipts for currently listed students with throttled concurrency

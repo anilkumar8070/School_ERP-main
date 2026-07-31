@@ -25,7 +25,7 @@ export default function AcademicsTimetable() {
     useEffect(() => {
         // load history when page loads or when class/section changes
         loadHistory()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [klass, section])
 
     // Helper to request server to generate a PDF for current table content and return filePath

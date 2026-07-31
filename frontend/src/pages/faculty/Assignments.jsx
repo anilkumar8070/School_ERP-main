@@ -66,7 +66,7 @@ export default function Assignments() {
         }
         resolve()
         return () => { mounted = false }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     useEffect(() => { loadHistory() }, [klass, section, assigned, notAssigned])

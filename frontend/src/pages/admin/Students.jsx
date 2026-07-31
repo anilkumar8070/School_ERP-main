@@ -28,7 +28,7 @@ export default function Students() {
 
     useEffect(() => {
         load()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     // When students change, fetch receipts with throttled concurrency to avoid resource exhaustion
