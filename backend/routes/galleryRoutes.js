@@ -44,9 +44,11 @@ router.post("/", verifyToken, requireRole('admin'), upload.array('images', 100),
       url: `/uploads/${f.filename}`
     }));
     const doc = await Gallery.create({
-      label,
-      images,
-      createdBy: req.user && req.user.sub
+      data: {
+        label,
+        images,
+        createdBy: req.user && req.user.sub
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -107,9 +109,9 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     } catch (e) {
       console.warn('Failed to unlink gallery files', e && e.message);
     }
-    await Gallery.deleteOne({
-      _id: id
-    }).catch(() => null);
+    await Gallery.deleteMany({ where: {
+      id: id
+    } }).catch(() => null);
     return res.json({
       ok: true
     });
@@ -148,18 +150,20 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
     gallery.images = gallery.images || [];
     gallery.images.push(...images);
     // Transpiled save()
-    if (gallery && gallery.id) {
-      const { id: _id_unused, ..._updateData } = gallery;
+    if (gallery) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = gallery;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.gallery.update({
-        where: { id: String(gallery.id) },
+        where: { id: String((gallery.id || gallery._id)) },
         data: _updateData
-      });
-    } else if (gallery && gallery._id) {
-      const { _id: _id_unused2, ..._updateData2 } = gallery;
-      await prisma.gallery.update({
-        where: { id: String(gallery._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(gallery);
   } catch (e) {
@@ -204,18 +208,20 @@ router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res)
     const im = gallery.images[idx];
     gallery.images.splice(idx, 1);
     // Transpiled save()
-    if (gallery && gallery.id) {
-      const { id: _id_unused, ..._updateData } = gallery;
+    if (gallery) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = gallery;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.gallery.update({
-        where: { id: String(gallery.id) },
+        where: { id: String((gallery.id || gallery._id)) },
         data: _updateData
-      });
-    } else if (gallery && gallery._id) {
-      const { _id: _id_unused2, ..._updateData2 } = gallery;
-      await prisma.gallery.update({
-        where: { id: String(gallery._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     // unlink file if exists
     try {

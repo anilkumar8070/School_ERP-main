@@ -39,14 +39,16 @@ module.exports = function(helpers) {
       const filePath = file ? `/uploads/${file.filename}` : '';
       
       const doc = await Assignment.create({
-        title: String(body.title || ''),
-        description: String(body.description || ''),
-        subject: String(body.subject || ''),
-        class: String(body.class || ''),
-        section: body.section || 'ALL',
-        dueDate: body.dueDate ? new Date(body.dueDate) : null,
-        filePath,
-        createdBy: req.user && req.user.sub
+        data: {
+          title: String(body.title || ''),
+          description: String(body.description || ''),
+          subject: String(body.subject || ''),
+          class: String(body.class || ''),
+          section: body.section || 'ALL',
+          dueDate: body.dueDate ? new Date(body.dueDate) : null,
+          filePath,
+          createdBy: req.user && req.user.sub
+        }
       });
 
       if (!doc) {
@@ -56,7 +58,7 @@ module.exports = function(helpers) {
       try {
         if (typeof sendSseEvent === 'function') {
           sendSseEvent('assignment_created', {
-            id: doc.id || doc._id,
+            id: (doc.id || doc._id),
             class: doc.class,
             section: doc.section
           });
@@ -97,15 +99,17 @@ module.exports = function(helpers) {
       const filePath = file ? `/uploads/${file.filename}` : (req.body && req.body.filePath ? String(req.body.filePath) : '');
       
       const sub = await Submission.create({
-        assignmentId: aid,
-        studentId: studentRec ? (studentRec.id || studentRec._id) : undefined,
-        studentName: studentRec ? studentRec.name : (req.body.studentName || ''),
-        studentRoll: studentRec ? studentRec.rollNo : (req.body.studentRoll || ''),
-        studentClass: studentRec ? studentRec.class : (req.body.studentClass || ''),
-        studentEmail: username || (req.body.studentEmail || ''),
-        answerText: req.body.answerText ? String(req.body.answerText) : '',
-        filePath,
-        submittedAt: new Date()
+        data: {
+          assignmentId: aid,
+          studentId: studentRec ? ((studentRec.id || studentRec._id)) : undefined,
+          studentName: studentRec ? studentRec.name : (req.body.studentName || ''),
+          studentRoll: studentRec ? studentRec.rollNo : (req.body.studentRoll || ''),
+          studentClass: studentRec ? studentRec.class : (req.body.studentClass || ''),
+          studentEmail: username || (req.body.studentEmail || ''),
+          answerText: req.body.answerText ? String(req.body.answerText) : '',
+          filePath,
+          submittedAt: new Date()
+        }
       });
 
       if (!sub) {

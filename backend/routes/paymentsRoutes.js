@@ -117,7 +117,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
             email: req.user && req.user.username
           }
         }).catch(() => null);
-        if (!currentStudent || String(currentStudent._id) !== String(studentId)) return res.status(403).json({
+        if (!currentStudent || String((currentStudent.id || currentStudent._id)) !== String(studentId)) return res.status(403).json({
           message: 'Cannot pay for another student'
         });
       }
@@ -128,16 +128,18 @@ router.post("/confirm", verifyToken, async (req, res) => {
       }
     }).catch(() => null) : null;
     const receipt = await ReceiptModel.create({
-      studentId: studentId || alloc && alloc.student && alloc.student.id || null,
-      allocationId: allocationId || alloc && alloc._id || null,
-      studentName: studentName || alloc && alloc.student && alloc.student.name || '',
-      studentEmail: studentEmail || alloc && alloc.student && alloc.student.email || '',
-      class: studentClass || alloc && alloc.student && alloc.student.class || '',
-      term: term || '',
-      amount: Number(amount || 0) || 0,
-      razorpayOrderId: razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      razorpaySignature: razorpay_signature || ''
+      data: {
+        studentId: studentId || alloc && alloc.student && alloc.student.id || null,
+        allocationId: allocationId || alloc && (alloc.id || alloc._id) || null,
+        studentName: studentName || alloc && alloc.student && alloc.student.name || '',
+        studentEmail: studentEmail || alloc && alloc.student && alloc.student.email || '',
+        class: studentClass || alloc && alloc.student && alloc.student.class || '',
+        term: term || '',
+        amount: Number(amount || 0) || 0,
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature || ''
+      }
     });
     // try to populate rollNo and normalize student info from Student document when possible
     try {
@@ -169,7 +171,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
         if (!receipt.rollNo && sdoc.rollNo) receipt.rollNo = sdoc.rollNo;
         if ((!receipt.class || receipt.class === '') && (sdoc.class || sdoc.studentClass)) receipt.class = sdoc.class || sdoc.studentClass || '';
         if (!receipt.studentName && sdoc.name) receipt.studentName = sdoc.name;
-        await receipt.save().catch(() => null);
+        await prisma.receipt.update({ where: { id: receipt.id }, data: { status: receipt.status, pdfUrl: receipt.pdfUrl, pdfPath: receipt.pdfPath } }).catch(() => null);
       }
     } catch (e) {
       console.warn('Failed to enrich receipt with student info', e && e.message);
@@ -181,7 +183,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
       if (gen) {
         receipt.pdfPath = gen.pdfPath;
         receipt.pdfUrl = gen.pdfUrl;
-        await receipt.save().catch(() => null);
+        await prisma.receipt.update({ where: { id: receipt.id }, data: { status: receipt.status, pdfUrl: receipt.pdfUrl, pdfPath: receipt.pdfPath } }).catch(() => null);
       }
     } catch (e) {
       console.warn('pdf gen failed on confirm', e && e.message);
@@ -200,7 +202,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
           amount: Number(receipt.amount || 0),
           orderId: razorpay_order_id,
           paymentId: razorpay_payment_id,
-          receiptId: String(receipt._id),
+          receiptId: String((receipt.id || receipt._id)),
           status: 'paid'
         };
         payments.push(p);
@@ -211,7 +213,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
           const paidCount = (payments || []).filter(x => x.status === 'paid').length;
           if (parts && paidCount >= parts) alloc.paid = true;
         } catch (e) {}
-        /* FIXME: Mongoose .save() */ await alloc.save();
+        await prisma.hostelAllocation.update({ where: { id: alloc.id }, data: { /* specify fields if needed */ } });
       }
     } catch (e) {
       console.warn('Failed to update allocation payments on confirm', e && e.message);

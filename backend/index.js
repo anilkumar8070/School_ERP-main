@@ -1,4 +1,4 @@
-const prisma = require('./prisma/client');
+
 
 // Consolidate pdfkit require in one place to avoid duplicate declarations
 var PDFDocument;
@@ -24,10 +24,7 @@ const {
   similarity,
   enhancedSimilarity
 } = require('./utils/similarity');
-const {
-  users: demoUsers,
-  findByUsername
-} = require('./users');
+// Users are now seeded via Prisma instead of mock users
 const {
   verifyToken,
   requireRole

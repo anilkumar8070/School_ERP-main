@@ -37,13 +37,13 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (q) {
       const re = new RegExp(q.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i');
       filter = {
-        $and: [base, {
+        AND: [base, {
           OR: [{
-            name: re
+            name: { contains: q, mode: 'insensitive' }
           }, {
-            username: re
+            username: { contains: q, mode: 'insensitive' }
           }, {
-            contact: re
+            contact: { contains: q, mode: 'insensitive' }
           }, {
             address: re
           }]
@@ -83,8 +83,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       if (idCandidates.size > 0) {
         const ids = Array.from(idCandidates);
         const students = await prisma.student.findMany({
-          where: {
-            _id: {
+          where: { id: {
               in: ids
             }
           },
@@ -96,7 +95,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         });
         const idToName = {};
         students.forEach(s => {
-          idToName[String(s._id)] = s.name;
+          idToName[String((s.id || s._id))] = s.name;
         });
         parents = parents.map(p => {
           if (!Array.isArray(p.parentOf) || p.parentOf.length === 0) return p;
@@ -168,9 +167,9 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     } catch (mailErr) {
       console.warn('Failed to notify parent about deletion:', mailErr && (mailErr.message || String(mailErr)));
     }
-    await User.deleteOne({
-      _id: id
-    });
+    await User.deleteMany({ where: {
+      id: id
+    } });
     return res.json({
       ok: true
     });
@@ -207,18 +206,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     });
     user.disabled = !!block;
     // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // notify parent by email about block/unblock (best-effort)
@@ -285,17 +286,19 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     });
     const hashed = await bcrypt.hash(password, 10);
     const created = await User.create({
-      username: email,
-      password: hashed,
-      role: 'parent',
-      name,
-      contact: contact || '',
-      address: address || '',
-      parentOf: parentOf || [],
-      avatar: avatar || ''
+      data: {
+        username: email,
+        password: hashed,
+        role: 'parent',
+        name,
+        contact: contact || '',
+        address: address || '',
+        parentOf: parentOf || [],
+        avatar: avatar || ''
+      }
     });
     return res.status(201).json({
-      id: created._id,
+      id: (created.id || created._id),
       username: created.username,
       name: created.name
     });
@@ -334,30 +337,32 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     if (!user || user.role !== 'parent') return res.status(403).json({
       message: 'Unauthorized'
     });
-    const sid = String(student._id);
+    const sid = String((student.id || student._id));
     const exists = Array.isArray(user.parentOf) && user.parentOf.some(x => String(x) === sid);
     if (!exists) {
       if (!Array.isArray(user.parentOf)) user.parentOf = [];
       user.parentOf.push(sid);
       // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     }
     return res.json({
       ok: true,
       student: {
-        id: student._id,
+        id: (student.id || student._id),
         name: student.name,
         class: student.class,
         section: student.section,

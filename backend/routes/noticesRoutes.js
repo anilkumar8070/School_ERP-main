@@ -49,21 +49,23 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
     const studentClass = req.body.studentClass || '';
     const studentSection = req.body.studentSection || '';
     const doc = await Notice.create({
-      title,
-      body: body || '',
-      targets: t.length ? t : ['all'],
-      createdBy: req.user && req.user.sub,
-      createdByName: req.user && (req.user.name || req.user.username),
-      filePath,
-      fileName,
-      fileMime,
-      studentAll,
-      studentClass: studentClass || undefined,
-      studentSection: studentSection || undefined
+      data: {
+        title,
+        body: body || '',
+        targets: t.length ? t : ['all'],
+        createdBy: req.user && req.user.sub,
+        createdByName: req.user && (req.user.name || req.user.username),
+        filePath,
+        fileName,
+        fileMime,
+        studentAll,
+        studentClass: studentClass || undefined,
+        studentSection: studentSection || undefined
+      }
     });
     try {
       sendSseEvent('notice_created', {
-        id: doc._id,
+        id: (doc.id || doc._id),
         targets: doc.targets
       });
     } catch (e) {}

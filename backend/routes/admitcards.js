@@ -173,7 +173,7 @@ module.exports = function registerAdmitCardRoutes(app, deps = {}) {
 
   app.get('/api/admitcards', async (req, res) => {
     try {
-      const list = await _AdmitCard.find({}).sort({ createdAt: -1 }).catch(() => [])
+      const list = await _AdmitCard.findMany({ where: {}, orderBy: { createdAt: 'desc' } }).catch(() => [])
       return res.json(list)
     } catch (e) { return res.status(500).json({ message: e.message }) }
   })
@@ -183,7 +183,7 @@ module.exports = function registerAdmitCardRoutes(app, deps = {}) {
     try {
       const id = req.params && req.params.id
       if (!id) return res.status(400).json({ message: 'id required' })
-      const doc = await _AdmitCard.findById(id).catch(() => null)
+      const doc = await prisma.admitCard.findUnique({ where: { id: String(id) } }).catch(() => null)
       if (!doc || !doc.filePath) return res.status(404).json({ message: 'File not found' })
       // filePath is expected to be like /uploads/filename.pdf
       const fp = String(doc.filePath || '').replace(/^\//, '')
@@ -200,11 +200,11 @@ module.exports = function registerAdmitCardRoutes(app, deps = {}) {
     try {
       const userId = req.user && req.user.sub
       if (!userId) return res.status(401).json({ message: 'Not authenticated' })
-      const u = await _User.findById(userId).catch(() => null)
+      const u = await prisma.user.findUnique({ where: { id: String(userId) } }).catch(() => null)
       const name = u && u.name ? u.name : ''
       const q = { OR: [{ recipientId: userId }] }
-      if (name) q.$or.push({ recipientName: { contains: name, mode: "insensitive" } })
-      const list = await _AdmitCard.find(q).sort({ createdAt: -1 }).catch(() => [])
+      if (name) q.OR.push({ recipientName: { contains: name, mode: "insensitive" } })
+      const list = await _AdmitCard.findMany({ where: q, orderBy: { createdAt: 'desc' } }).catch(() => [])
       return res.json(list)
     } catch (e) { return res.status(500).json({ message: e.message }) }
   })

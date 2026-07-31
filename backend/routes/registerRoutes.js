@@ -54,17 +54,19 @@ router.post("/", async (req, res) => {
     });
     const hashed = await bcrypt.hash(password, 10);
     const created = await User.create({
-      username,
-      password: hashed,
-      role,
-      name,
-      contact: contact || '',
-      address: address || '',
-      avatar: avatar || '',
-      parentOf: parentOf || []
+      data: {
+        username,
+        password: hashed,
+        role,
+        name,
+        contact: contact || '',
+        address: address || '',
+        avatar: avatar || '',
+        parentOf: parentOf || []
+      }
     });
     return res.status(201).json({
-      id: created._id,
+      id: (created.id || created._id),
       username: created.username,
       role: created.role,
       name: created.name

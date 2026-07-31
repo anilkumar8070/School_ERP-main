@@ -67,9 +67,11 @@ router.post("/", verifyToken, requireRole('admin|faculty'), async (req, res) => 
       }
     }).catch(() => null);
     if (!doc) doc = await FacultyAttendance.create({
-      date,
-      records: [],
-      createdBy: req.user.sub
+      data: {
+        date,
+        records: [],
+        createdBy: req.user.sub
+      }
     });
     for (const rec of records) {
       const idx = Array.isArray(doc.records) ? doc.records.findIndex(r => String(r.facultyId) === String(rec.facultyId)) : -1;
@@ -81,18 +83,20 @@ router.post("/", verifyToken, requireRole('admin|faculty'), async (req, res) => 
       if (idx >= 0) doc.records[idx] = payload;else doc.records.push(payload);
     }
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyAttendance.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.facultyAttendance.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(doc);
   } catch (e) {

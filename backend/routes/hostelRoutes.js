@@ -43,7 +43,7 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
     }).catch(() => []);
     // Attach latest receipt info (if any) to each allocation for admin convenience
     try {
-      const allocIds = list.map(l => l._id).filter(Boolean);
+      const allocIds = list.map(l => (l.id || l._id)).filter(Boolean);
       if (allocIds.length > 0) {
         const recs = await prisma.receipt.findMany({
           where: {
@@ -62,7 +62,7 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
           if (!map[key]) map[key] = r;
         }
         for (const l of list) {
-          const k = String(l._id);
+          const k = String((l.id || l._id));
           if (map[k]) {
             l.receiptId = map[k]._id;
             l.receiptPdfUrl = map[k].pdfUrl || '';
@@ -129,12 +129,14 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
           }).catch(() => null);
         } else if (String(payload.fee.option) === 'pay-now') {
           await Receipt.create({
-            studentId: payload.student.id,
-            studentName: payload.student.name,
-            studentEmail: payload.student.email || '',
-            class: payload.student.class || '',
-            term: 'Hostel (Pay Now)',
-            amount: Number(payload.fee.amount || per * parts) || 0
+            data: {
+              studentId: payload.student.id,
+              studentName: payload.student.name,
+              studentEmail: payload.student.email || '',
+              class: payload.student.class || '',
+              term: 'Hostel (Pay Now)',
+              amount: Number(payload.fee.amount || per * parts) || 0
+            }
           }).catch(() => null);
         }
       }
@@ -171,13 +173,15 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
     });
     // create receipt document
     const receiptDoc = await ReceiptModel.create({
-      studentId: alloc.student.id,
-      allocationId: alloc._id,
-      studentName: alloc.student.name,
-      studentEmail: alloc.student.email || '',
-      class: alloc.student.class || '',
-      term: 'Hostel Payment',
-      amount: Number(alloc.fee.amount || 0) || 0
+      data: {
+        studentId: alloc.student.id,
+        allocationId: (alloc.id || alloc._id),
+        studentName: alloc.student.name,
+        studentEmail: alloc.student.email || '',
+        class: alloc.student.class || '',
+        term: 'Hostel Payment',
+        amount: Number(alloc.fee.amount || 0) || 0
+      }
     });
     // try to fill rollNo from Student document
     try {
@@ -206,7 +210,7 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
       }
       if (sdoc) {
         if (!receiptDoc.rollNo && sdoc.rollNo) receiptDoc.rollNo = sdoc.rollNo;
-        await receiptDoc.save().catch(() => null);
+        await prisma.receipt.update({ where: { id: receiptDoc.id }, data: { status: receiptDoc.status, pdfUrl: receiptDoc.pdfUrl, pdfPath: receiptDoc.pdfPath } }).catch(() => null);
       }
     } catch (e) {
       console.warn('Failed to enrich hostel receipt with student roll/class', e && e.message);
@@ -217,7 +221,7 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
       if (gen) {
         receiptDoc.pdfPath = gen.pdfPath;
         receiptDoc.pdfUrl = gen.pdfUrl;
-        await receiptDoc.save().catch(() => null);
+        await prisma.receipt.update({ where: { id: receiptDoc.id }, data: { status: receiptDoc.status, pdfUrl: receiptDoc.pdfUrl, pdfPath: receiptDoc.pdfPath } }).catch(() => null);
       }
     } catch (e) {
       console.warn('pdf gen failed on mark-paid', e && e.message);
@@ -230,25 +234,27 @@ router.post("/allocations/:id/mark-paid", verifyToken, async (req, res) => {
         amount: Number(receiptDoc.amount || 0),
         orderId: '',
         paymentId: '',
-        receiptId: String(receiptDoc._id),
+        receiptId: String((receiptDoc.id || receiptDoc._id)),
         status: 'paid'
       };
       alloc.payments = alloc.payments || [];
       alloc.payments.push(p);
       alloc.paid = true;
       // Transpiled save()
-    if (alloc && alloc.id) {
-      const { id: _id_unused, ..._updateData } = alloc;
+    if (alloc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = alloc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.hostelAllocation.update({
-        where: { id: String(alloc.id) },
+        where: { id: String((alloc.id || alloc._id)) },
         data: _updateData
-      });
-    } else if (alloc && alloc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = alloc;
-      await prisma.hostelAllocation.update({
-        where: { id: String(alloc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     } catch (e) {
       console.warn('Failed to update allocation with receipt', e && e.message);
@@ -276,7 +282,7 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
       message: 'Not authenticated'
     });
 
-    // Resolve Student document (allocations embed student.id as Student._id). Fall back to matching by user email.
+    // Resolve Student document (allocations embed student.id as (Student.id || Student._id)). Fall back to matching by user email.
     let studentDoc = null;
     try {
       studentDoc = await prisma.student.findUnique({
@@ -291,10 +297,10 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     // Find allocations for this student using the resolved student id or user email
     let allocs = [];
     try {
-      if (studentDoc && studentDoc._id) {
+      if (studentDoc && (studentDoc.id || studentDoc._id)) {
         allocs = await prisma.hostelAllocation.findMany({
           where: {
-            'student.id': studentDoc._id
+            'student.id': (studentDoc.id || studentDoc._id)
           }
         }).catch(() => []);
       } else {
@@ -320,11 +326,11 @@ router.get("/receipts/my", verifyToken, async (req, res) => {
     } catch (e) {
       allocs = [];
     }
-    const allocIds = allocs.map(a => a._id).filter(Boolean);
+    const allocIds = allocs.map(a => (a.id || a._id)).filter(Boolean);
 
-    // Build list of possible studentId values that may appear on receipts (some code uses User._id, some uses Student._id)
+    // Build list of possible studentId values that may appear on receipts (some code uses (User.id || User._id), some uses (Student.id || Student._id))
     const studentIds = [String(userId)];
-    if (studentDoc && studentDoc._id && String(studentDoc._id) !== String(userId)) studentIds.push(String(studentDoc._id));
+    if (studentDoc && (studentDoc.id || studentDoc._id) && String((studentDoc.id || studentDoc._id)) !== String(userId)) studentIds.push(String((studentDoc.id || studentDoc._id)));
 
     // Query receipts that belong to this student (by id) or are tied to one of the student's hostel allocations
     const filter = allocIds.length > 0 ? {
@@ -363,28 +369,25 @@ router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req,
     // Find receipts that are likely incomplete: missing rollNo or missing pdfUrl
     const candidates = await prisma.receiptModel.findMany({
       where: {
-        OR: [{
-          rollNo: {
-            $exists: false
-          }
-        }, {
-          rollNo: ''
-        }, {
-          pdfUrl: {
-            $exists: false
-          }
-        }, {
-          pdfUrl: ''
-        }]
-      }
-    }).limit(500).catch(() => []);
+        OR: [{ status: 'paid' }, { status: 'Success' }],
+        AND: {
+          OR: [
+            { rollNo: null },
+            { rollNo: '' },
+            { pdfUrl: null },
+            { pdfUrl: '' }
+          ]
+        }
+      },
+      take: 500
+    }).catch(() => []);
     const results = [];
     for (const r of candidates) {
       try {
         let updated = false;
         let doc = await prisma.receiptModel.findUnique({
           where: {
-            id: String(r._id)
+            id: String((r.id || r._id))
           }
         }).catch(() => null);
         if (!doc) continue;
@@ -439,7 +442,7 @@ router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req,
             alloc = null;
           }
         }
-        if ((!doc.pdfUrl || doc.pdfUrl === '') && doc._id) {
+        if ((!doc.pdfUrl || doc.pdfUrl === '') && (doc.id || doc._id)) {
           try {
             const gen = await generateReceiptPdf(doc.toObject ? doc : doc, alloc && alloc.toObject ? alloc : alloc);
             if (gen) {
@@ -448,12 +451,12 @@ router.post("/receipts/backfill", verifyToken, requireRole('admin'), async (req,
               updated = true;
             }
           } catch (e) {
-            console.warn('pdf gen backfill failed for', String(doc._id), e && e.message);
+            console.warn('pdf gen backfill failed for', String((doc.id || doc._id)), e && e.message);
           }
         }
-        if (updated) await doc.save().catch(() => null);
+        if (updated) await prisma.contactQuery.update({ where: { id: doc.id }, data: { notified: doc.notified, status: doc.status } }).catch(() => null);
         results.push({
-          id: String(r._id),
+          id: String((r.id || r._id)),
           updated
         });
       } catch (e) {
@@ -506,8 +509,8 @@ router.get("/allocations/my", verifyToken, async (req, res) => {
         }
       }).catch(() => null);
     } catch {}
-    if (studentDoc && studentDoc._id) {
-      filter['student.id'] = studentDoc._id;
+    if (studentDoc && (studentDoc.id || studentDoc._id)) {
+      filter['student.id'] = (studentDoc.id || studentDoc._id);
     } else {
       // Fallback: match by email/username in embedded allocation data
       let u = null;

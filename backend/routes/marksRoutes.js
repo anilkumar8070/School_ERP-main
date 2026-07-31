@@ -117,30 +117,34 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
       existing.section = section || '';
       existing.createdBy = req.user.sub;
       // Transpiled save()
-    if (existing && existing.id) {
-      const { id: _id_unused, ..._updateData } = existing;
+    if (existing) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = existing;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.mark.update({
-        where: { id: String(existing.id) },
+        where: { id: String((existing.id || existing._id)) },
         data: _updateData
-      });
-    } else if (existing && existing._id) {
-      const { _id: _id_unused2, ..._updateData2 } = existing;
-      await prisma.mark.update({
-        where: { id: String(existing._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       return res.json(existing);
     }
     const m = await Mark.create({
-      class: String(cls),
-      section: section || '',
-      studentId,
-      subject,
-      total: Number(total || 0),
-      obtained: Number(obtained),
-      term: term || '',
-      createdBy: req.user.sub
+      data: {
+        class: String(cls),
+        section: section || '',
+        studentId,
+        subject,
+        total: Number(total || 0),
+        obtained: Number(obtained),
+        term: term || '',
+        createdBy: req.user.sub
+      }
     });
     return res.status(201).json(m);
   } catch (e) {
@@ -187,30 +191,34 @@ router.post("/bulk", verifyToken, requireRole('faculty'), async (req, res) => {
         existing.section = section || existing.section;
         existing.createdBy = req.user.sub;
         // Transpiled save()
-    if (existing && existing.id) {
-      const { id: _id_unused, ..._updateData } = existing;
+    if (existing) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = existing;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.mark.update({
-        where: { id: String(existing.id) },
+        where: { id: String((existing.id || existing._id)) },
         data: _updateData
-      });
-    } else if (existing && existing._id) {
-      const { _id: _id_unused2, ..._updateData2 } = existing;
-      await prisma.mark.update({
-        where: { id: String(existing._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
         results.push(existing);
       } else {
         const created = await Mark.create({
-          class: String(cls || ''),
-          section: section || '',
-          studentId,
-          subject,
-          total: Number(total || 0),
-          obtained: Number(obtained),
-          term: term || '',
-          createdBy: req.user.sub
+          data: {
+            class: String(cls || ''),
+            section: section || '',
+            studentId,
+            subject,
+            total: Number(total || 0),
+            obtained: Number(obtained),
+            term: term || '',
+            createdBy: req.user.sub
+          }
         });
         results.push(created);
       }
@@ -246,18 +254,20 @@ router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
     if (subject !== undefined) upd.subject = subject;
     if (term !== undefined) upd.term = term;
     // Transpiled save()
-    if (upd && upd.id) {
-      const { id: _id_unused, ..._updateData } = upd;
+    if (upd) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = upd;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.mark.update({
-        where: { id: String(upd.id) },
+        where: { id: String((upd.id || upd._id)) },
         data: _updateData
-      });
-    } else if (upd && upd._id) {
-      const { _id: _id_unused2, ..._updateData2 } = upd;
-      await prisma.mark.update({
-        where: { id: String(upd._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(upd);
   } catch (e) {
@@ -314,7 +324,7 @@ router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'adm
       });
       const items = await prisma.mark.findMany({
         where: {
-          studentId: s._id
+          studentId: (s.id || s._id)
         },
 
         orderBy: {

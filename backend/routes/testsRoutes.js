@@ -77,7 +77,7 @@ router.get("/results/my", verifyToken, async (req, res) => {
     } catch {}
     const filter = {};
     if (student) {
-      filter.studentId = student._id;
+      filter.studentId = (student.id || student._id);
     } else {
       let u = null;
       try {
@@ -184,19 +184,21 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
       return res.status(201).json(t);
     }
     const doc = await TestSeries.create({
-      title,
-      subject: subject || '',
-      term: term || 'Term 1',
-      type,
-      link: link || '',
-      filePath,
-      classes: cls,
-      sections: secs,
-      start: start ? new Date(start) : null,
-      durationMinutes: Number(durationMinutes),
-      attempts: attempts ? Number(attempts) : 1,
-      description: description || '',
-      createdBy: req.user.sub
+      data: {
+        title,
+        subject: subject || '',
+        term: term || 'Term 1',
+        type,
+        link: link || '',
+        filePath,
+        classes: cls,
+        sections: secs,
+        start: start ? new Date(start) : null,
+        durationMinutes: Number(durationMinutes),
+        attempts: attempts ? Number(attempts) : 1,
+        description: description || '',
+        createdBy: req.user.sub
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -214,7 +216,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       orderBy: {
         start: "desc"
       }
-    }).populate('createdBy', 'name role');
+    , include: { createdBy: { select: { name: true, role: true } } }});
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -253,18 +255,20 @@ router.put("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req, r
       }
     }
     // Transpiled save()
-    if (t && t.id) {
-      const { id: _id_unused, ..._updateData } = t;
+    if (t) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = t;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.testSeries.update({
-        where: { id: String(t.id) },
+        where: { id: String((t.id || t._id)) },
         data: _updateData
-      });
-    } else if (t && t._id) {
-      const { _id: _id_unused2, ..._updateData2 } = t;
-      await prisma.testSeries.update({
-        where: { id: String(t._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(t);
   } catch (e) {
@@ -280,7 +284,7 @@ router.delete("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req
     const id = req.params.id;
     if (false) {
       // remove from in-memory tests
-      const idx = inMemoryTests.findIndex(t => String(t._id) === String(id));
+      const idx = inMemoryTests.findIndex(t => String((t.id || t._id)) === String(id));
       if (idx === -1) return res.status(404).json({
         message: 'Test series not found'
       });
@@ -314,15 +318,15 @@ router.delete("/:id", verifyToken, requireRole(['admin', 'faculty']), async (req
     }
 
     // delete related questions and results, then delete the test document
-    await Question.deleteMany({
+    await Question.deleteMany({ where: {
       testId: id
-    }).catch(() => {});
-    await TestResult.deleteMany({
+    } }).catch(() => {});
+    await TestResult.deleteMany({ where: {
       test: id
-    }).catch(() => {});
-    await TestSeries.deleteOne({
-      _id: id
-    }).catch(() => {});
+    } }).catch(() => {});
+    await TestSeries.deleteMany({ where: {
+      id: id
+    } }).catch(() => {});
     return res.json({
       message: 'Deleted'
     });
@@ -351,7 +355,7 @@ router.get("/my", verifyToken, async (req, res) => {
       try {
         const counts = await Promise.all((items || []).map(it => prisma.question.count({
           where: {
-            testId: it._id
+            testId: (it.id || it._id)
           }
         }).catch(() => 0)));
         (items || []).forEach((it, i) => {
@@ -375,7 +379,7 @@ router.get("/my", verifyToken, async (req, res) => {
       try {
         const counts = await Promise.all((items || []).map(it => prisma.question.count({
           where: {
-            testId: it._id
+            testId: (it.id || it._id)
           }
         }).catch(() => 0)));
         (items || []).forEach((it, i) => {
@@ -402,9 +406,7 @@ router.get("/my", verifyToken, async (req, res) => {
       }
     });
     orClauses.push({
-      classes: {
-        $exists: false
-      }
+      classes: null
     });
     if (studentDoc) {
       orClauses.push({
@@ -426,7 +428,7 @@ router.get("/my", verifyToken, async (req, res) => {
         });
       }
     }
-    q.$or = orClauses;
+    q.OR = orClauses;
     const items = await prisma.testSeries.findMany({
       where: q,
 
@@ -437,7 +439,7 @@ router.get("/my", verifyToken, async (req, res) => {
     try {
       const counts = await Promise.all((items || []).map(it => prisma.question.count({
         where: {
-          testId: it._id
+          testId: (it.id || it._id)
         }
       }).catch(() => 0)));
       (items || []).forEach((it, i) => {
@@ -545,12 +547,12 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
               OR: [{
                 email: username
               }, {
-                studentId: studentDoc && studentDoc._id
+                studentId: studentDoc && (studentDoc.id || studentDoc._id)
               }]
             }
           }).catch(() => 0);
         } else {
-          attemptsCount = inMemoryTestsResults.filter(r => String(r.test) === String(testId) && (r.email === username || String(r.studentId) === String(studentDoc && studentDoc._id))).length;
+          attemptsCount = inMemoryTestsResults.filter(r => String(r.test) === String(testId) && (r.email === username || String(r.studentId) === String(studentDoc && (studentDoc.id || studentDoc._id)))).length;
         }
         if (attemptsCount >= allowedAttempts) return res.status(403).json({
           message: 'You have already attempted this test'
@@ -565,7 +567,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
         // For admin/faculty include correctAnswer and explanation so they can manage questions.
         if (userRole === 'admin' || userRole === 'faculty') {
           return {
-            _id: q._id,
+            _id: (q.id || q._id),
             questionText: q.questionText,
             questionImage: q.questionImage || '',
             options: q.options,
@@ -577,7 +579,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
         }
         // Students do not receive correctAnswer/explanation
         return {
-          _id: q._id,
+          _id: (q.id || q._id),
           questionText: q.questionText,
           questionImage: q.questionImage || '',
           options: q.options,
@@ -589,7 +591,7 @@ router.get("/:id/questions", verifyToken, requireRole(['student', 'admin', 'facu
     } else {
       const qs = inMemoryQuestions.filter(q => String(q.testId) === String(testId));
       const out = qs.map(q => ({
-        _id: q._id,
+        _id: (q.id || q._id),
         questionText: q.questionText,
         options: q.options,
         marks: q.marks
@@ -659,12 +661,12 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
             OR: [{
               email: username
             }, {
-              studentId: studentDoc && studentDoc._id
+              studentId: studentDoc && (studentDoc.id || studentDoc._id)
             }]
           }
         }).catch(() => 0);
       } else {
-        prevCount = inMemoryTestsResults.filter(r => String(r.test) === String(testId) && (r.email === username || String(r.studentId) === String(studentDoc && studentDoc._id))).length;
+        prevCount = inMemoryTestsResults.filter(r => String(r.test) === String(testId) && (r.email === username || String(r.studentId) === String(studentDoc && (studentDoc.id || studentDoc._id)))).length;
       }
       if (prevCount >= allowedAttempts2) return res.status(403).json({
         message: 'You have already submitted this test'
@@ -690,7 +692,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     const qmap = {};
     let totalMarks = 0;
     for (const q of qs) {
-      qmap[String(q._id)] = q;
+      qmap[String((q.id || q._id))] = q;
       totalMarks += Number(q.marks || 1);
     }
     let score = 0;
@@ -778,7 +780,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
         if (tdoc && tdoc.title) testTitle = tdoc.title;
         if (tdoc && tdoc.subject) testSubject = tdoc.subject;
       } else {
-        const tdoc = inMemoryTests.find(t => String(t._id) === String(testId));
+        const tdoc = inMemoryTests.find(t => String((t.id || t._id)) === String(testId));
         if (tdoc) {
           testTitle = tdoc.title;
           testSubject = tdoc.subject || '';
@@ -788,7 +790,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
     const wasAuto = req.body && req.body.isAuto === true;
     const resultPayload = {
       test: true ? testId : testId,
-      studentId: studentDoc && studentDoc._id ? studentDoc._id : undefined,
+      studentId: studentDoc && (studentDoc.id || studentDoc._id) ? (studentDoc.id || studentDoc._id) : undefined,
       name: studentDoc && studentDoc.name ? studentDoc.name : req.user && req.user.name || '',
       email: username || '',
       rollNo: studentDoc && studentDoc.rollNo ? studentDoc.rollNo : '',
@@ -825,7 +827,7 @@ router.post("/:id/submit", verifyToken, requireRole('student'), async (req, res)
         created = await prisma.testResult.create({ data: resultPayload });
       } catch (createErr) {
         // handle duplicate insertion race (unique index on test+studentId or test+email)
-        if (createErr && createErr.code === 11000) {
+        if (createErr && createErr.code === 'P2002') {
           try {
             const usernameKey = resultPayload.email || '';
             const existing = await prisma.testResult.findFirst({
@@ -896,7 +898,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
         OR: [{
           email: username
         }, {
-          studentId: studentDoc && studentDoc._id
+          studentId: studentDoc && (studentDoc.id || studentDoc._id)
         }]
       }
     }).catch(() => null);
@@ -925,7 +927,7 @@ router.post("/:id/forfeit", verifyToken, requireRole('student'), async (req, res
     } catch (e) {}
     const resultPayload = {
       test: testId,
-      studentId: studentDoc && studentDoc._id ? studentDoc._id : undefined,
+      studentId: studentDoc && (studentDoc.id || studentDoc._id) ? (studentDoc.id || studentDoc._id) : undefined,
       name: studentDoc && studentDoc.name ? studentDoc.name : req.user && req.user.name || '',
       email: username || '',
       rollNo: studentDoc && studentDoc.rollNo ? studentDoc.rollNo : '',
@@ -1266,17 +1268,19 @@ router.post("/bulk", verifyToken, requireRole(['admin', 'faculty']), upload.sing
       inMemoryTests.push(ts);
     } else {
       ts = await TestSeries.create({
-        title,
-        term: term || 'Term 1',
-        type: 'bulk',
-        link: '',
-        filePath: `/uploads/${req.file.filename}`,
-        classes: cls,
-        sections: secs,
-        start: start ? new Date(start) : null,
-        durationMinutes: durationMinutes ? Number(durationMinutes) : null,
-        description: description || '',
-        createdBy: req.user.sub
+        data: {
+          title,
+          term: term || 'Term 1',
+          type: 'bulk',
+          link: '',
+          filePath: `/uploads/${req.file.filename}`,
+          classes: cls,
+          sections: secs,
+          start: start ? new Date(start) : null,
+          durationMinutes: durationMinutes ? Number(durationMinutes) : null,
+          description: description || '',
+          createdBy: req.user.sub
+        }
       });
     }
 
@@ -1291,7 +1295,7 @@ router.post("/bulk", verifyToken, requireRole(['admin', 'faculty']), upload.sing
         if (false) {
           const qdoc = {
             _id: makeId('q_'),
-            testId: ts._id,
+            testId: (ts.id || ts._id),
             questionText: String(q.questionText).trim(),
             options: opts,
             correctAnswer: q.correctAnswer || '',
@@ -1303,11 +1307,13 @@ router.post("/bulk", verifyToken, requireRole(['admin', 'faculty']), upload.sing
           createdQuestions.push(qdoc);
         } else {
           const doc = await Question.create({
-            testId: ts._id,
-            questionText: String(q.questionText).trim(),
-            options: opts,
-            correctAnswer: q.correctAnswer || '',
-            marks: q.marks || 1
+            data: {
+              testId: (ts.id || ts._id),
+              questionText: String(q.questionText).trim(),
+              options: opts,
+              correctAnswer: q.correctAnswer || '',
+              marks: q.marks || 1
+            }
           });
           createdQuestions.push(doc);
         }
@@ -1519,10 +1525,10 @@ router.post("/:id/questions", verifyToken, requireRole(['admin', 'faculty']), as
         if (!q || !q.questionText) continue;
         try {
           // If the client provided an _id, attempt to update the existing question
-          if (q._id) {
+          if ((q.id || q._id)) {
             const existing = await prisma.question.findUnique({
               where: {
-                id: String(q._id)
+                id: String((q.id || q._id))
               }
             });
             if (existing) {
@@ -1534,18 +1540,20 @@ router.post("/:id/questions", verifyToken, requireRole(['admin', 'faculty']), as
               existing.correctAnswer = q.correctAnswer || '';
               existing.marks = Number(q.marks || 1);
               // Transpiled save()
-    if (existing && existing.id) {
-      const { id: _id_unused, ..._updateData } = existing;
+    if (existing) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = existing;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.question.update({
-        where: { id: String(existing.id) },
+        where: { id: String((existing.id || existing._id)) },
         data: _updateData
-      });
-    } else if (existing && existing._id) {
-      const { _id: _id_unused2, ..._updateData2 } = existing;
-      await prisma.question.update({
-        where: { id: String(existing._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
               created.push(existing);
               continue;

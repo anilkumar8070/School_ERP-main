@@ -39,7 +39,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
     });
     const items = await prisma.behaviorRecord.findMany({
       where: {
-        studentId: student._id
+        studentId: (student.id || student._id)
       },
 
       orderBy: [{
@@ -118,21 +118,23 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
       }
     }).catch(() => null);
     const doc = await BehaviorRecord.create({
-      studentId,
-      studentName: student.name || '',
-      class: student.class || '',
-      section: student.section || '',
-      rollNo: student.rollNo || '',
-      type,
-      title: String(title),
-      description: String(description || ''),
-      actionTaken: String(actionTaken || ''),
-      followUpDate: followUpDate ? String(followUpDate) : '',
-      severity: ['low', 'medium', 'high'].includes(String(severity)) ? String(severity) : 'low',
-      status: ['open', 'monitoring', 'resolved'].includes(String(status)) ? String(status) : 'open',
-      recordDate: recordDate ? String(recordDate) : new Date().toISOString().slice(0, 10),
-      recordedBy: req.user.sub,
-      recordedByName: user && user.name || req.user.username || ''
+      data: {
+        studentId,
+        studentName: student.name || '',
+        class: student.class || '',
+        section: student.section || '',
+        rollNo: student.rollNo || '',
+        type,
+        title: String(title),
+        description: String(description || ''),
+        actionTaken: String(actionTaken || ''),
+        followUpDate: followUpDate ? String(followUpDate) : '',
+        severity: ['low', 'medium', 'high'].includes(String(severity)) ? String(severity) : 'low',
+        status: ['open', 'monitoring', 'resolved'].includes(String(status)) ? String(status) : 'open',
+        recordDate: recordDate ? String(recordDate) : new Date().toISOString().slice(0, 10),
+        recordedBy: req.user.sub,
+        recordedByName: user && user.name || req.user.username || ''
+      }
     });
     return res.status(201).json(mapBehaviorRecord(doc));
   } catch (e) {

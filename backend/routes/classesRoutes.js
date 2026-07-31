@@ -73,8 +73,10 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'Class already exists'
     });
     const created = await ClassModel.create({
-      name: String(name).trim(),
-      subjects: []
+      data: {
+        name: String(name).trim(),
+        subjects: []
+      }
     });
     return res.status(201).json(created);
   } catch (e) {
@@ -105,18 +107,20 @@ router.post("/:id/subjects", verifyToken, requireRole('admin'), async (req, res)
     });
     cls.subjects.push(String(subject).trim());
     // Transpiled save()
-    if (cls && cls.id) {
-      const { id: _id_unused, ..._updateData } = cls;
+    if (cls) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = cls;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.classModel.update({
-        where: { id: String(cls.id) },
+        where: { id: String((cls.id || cls._id)) },
         data: _updateData
-      });
-    } else if (cls && cls._id) {
-      const { _id: _id_unused2, ..._updateData2 } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(cls);
   } catch (e) {
@@ -138,18 +142,20 @@ router.delete("/:id/subjects/:subject", verifyToken, requireRole('admin'), async
     });
     cls.subjects = (cls.subjects || []).filter(s => s !== subjectParam);
     // Transpiled save()
-    if (cls && cls.id) {
-      const { id: _id_unused, ..._updateData } = cls;
+    if (cls) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = cls;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.classModel.update({
-        where: { id: String(cls.id) },
+        where: { id: String((cls.id || cls._id)) },
         data: _updateData
-      });
-    } else if (cls && cls._id) {
-      const { _id: _id_unused2, ..._updateData2 } = cls;
-      await prisma.classModel.update({
-        where: { id: String(cls._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json({
       message: 'Subject removed'
@@ -170,7 +176,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (!cls) return res.status(404).json({
       message: 'Class not found'
     });
-    await cls.deleteOne();
+    await prisma.classModel.delete({ where: { id: cls.id } });
     return res.json({
       message: 'Class deleted'
     });

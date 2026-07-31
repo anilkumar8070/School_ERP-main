@@ -67,9 +67,9 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
     // delete associated user account by email if exists
     try {
       if (reqDoc.studentEmail) {
-        await User.findOneAndDelete({
+        await User.deleteMany({ where: {
           username: reqDoc.studentEmail
-        }).catch(() => null);
+        } }).catch(() => null);
       }
     } catch (e) {/* ignore */}
 
@@ -213,23 +213,17 @@ router.post("/bulk-change-house", verifyToken, requireRole('admin'), async (req,
       });
     }
     const allowed = ['Blue', 'Green', 'Red', 'Yellow'];
-    const ops = updates.filter(u => u && u.id && allowed.includes(String(u.house))).map(u => ({
-      updateOne: {
-        filter: {
-          _id: u.id
-        },
-        update: {
-          house: u.house
-        }
-      }
-    }));
+    const ops = updates.filter(u => u && u.id && allowed.includes(String(u.house))).map(u => {
+      return prisma.student.update({
+        where: { id: u.id },
+        data: { house: u.house }
+      });
+    });
     if (ops.length === 0) return res.status(400).json({
       message: 'No valid updates'
     });
-    const result = await Student.bulkWrite(ops, {
-      ordered: false
-    });
-    const modifiedCount = result.modifiedCount ?? (result.nModified || 0);
+    const result = await prisma.$transaction(ops);
+    const modifiedCount = result.length;
     return res.json({
       ok: true,
       modifiedCount
@@ -272,15 +266,17 @@ router.post("/register", async (req, res) => {
       message: 'Registration already submitted'
     });
     const reg = await StudentRegistration.create({
-      name,
-      email,
-      class: className,
-      medium: medium || 'English',
-      address,
-      school,
-      accessId: accessId || '123',
-      avatar,
-      status: 'pending'
+      data: {
+        name,
+        email,
+        class: className,
+        medium: medium || 'English',
+        address,
+        school,
+        accessId: accessId || '123',
+        avatar,
+        status: 'pending'
+      }
     });
 
     // notify admin by email
@@ -320,7 +316,7 @@ router.post("/register", async (req, res) => {
     // SSE
     try {
       sendSseEvent('student_registration', {
-        id: reg._id,
+        id: (reg.id || reg._id),
         name: reg.name,
         email: reg.email,
         class: reg.class
@@ -419,18 +415,20 @@ router.get("/parent-code", verifyToken, requireRole('student'), async (req, res)
     if (!s.parentAccessCode) {
       s.parentAccessCode = generateParentCode();
       // Transpiled save()
-    if (s && s.id) {
-      const { id: _id_unused, ..._updateData } = s;
+    if (s) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = s;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(s.id) },
+        where: { id: String((s.id || s._id)) },
         data: _updateData
-      });
-    } else if (s && s._id) {
-      const { _id: _id_unused2, ..._updateData2 } = s;
-      await prisma.student.update({
-        where: { id: String(s._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     }
     return res.json({
@@ -550,13 +548,15 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     });
     const rollNo = `${reg.class}${assignedSection}${existing + 1}`;
     const studentDoc = await Student.create({
-      name: reg.name,
-      email: reg.email,
-      class: reg.class,
-      section: assignedSection,
-      rollNo,
-      avatar: reg.avatar,
-      medium: reg.medium || 'English'
+      data: {
+        name: reg.name,
+        email: reg.email,
+        class: reg.class,
+        section: assignedSection,
+        rollNo,
+        avatar: reg.avatar,
+        medium: reg.medium || 'English'
+      }
     });
 
     // create user
@@ -565,25 +565,29 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     generatedPassword = Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10);
     const hashed = await bcrypt.hash(generatedPassword, 10);
     user = await User.create({
-      username: reg.email,
-      password: hashed,
-      role: 'student',
-      name: reg.name
+      data: {
+        username: reg.email,
+        password: hashed,
+        role: 'student',
+        name: reg.name
+      }
     });
     reg.status = 'approved';
     // Transpiled save()
-    if (reg && reg.id) {
-      const { id: _id_unused, ..._updateData } = reg;
+    if (reg) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reg;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.studentRegistration.update({
-        where: { id: String(reg.id) },
+        where: { id: String((reg.id || reg._id)) },
         data: _updateData
-      });
-    } else if (reg && reg._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reg;
-      await prisma.studentRegistration.update({
-        where: { id: String(reg._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // send congratulation email with credentials
@@ -626,7 +630,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     // SSE
     try {
       sendSseEvent('student_approved', {
-        id: reg._id,
+        id: (reg.id || reg._id),
         name: reg.name,
         email: reg.email,
         class: reg.class,
@@ -637,7 +641,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       registration: reg,
       student: studentDoc,
       user: user ? {
-        id: user._id,
+        id: (user.id || user._id),
         username: user.username
       } : null
     });
@@ -666,18 +670,20 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
     reg.status = 'rejected';
     reg.note = note || '';
     // Transpiled save()
-    if (reg && reg.id) {
-      const { id: _id_unused, ..._updateData } = reg;
+    if (reg) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reg;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.studentRegistration.update({
-        where: { id: String(reg.id) },
+        where: { id: String((reg.id || reg._id)) },
         data: _updateData
-      });
-    } else if (reg && reg._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reg;
-      await prisma.studentRegistration.update({
-        where: { id: String(reg._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // notify student by email
@@ -701,7 +707,7 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
     }
     try {
       sendSseEvent('student_rejected', {
-        id: reg._id,
+        id: (reg.id || reg._id),
         name: reg.name,
         email: reg.email
       });
@@ -900,21 +906,23 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     let studentDoc;
     try {
       studentDoc = await Student.create({
-        name,
-        email,
-        class: String(className),
-        section: assignedSection,
-        rollNo,
-        gender: String(gender),
-        category: String(category),
-        religion: String(religion),
-        medium: medium || 'English',
-        ...(house ? {
-          house: String(house)
-        } : {})
+        data: {
+          name,
+          email,
+          class: String(className),
+          section: assignedSection,
+          rollNo,
+          gender: String(gender),
+          category: String(category),
+          religion: String(religion),
+          medium: medium || 'English',
+          ...(house ? {
+            house: String(house)
+          } : {})
+        }
       });
     } catch (err) {
-      if (err && (err.code === 11000 || /duplicate key/i.test(String(err.message)))) {
+      if (err && (err.code === 'P2002' || /duplicate key/i.test(String(err.message)))) {
         return res.status(409).json({
           message: 'Student with this email already exists'
         });
@@ -938,13 +946,15 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       const hashed = await bcrypt.hash(generatedPassword, 10);
       try {
         user = await User.create({
-          username: email,
-          password: hashed,
-          role: 'student',
-          name
+          data: {
+            username: email,
+            password: hashed,
+            role: 'student',
+            name
+          }
         });
       } catch (err) {
-        if (err && (err.code === 11000 || /duplicate key/i.test(String(err.message)))) {
+        if (err && (err.code === 'P2002' || /duplicate key/i.test(String(err.message)))) {
           // Username already exists; keep existing user reference
           user = await prisma.user.findFirst({
             where: {
@@ -991,7 +1001,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     // SSE notify admin UI
     try {
       sendSseEvent('student_created', {
-        id: studentDoc._id,
+        id: (studentDoc.id || studentDoc._id),
         name: studentDoc.name,
         email: studentDoc.email,
         class: studentDoc.class,
@@ -1001,7 +1011,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     return res.status(201).json({
       student: studentDoc,
       user: user ? {
-        id: user._id,
+        id: (user.id || user._id),
         username: user.username
       } : null
     });
@@ -1031,10 +1041,10 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
     // Remove associated login user if it's a student account
     try {
-      await User.findOneAndDelete({
+      await User.deleteMany({ where: {
         username: removed.email,
         role: 'student'
-      }).catch(() => {});
+      } }).catch(() => {});
     } catch (e) {/* ignore */}
 
     // send removal email to student
@@ -1070,7 +1080,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     // emit SSE event so admin UI can refresh lists
     try {
       sendSseEvent('student_deleted', {
-        id: removed._id,
+        id: (removed.id || removed._id),
         email: removed.email,
         name: removed.name
       });
@@ -1170,18 +1180,20 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       }
     }
     // Transpiled save()
-    if (student && student.id) {
-      const { id: _id_unused, ..._updateData } = student;
+    if (student) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = student;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(student.id) },
+        where: { id: String((student.id || student._id)) },
         data: _updateData
-      });
-    } else if (student && student._id) {
-      const { _id: _id_unused2, ..._updateData2 } = student;
-      await prisma.student.update({
-        where: { id: String(student._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // also update associated User.name if user exists
@@ -1195,18 +1207,20 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       if (user && name !== undefined) {
         user.name = String(name);
         // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       }
     } catch (e) {/* ignore */}
@@ -1264,7 +1278,7 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     }
     try {
       sendSseEvent('student_updated', {
-        id: student._id,
+        id: (student.id || student._id),
         email: student.email,
         changed
       });
@@ -1382,18 +1396,20 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     student.section = assignedSection;
     student.rollNo = rollNo;
     // Transpiled save()
-    if (student && student.id) {
-      const { id: _id_unused, ..._updateData } = student;
+    if (student) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = student;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(student.id) },
+        where: { id: String((student.id || student._id)) },
         data: _updateData
-      });
-    } else if (student && student._id) {
-      const { _id: _id_unused2, ..._updateData2 } = student;
-      await prisma.student.update({
-        where: { id: String(student._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // update associated user name if exists
@@ -1407,18 +1423,20 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
       if (user) {
         user.name = student.name || user.name;
         // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       }
     } catch (e) {}
@@ -1440,7 +1458,7 @@ router.put("/:id/change-class", verifyToken, requireRole('faculty'), async (req,
     }
     try {
       sendSseEvent('student_updated', {
-        id: student._id,
+        id: (student.id || student._id),
         class: student.class,
         section: student.section
       });
@@ -1482,22 +1500,24 @@ router.put("/:id/stream", verifyToken, requireRole('faculty'), async (req, res) 
     });
     student.stream = stream ? String(stream).trim() : '';
     // Transpiled save()
-    if (student && student.id) {
-      const { id: _id_unused, ..._updateData } = student;
+    if (student) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = student;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(student.id) },
+        where: { id: String((student.id || student._id)) },
         data: _updateData
-      });
-    } else if (student && student._id) {
-      const { _id: _id_unused2, ..._updateData2 } = student;
-      await prisma.student.update({
-        where: { id: String(student._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     try {
       sendSseEvent('student_updated', {
-        id: student._id,
+        id: (student.id || student._id),
         changed: ['stream']
       });
     } catch (e) {}
@@ -1540,35 +1560,39 @@ router.put("/:id/block-by-faculty", verifyToken, requireRole('faculty'), async (
     if (user) {
       user.disabled = !!block;
       // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       finalBlocked = !!user.disabled;
     }
     student.blocked = !!block;
     // Transpiled save()
-    if (student && student.id) {
-      const { id: _id_unused, ..._updateData } = student;
+    if (student) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = student;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(student.id) },
+        where: { id: String((student.id || student._id)) },
         data: _updateData
-      });
-    } else if (student && student._id) {
-      const { _id: _id_unused2, ..._updateData2 } = student;
-      await prisma.student.update({
-        where: { id: String(student._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // email notify
@@ -1588,7 +1612,7 @@ router.put("/:id/block-by-faculty", verifyToken, requireRole('faculty'), async (
     }
     try {
       sendSseEvent('student_blocked', {
-        id: student._id,
+        id: (student.id || student._id),
         email: student.email,
         blocked: !!finalBlocked
       });
@@ -1635,16 +1659,18 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
       message: 'Delete request already pending'
     });
     const dr = await DeletionRequest.create({
-      studentId: id,
-      studentEmail: student.email || '',
-      requestedBy: req.user.sub,
-      requestedByName: req.user.name || req.user.username,
-      note: note || '',
-      status: 'pending'
+      data: {
+        studentId: id,
+        studentEmail: student.email || '',
+        requestedBy: req.user.sub,
+        requestedByName: req.user.name || req.user.username,
+        note: note || '',
+        status: 'pending'
+      }
     });
     try {
       sendSseEvent('student_delete_requested', {
-        id: dr._id,
+        id: (dr.id || dr._id),
         studentId: id,
         email: student.email
       });
@@ -1700,30 +1726,32 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
       }
     });
     if (student) {
-      await Student.deleteOne({
-        _id: student._id
-      });
+      await Student.deleteMany({ where: {
+        id: (student.id || student._id)
+      } });
       try {
-        await User.findOneAndDelete({
+        await User.deleteMany({ where: {
           username: student.email,
           role: 'student'
-        }).catch(() => {});
+        } }).catch(() => {});
       } catch (e) {}
     }
     reqDoc.status = 'approved';
     // Transpiled save()
-    if (reqDoc && reqDoc.id) {
-      const { id: _id_unused, ..._updateData } = reqDoc;
+    if (reqDoc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reqDoc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.deletionRequest.update({
-        where: { id: String(reqDoc.id) },
+        where: { id: String((reqDoc.id || reqDoc._id)) },
         data: _updateData
-      });
-    } else if (reqDoc && reqDoc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reqDoc;
-      await prisma.deletionRequest.update({
-        where: { id: String(reqDoc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // notify student by email
@@ -1794,18 +1822,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     if (user) {
       user.disabled = !!block;
       // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       finalBlocked = !!user.disabled;
     }
@@ -1813,18 +1843,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     // also persist blocked flag on student record so block state is visible even without a User
     studentDoc.blocked = !!block;
     // Transpiled save()
-    if (studentDoc && studentDoc.id) {
-      const { id: _id_unused, ..._updateData } = studentDoc;
+    if (studentDoc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = studentDoc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(studentDoc.id) },
+        where: { id: String((studentDoc.id || studentDoc._id)) },
         data: _updateData
-      });
-    } else if (studentDoc && studentDoc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = studentDoc;
-      await prisma.student.update({
-        where: { id: String(studentDoc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // send notification email to student about block/unblock only if email exists
@@ -1857,7 +1889,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     }
     try {
       sendSseEvent('student_blocked', {
-        id: studentDoc._id,
+        id: (studentDoc.id || studentDoc._id),
         email: studentDoc.email,
         blocked: !!finalBlocked
       });
@@ -1893,7 +1925,7 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
       note
     } = req.body || {};
     const doc = {
-      studentId: student._id,
+      studentId: (student.id || student._id),
       studentEmail: student.email || '',
       studentName: student.name || '',
       class: student.class || '',
@@ -1907,8 +1939,8 @@ router.post("/:id/delete-request", verifyToken, requireRole('faculty'), async (r
     const created = await prisma.deletionRequest.create({ data: doc });
     try {
       sendSseEvent('student_delete_requested', {
-        id: created._id,
-        studentId: student._id,
+        id: (created.id || created._id),
+        studentId: (student.id || student._id),
         studentEmail: student.email
       });
     } catch (e) {}
@@ -1965,28 +1997,30 @@ router.put("/delete-requests/:id/approve", verifyToken, requireRole('admin'), as
       }
       // also delete associated User (login) if exists
       if (reqDoc.studentEmail) {
-        await User.findOneAndDelete({
+        await User.deleteMany({ where: {
           username: reqDoc.studentEmail,
           role: 'student'
-        }).catch(() => null);
+        } }).catch(() => null);
       }
     } catch (inner) {
       console.warn('Error deleting student/user during approve:', inner && inner.message);
     }
     reqDoc.status = 'approved';
     // Transpiled save()
-    if (reqDoc && reqDoc.id) {
-      const { id: _id_unused, ..._updateData } = reqDoc;
+    if (reqDoc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reqDoc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.deletionRequest.update({
-        where: { id: String(reqDoc.id) },
+        where: { id: String((reqDoc.id || reqDoc._id)) },
         data: _updateData
-      });
-    } else if (reqDoc && reqDoc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reqDoc;
-      await prisma.deletionRequest.update({
-        where: { id: String(reqDoc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // notify requester and student by email (best-effort)

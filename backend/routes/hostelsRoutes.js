@@ -74,13 +74,15 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'name required'
     });
     const doc = await Hostel.create({
-      name: String(name).trim(),
-      floors: Array.isArray(floors) ? floors : [],
-      address: address || '',
-      capacity: Number(capacity || 0),
-      amenities: Array.isArray(amenities) ? amenities : [],
-      warden: warden || '',
-      contact: contact || ''
+      data: {
+        name: String(name).trim(),
+        floors: Array.isArray(floors) ? floors : [],
+        address: address || '',
+        capacity: Number(capacity || 0),
+        amenities: Array.isArray(amenities) ? amenities : [],
+        warden: warden || '',
+        contact: contact || ''
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {

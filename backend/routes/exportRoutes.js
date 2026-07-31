@@ -37,8 +37,8 @@ router.get("/attendance-excel", verifyToken, requireRole(['admin', 'faculty']), 
     if (section) q.section = String(section);
     if (from || to) {
       q.date = {};
-      if (from) q.date.$gte = String(from);
-      if (to) q.date.$lte = String(to);
+      if (from) q.date.gte = String(from);
+      if (to) q.date.lte = String(to);
     }
     const items = await prisma.attendance.findMany({
       where: q,

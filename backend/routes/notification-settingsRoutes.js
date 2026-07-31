@@ -37,15 +37,15 @@ router.patch("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const items = req.body; // array of { event, email, sms, whatsapp }
     for (const item of items) {
-      await NotificationSettings.findOneAndUpdate({
-        event: item.event
-      }, {
-        email: item.email,
-        sms: item.sms,
-        whatsapp: item.whatsapp
-      }, {
-        upsert: true,
-        new: true
+      await prisma.notificationSettings.updateMany({
+        where: {
+          event: item.event
+        },
+        data: {
+          email: item.email,
+          sms: item.sms,
+          whatsapp: item.whatsapp
+        }
       });
     }
     res.json({

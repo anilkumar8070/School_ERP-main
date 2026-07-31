@@ -188,7 +188,11 @@ function createWrapper(modelName, overrideKey = null) {
     findByIdAndDelete: (id) => buildChainableQuery(pModel, modelName, 'deleteMany', { _id: id }),
     create: async (data) => {
       try {
-        const res = await pModel.create({ data: mapData(data, pModel, true) });
+        let payload = data;
+        if (data && data.data !== undefined && !data.data.data) {
+           payload = data.data;
+        }
+        const res = await pModel.create({ data: mapData(payload, pModel, true) });
         if (res) res._id = res.id;
         return attachSave(res, pModel, modelName);
       } catch (e) {

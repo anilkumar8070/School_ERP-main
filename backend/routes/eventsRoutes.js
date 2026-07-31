@@ -38,10 +38,12 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   });
   try {
     const ev = await Event.create({
-      title,
-      description,
-      date: new Date(date),
-      createdBy: req.user.sub
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        createdBy: req.user.sub
+      }
     });
     return res.status(201).json(ev);
   } catch (e) {

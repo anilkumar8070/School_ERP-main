@@ -41,14 +41,16 @@ router.post("/", upload.single('attachment'), async (req, res) => {
       message: 'name and email required'
     });
     const doc = await FormQuery.create({
-      formId: formId || undefined,
-      formTitle: formTitle || '',
-      name: String(name),
-      email: String(email),
-      contact: contact ? String(contact) : '',
-      description: description ? String(description) : '',
-      filename: req.file ? req.file.filename : undefined,
-      originalname: req.file ? req.file.originalname : undefined
+      data: {
+        formId: formId || undefined,
+        formTitle: formTitle || '',
+        name: String(name),
+        email: String(email),
+        contact: contact ? String(contact) : '',
+        description: description ? String(description) : '',
+        filename: req.file ? req.file.filename : undefined,
+        originalname: req.file ? req.file.originalname : undefined
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {

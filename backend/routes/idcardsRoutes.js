@@ -48,7 +48,7 @@ router.post("/generate", verifyToken, requireRole('admin'), async (req, res) => 
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            studentId: st._id
+            studentId: (st.id || st._id)
           },
 
           orderBy: [{
@@ -64,30 +64,32 @@ router.post("/generate", verifyToken, requireRole('admin'), async (req, res) => 
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           created = await IDCard.create({
-            studentId: st._id,
-            type: 'student',
-            name: st.name || '',
-            fatherName: st.fatherName || '',
-            rollNo: st.rollNo || '',
-            class: st.class || String(klass),
-            medium: st.medium || '',
-            section: st.section || String(section),
-            contact: st.contact || '',
-            house: st.house || '',
-            houseRole: st.houseRole || '',
-            schoolName,
-            photoUrl: st.avatar || '',
-            template: 'default',
-            batchId,
-            version,
-            generatedBy: req.user && req.user.sub,
-            idCode,
-            issueDate: reqIssueDate,
-            validUpto: reqValidUpto
+            data: {
+              studentId: (st.id || st._id),
+              type: 'student',
+              name: st.name || '',
+              fatherName: st.fatherName || '',
+              rollNo: st.rollNo || '',
+              class: st.class || String(klass),
+              medium: st.medium || '',
+              section: st.section || String(section),
+              contact: st.contact || '',
+              house: st.house || '',
+              houseRole: st.houseRole || '',
+              schoolName,
+              photoUrl: st.avatar || '',
+              template: 'default',
+              batchId,
+              version,
+              generatedBy: req.user && req.user.sub,
+              idCode,
+              issueDate: reqIssueDate,
+              validUpto: reqValidUpto
+            }
           });
           break;
         } catch (err) {
-          if (String(err && err.code) === '11000') {
+          if (String(err && err.code) === 'P2002') {
             // duplicate idCode - generate a fresh code and retry
             idCode = makeId('IDC_');
             continue;
@@ -123,7 +125,7 @@ router.post("/generate-faculty", verifyToken, requireRole('admin'), async (req, 
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            facultyId: f._id
+            facultyId: (f.id || f._id)
           },
 
           orderBy: [{
@@ -139,30 +141,32 @@ router.post("/generate-faculty", verifyToken, requireRole('admin'), async (req, 
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           created = await IDCard.create({
-            facultyId: f._id,
-            type: 'faculty',
-            name: f.name || '',
-            fatherName: '',
-            rollNo: f.employeeId || '',
-            gender: f.gender || '',
-            class: '',
-            section: '',
-            contact: f.contact || '',
-            email: f.email || '',
-            designation: f.designation || f.subject || '',
-            schoolName,
-            photoUrl: f.avatar || '',
-            template: 'default',
-            batchId,
-            version,
-            generatedBy: req.user && req.user.sub,
-            idCode,
-            issueDate: reqIssueDate,
-            validUpto: reqValidUpto
+            data: {
+              facultyId: (f.id || f._id),
+              type: 'faculty',
+              name: f.name || '',
+              fatherName: '',
+              rollNo: f.employeeId || '',
+              gender: f.gender || '',
+              class: '',
+              section: '',
+              contact: f.contact || '',
+              email: f.email || '',
+              designation: f.designation || f.subject || '',
+              schoolName,
+              photoUrl: f.avatar || '',
+              template: 'default',
+              batchId,
+              version,
+              generatedBy: req.user && req.user.sub,
+              idCode,
+              issueDate: reqIssueDate,
+              validUpto: reqValidUpto
+            }
           });
           break;
         } catch (err) {
-          if (String(err && err.code) === '11000') {
+          if (String(err && err.code) === 'P2002') {
             // duplicate idCode
             idCode = makeId('IDF_');
             continue;
@@ -202,7 +206,7 @@ router.post("/generate-staff", verifyToken, requireRole('admin'), async (req, re
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            userId: u._id
+            userId: (u.id || u._id)
           },
 
           orderBy: [{
@@ -214,34 +218,36 @@ router.post("/generate-staff", verifyToken, requireRole('admin'), async (req, re
       } catch {}
       const version = latest ? Number(latest.version || 1) + 1 : 1;
       let idCode = latest && latest.idCode ? latest.idCode : makeId('IDS_');
-      const staffId = `STF-${String(u._id).slice(-6).toUpperCase()}`;
+      const staffId = `STF-${String((u.id || u._id)).slice(-6).toUpperCase()}`;
       let created = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           created = await IDCard.create({
-            userId: u._id,
-            type: 'staff',
-            name: u.name || u.username || '',
-            fatherName: '',
-            rollNo: staffId,
-            gender: u.gender || '',
-            class: '',
-            section: '',
-            contact: u.contact || '',
-            schoolName,
-            photoUrl: u.avatar || '',
-            template: 'default',
-            batchId,
-            version,
-            generatedBy: req.user && req.user.sub,
-            idCode,
-            issueDate: reqIssueDate,
-            validUpto: reqValidUpto,
-            email: u.username || ''
+            data: {
+              userId: (u.id || u._id),
+              type: 'staff',
+              name: u.name || u.username || '',
+              fatherName: '',
+              rollNo: staffId,
+              gender: u.gender || '',
+              class: '',
+              section: '',
+              contact: u.contact || '',
+              schoolName,
+              photoUrl: u.avatar || '',
+              template: 'default',
+              batchId,
+              version,
+              generatedBy: req.user && req.user.sub,
+              idCode,
+              issueDate: reqIssueDate,
+              validUpto: reqValidUpto,
+              email: u.username || ''
+            }
           });
           break;
         } catch (err) {
-          if (String(err && err.code) === '11000') {
+          if (String(err && err.code) === 'P2002') {
             // duplicate idCode
             idCode = makeId('IDS_');
             continue;
@@ -336,36 +342,22 @@ router.get("/batches", verifyToken, async (req, res) => {
     const match = {};
     if (klass) match.class = String(klass);
     if (section) match.section = String(section);
-    const agg = await IDCard.aggregate([{
-      $match: match
-    }, {
-      $group: {
-        _id: '$batchId',
-        count: {
-          $sum: 1
-        },
-        class: {
-          $first: '$class'
-        },
-        section: {
-          $first: '$section'
-        },
-        latestAt: {
-          $max: '$createdAt'
-        }
-      }
-    }, {
-      $sort: {
-        latestAt: -1
-      }
-    }]).catch(() => []);
+    
+    const agg = await prisma.iDCard.groupBy({
+      by: ['batchId', 'class', 'section'],
+      where: match,
+      _count: { batchId: true },
+      _max: { createdAt: true },
+      orderBy: { _max: { createdAt: 'desc' } }
+    }).catch(() => []);
     const rows = agg.map(a => ({
-      batchId: a._id,
-      count: a.count,
+      batchId: a.batchId,
+      count: a._count.batchId,
       class: a.class,
       section: a.section,
-      date: a.latestAt
+      date: a._max.createdAt
     }));
+
     return res.json(rows);
   } catch (e) {
     return res.status(500).json({
@@ -502,9 +494,7 @@ router.post("/backfill-codes", verifyToken, requireRole('admin'), async (req, re
     const cards = await prisma.iDCard.findMany({
       where: {
         OR: [{
-          idCode: {
-            $exists: false
-          }
+          idCode: null
         }, {
           idCode: null
         }, {
@@ -515,10 +505,9 @@ router.post("/backfill-codes", verifyToken, requireRole('admin'), async (req, re
     let updated = 0;
     for (const c of cards) {
       const code = makeId('IDC_');
-      await IDCard.updateOne({
-        _id: c._id
-      }, {
-        idCode: code
+      await prisma.iDCard.update({
+        where: { id: (c.id || c._id) },
+        data: { idCode: code }
       }).catch(() => null);
       updated++;
     }

@@ -31,10 +31,10 @@ router.get("/my", verifyToken, async (req, res) => {
     const filter = {
       OR: []
     };
-    if (userId) filter.$or.push({
+    if (userId) filter.OR.push({
       recipientId: userId
     });
-    if (username) filter.$or.push({
+    if (username) filter.OR.push({
       recipientEmail: {
         contains: new RegExp('^' + username + '$', 'i')
       }
@@ -47,13 +47,13 @@ router.get("/my", verifyToken, async (req, res) => {
             email: username
           }
         }).catch(() => null);
-        if (stud && stud._id) filter.$or.push({
-          recipientId: String(stud._id)
+        if (stud && (stud.id || stud._id)) filter.OR.push({
+          recipientId: String((stud.id || stud._id))
         });
       }
     } catch (e) {/* ignore */}
     // If no filters could be assembled, return empty
-    if (!filter.$or || filter.$or.length === 0) return res.json([]);
+    if (!filter.OR || filter.OR.length === 0) return res.json([]);
     const list = await prisma.reportCard.findMany({
       where: filter,
 
@@ -161,16 +161,18 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
 
     // create a DB document; file generation (PDF) will be attempted and filePath set if successful
     const doc = await ReportCard.create({
-      schoolName,
-      examName,
-      className,
-      section,
-      recipientName,
-      recipientEmail,
-      rollNumber,
-      templateType,
-      subjects,
-      createdBy: req.user && req.user.sub
+      data: {
+        schoolName,
+        examName,
+        className,
+        section,
+        recipientName,
+        recipientEmail,
+        rollNumber,
+        templateType,
+        subjects,
+        createdBy: req.user && req.user.sub
+      }
     });
 
     // handle signature upload (if provided)
@@ -180,7 +182,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
         const sigPath = `/uploads/${sigF}`;
         await prisma.reportCard.update({
           where: {
-            id: String(doc._id)
+            id: String((doc.id || doc._id))
           },
 
           data: {
@@ -197,7 +199,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
     // Try to generate a simple PDF using pdfkit if available
     try {
       if (PDFDocument) {
-        const fname = `${Date.now()}_report_${String(doc._id).slice(-6)}.pdf`;
+        const fname = `${Date.now()}_report_${String((doc.id || doc._id)).slice(-6)}.pdf`;
         const outPath = path.join(uploadsDir, fname);
         const stream = fs.createWriteStream(outPath);
         const pdf = new PDFDocument({
@@ -255,7 +257,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('
         await new Promise(resolve => stream.on('finish', resolve));
         doc.filePath = `/uploads/${fname}`;
         doc.mime = 'application/pdf';
-        /* FIXME: Mongoose .save() */ await doc.save();
+        await prisma.reportCard.update({ where: { id: doc.id }, data: { filePath: doc.filePath, mime: doc.mime } });
         try {
           const s = await prisma.student.findFirst({
             where: {
@@ -362,7 +364,7 @@ router.get("/by-student/:id", verifyToken, requireRole(['student', 'parent', 'ad
         OR: [{
           recipientEmail: student.email
         }, {
-          recipientId: student._id
+          recipientId: (student.id || student._id)
         }, {
           recipientName: student.name,
           className: student.class,

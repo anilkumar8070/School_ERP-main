@@ -50,13 +50,15 @@ router.post("/forgot", async (req, res) => {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // remove existing tokens for user
-    await PasswordReset.deleteMany({
-      userId: user._id
-    }).catch(() => {});
+    await PasswordReset.deleteMany({ where: {
+      userId: (user.id || user._id)
+    } }).catch(() => {});
     await PasswordReset.create({
-      userId: user._id,
-      token,
-      expiresAt
+      data: {
+        userId: (user.id || user._id),
+        token,
+        expiresAt
+      }
     });
 
     // send email with reset link
@@ -116,9 +118,9 @@ router.post("/reset", async (req, res) => {
       message: 'Invalid or expired token'
     });
     if (new Date() > pr.expiresAt) {
-      await PasswordReset.deleteOne({
-        _id: pr._id
-      }).catch(() => {});
+      await PasswordReset.deleteMany({ where: {
+        id: (pr.id || pr._id)
+      } }).catch(() => {});
       return res.status(400).json({
         message: 'Token expired'
       });
@@ -134,24 +136,26 @@ router.post("/reset", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     user.password = hashed;
     // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // cleanup tokens
-    await PasswordReset.deleteMany({
-      userId: user._id
-    }).catch(() => {});
+    await PasswordReset.deleteMany({ where: {
+      userId: (user.id || user._id)
+    } }).catch(() => {});
 
     // send confirmation email
     try {

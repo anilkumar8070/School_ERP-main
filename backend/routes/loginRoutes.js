@@ -22,10 +22,7 @@ module.exports = function(helpers) {
         }
       });
 
-      if (!user && findByUsername) {
-        user = findByUsername(username);
-      }
-
+      // No fallback required since Prisma will return the user or null
       if (!user) {
         console.log(`Login failed: user ${username} not found`);
         return res.status(401).json({ message: 'User not found' });

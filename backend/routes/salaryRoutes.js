@@ -59,12 +59,14 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
 
     // Create payment record as pending first
     let payment = await SalaryPayment.create({
-      facultyId,
-      facultyName: fac.name,
-      facultyEmail: fac.email,
-      month,
-      amount,
-      status: 'pending'
+      data: {
+        facultyId,
+        facultyName: fac.name,
+        facultyEmail: fac.email,
+        month,
+        amount,
+        status: 'pending'
+      }
     });
 
     // Mock Razorpay order/payment success
@@ -73,13 +75,13 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     const razorpaySignature = makeId('sig_');
 
     // Generate a simple receipt number
-    const receiptNo = `SAL-${new Date().getFullYear()}-${String(payment._id).slice(-6).toUpperCase()}`;
+    const receiptNo = `SAL-${new Date().getFullYear()}-${String((payment.id || payment._id)).slice(-6).toUpperCase()}`;
     payment.razorpayOrderId = razorpayOrderId;
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
     payment.receiptNo = receiptNo;
     payment.status = 'paid';
-    /* FIXME: Mongoose .save() */ await payment.save();
+    if(payment.id) { await prisma.salaryPayment.update({ where: { id: payment.id }, data: payment }).catch(() => null); }
     return res.status(201).json(payment);
   } catch (e) {
     return res.status(500).json({
@@ -116,7 +118,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           currency: 'INR',
           receipt,
           notes: {
-            facultyId: String(fac._id),
+            facultyId: String((fac.id || fac._id)),
             month
           }
         });
@@ -124,7 +126,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           mode: 'razorpay',
           order,
           faculty: {
-            id: fac._id,
+            id: (fac.id || fac._id),
             name: fac.name,
             email: fac.email
           },
@@ -147,7 +149,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
       mode: 'mock',
       order,
       faculty: {
-        id: fac._id,
+        id: (fac.id || fac._id),
         name: fac.name,
         email: fac.email
       },
@@ -183,16 +185,18 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'Faculty not found'
     });
     let payment = await SalaryPayment.create({
-      facultyId,
-      facultyName: fac.name,
-      facultyEmail: fac.email,
-      month,
-      amount,
-      status: 'paid',
-      razorpayOrderId: orderId,
-      razorpayPaymentId: paymentId,
-      razorpaySignature: signature || '',
-      receiptNo: `SAL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      data: {
+        facultyId,
+        facultyName: fac.name,
+        facultyEmail: fac.email,
+        month,
+        amount,
+        status: 'paid',
+        razorpayOrderId: orderId,
+        razorpayPaymentId: paymentId,
+        razorpaySignature: signature || '',
+        receiptNo: `SAL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      }
     });
     return res.status(201).json(payment);
   } catch (e) {
@@ -250,7 +254,7 @@ router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
     });
     const list = await prisma.salaryPayment.findMany({
       where: {
-        facultyId: fac._id
+        facultyId: (fac.id || fac._id)
       },
 
       orderBy: {
@@ -299,7 +303,7 @@ router.get("/receipt/:id", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         }
-        if (fac && String(fac._id) === String(pay.facultyId)) allowed = true;
+        if (fac && String((fac.id || fac._id)) === String(pay.facultyId)) allowed = true;
       } catch {}
     }
     if (!allowed) return res.status(403).send('Forbidden');
@@ -390,7 +394,7 @@ router.get("/receipt/:id.pdf", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         }
-        if (fac && String(fac._id) === String(pay.facultyId)) allowed = true;
+        if (fac && String((fac.id || fac._id)) === String(pay.facultyId)) allowed = true;
       } catch {}
     }
     if (!allowed) return res.status(403).json({

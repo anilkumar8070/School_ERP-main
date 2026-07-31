@@ -83,10 +83,10 @@ router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (
     // Count upcoming meetings linked to this faculty (if any)
     let upcomingMeetings = 0;
     try {
-      if (fac && fac._id) {
+      if (fac && (fac.id || fac._id)) {
         upcomingMeetings = await prisma.meeting.count({
           where: {
-            facultyId: String(fac._id),
+            facultyId: String((fac.id || fac._id)),
             date: {
               gte: new Date()
             }
@@ -124,7 +124,7 @@ router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (
     }
     const summary = {
       faculty: fac ? {
-        _id: fac._id,
+        _id: (fac.id || fac._id),
         name: fac.name,
         email: fac.email,
         subject: fac.subject,
@@ -214,17 +214,19 @@ router.post("/register", async (req, res) => {
       message: 'Registration already submitted'
     });
     const reg = await FacultyRegistration.create({
-      name,
-      email,
-      subject,
-      education,
-      contact,
-      avatar,
-      experience,
-      classGrade,
-      houses: Array.isArray(houses) ? houses : [],
-      password,
-      status: 'pending'
+      data: {
+        name,
+        email,
+        subject,
+        education,
+        contact,
+        avatar,
+        experience,
+        classGrade,
+        houses: Array.isArray(houses) ? houses : [],
+        password,
+        status: 'pending'
+      }
     });
     // send notification email to admin
     try {
@@ -266,7 +268,7 @@ router.post("/register", async (req, res) => {
     // emit SSE event for admin UIs
     try {
       sendSseEvent('faculty_registration', {
-        id: reg._id,
+        id: (reg.id || reg._id),
         name: reg.name,
         email: reg.email
       });
@@ -299,12 +301,12 @@ router.get("/lesson-plans", verifyToken, requireRole(['faculty', 'admin']), asyn
     if (req.user && req.user.role === 'faculty') q.facultyUserId = req.user.sub;
     if (cls) q.class = String(cls);
     if (section) q.section = String(section);
-    if (subject) q.subject = new RegExp(String(subject), 'i');
+    if (subject) q.subject = { contains: String(subject), mode: 'insensitive' };
     if (status) q.status = String(status);
     if (from || to) {
       q.lessonDate = {};
-      if (from) q.lessonDate.$gte = String(from);
-      if (to) q.lessonDate.$lte = String(to);
+      if (from) q.lessonDate.gte = String(from);
+      if (to) q.lessonDate.lte = String(to);
     }
     const items = await prisma.lessonPlan.findMany({
       where: q,
@@ -356,22 +358,24 @@ router.post("/lesson-plans", verifyToken, requireRole('faculty'), async (req, re
       }
     }).catch(() => null);
     const doc = await LessonPlan.create({
-      facultyUserId: req.user.sub,
-      facultyId: faculty && faculty._id,
-      teacherName: faculty && faculty.name || user && user.name || req.user.username || '',
-      class: String(cls),
-      section: String(section || 'ALL'),
-      subject: String(subject),
-      title: String(title),
-      lessonDate: String(lessonDate),
-      durationMinutes: Number(durationMinutes || 40),
-      objectives: String(objectives || ''),
-      materials: String(materials || ''),
-      activities: String(activities || ''),
-      homework: String(homework || ''),
-      assessment: String(assessment || ''),
-      status: ['planned', 'in_progress', 'completed'].includes(String(status)) ? String(status) : 'planned',
-      notes: String(notes || '')
+      data: {
+        facultyUserId: req.user.sub,
+        facultyId: faculty && (faculty.id || faculty._id),
+        teacherName: faculty && faculty.name || user && user.name || req.user.username || '',
+        class: String(cls),
+        section: String(section || 'ALL'),
+        subject: String(subject),
+        title: String(title),
+        lessonDate: String(lessonDate),
+        durationMinutes: Number(durationMinutes || 40),
+        objectives: String(objectives || ''),
+        materials: String(materials || ''),
+        activities: String(activities || ''),
+        homework: String(homework || ''),
+        assessment: String(assessment || ''),
+        status: ['planned', 'in_progress', 'completed'].includes(String(status)) ? String(status) : 'planned',
+        notes: String(notes || '')
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -386,8 +390,7 @@ router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req,
   });
   try {
     const doc = await prisma.lessonPlan.findFirst({
-      where: {
-        _id: req.params.id,
+      where: { id: req.params.id,
         facultyUserId: req.user.sub
       }
     });
@@ -400,18 +403,20 @@ router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req,
     });
     if (!['planned', 'in_progress', 'completed'].includes(String(doc.status))) doc.status = 'planned';
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.lessonPlan.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.lessonPlan.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(doc);
   } catch (e) {
@@ -425,10 +430,10 @@ router.delete("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (r
     message: 'Database not available'
   });
   try {
-    const doc = await LessonPlan.findOneAndDelete({
-      _id: req.params.id,
+    const doc = await LessonPlan.deleteMany({ where: {
+      id: req.params.id,
       facultyUserId: req.user.sub
-    });
+    } });
     if (!doc) return res.status(404).json({
       message: 'Lesson plan not found'
     });
@@ -516,15 +521,17 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
         if (attempts > 5) break;
       }
       facultyDoc = await Faculty.create({
-        name: reg.name,
-        email: reg.email,
-        employeeId: empId,
-        subject: reg.subject,
-        experience: reg.experience,
-        contact: reg.contact,
-        avatar: reg.avatar,
-        classGrade: reg.classGrade,
-        houses: Array.isArray(reg.houses) ? reg.houses : []
+        data: {
+          name: reg.name,
+          email: reg.email,
+          employeeId: empId,
+          subject: reg.subject,
+          experience: reg.experience,
+          contact: reg.contact,
+          avatar: reg.avatar,
+          classGrade: reg.classGrade,
+          houses: Array.isArray(reg.houses) ? reg.houses : []
+        }
       });
     }
 
@@ -533,33 +540,37 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     let generatedPassword = reg.password && String(reg.password).length >= 6 ? String(reg.password) : Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10);
     const hashed = await bcrypt.hash(generatedPassword, 10);
     user = await User.create({
-      username: reg.email,
-      password: hashed,
-      role: 'faculty',
-      name: reg.name
+      data: {
+        username: reg.email,
+        password: hashed,
+        role: 'faculty',
+        name: reg.name
+      }
     });
 
     // mark registration approved
     reg.status = 'approved';
     // Transpiled save()
-    if (reg && reg.id) {
-      const { id: _id_unused, ..._updateData } = reg;
+    if (reg) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reg;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyRegistration.update({
-        where: { id: String(reg.id) },
+        where: { id: String((reg.id || reg._id)) },
         data: _updateData
-      });
-    } else if (reg && reg._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reg;
-      await prisma.facultyRegistration.update({
-        where: { id: String(reg._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // notify admin UIs via SSE
     try {
       sendSseEvent('faculty_approved', {
-        id: reg._id,
+        id: (reg.id || reg._id),
         name: reg.name,
         email: reg.email,
         employeeId: facultyDoc.employeeId
@@ -634,7 +645,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       registration: reg,
       faculty: facultyDoc,
       user: user ? {
-        id: user._id,
+        id: (user.id || user._id),
         username: user.username
       } : null,
       mail: mailStatus
@@ -668,18 +679,20 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
     reg.status = 'rejected';
     reg.note = note || '';
     // Transpiled save()
-    if (reg && reg.id) {
-      const { id: _id_unused, ..._updateData } = reg;
+    if (reg) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = reg;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyRegistration.update({
-        where: { id: String(reg.id) },
+        where: { id: String((reg.id || reg._id)) },
         data: _updateData
-      });
-    } else if (reg && reg._id) {
-      const { _id: _id_unused2, ..._updateData2 } = reg;
-      await prisma.facultyRegistration.update({
-        where: { id: String(reg._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(reg);
   } catch (e) {
@@ -806,22 +819,24 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     });
     user.disabled = !!block;
     // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     try {
       sendSseEvent('faculty_blocked', {
-        id: f._id,
+        id: (f.id || f._id),
         email: f.email,
         blocked: user.disabled
       });
@@ -881,10 +896,10 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
 
     // try to also remove the login user for this faculty (if any)
     try {
-      const u = await User.findOneAndDelete({
+      const u = await User.deleteMany({ where: {
         username: removed.email,
         role: 'faculty'
-      }).catch(() => null);
+      } }).catch(() => null);
       if (u) console.log('Removed user account for', removed.email);
     } catch (e) {
       console.warn('Failed to remove user account for deleted faculty', e && e.message);
@@ -893,7 +908,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     // emit SSE event so admin UI can refresh lists
     try {
       sendSseEvent('faculty_deleted', {
-        id: removed._id,
+        id: (removed.id || removed._id),
         email: removed.email,
         name: removed.name
       });

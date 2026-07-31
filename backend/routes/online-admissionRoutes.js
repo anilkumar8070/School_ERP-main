@@ -36,8 +36,10 @@ router.post("/", upload.single('document'), async (req, res) => {
     const file = req.file;
     const filePath = file ? `/uploads/${file.filename}` : '';
     const doc = await OnlineAdmission.create({
-      ...payload,
-      documentPath: filePath
+      data: {
+        ...payload,
+        documentPath: filePath
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {

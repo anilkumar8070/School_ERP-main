@@ -103,7 +103,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.fields([{
             }
           }).catch(() => null);
           if (user) {
-            doc.recipientId = user._id;
+            doc.recipientId = (user.id || user._id);
           }
         }
       } else if (doc.recipientType === 'Faculty' && doc.recipientId) {
@@ -119,7 +119,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.fields([{
             }
           }).catch(() => null);
           if (user) {
-            doc.recipientId = user._id;
+            doc.recipientId = (user.id || user._id);
           }
         }
       } else {

@@ -44,12 +44,14 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), upload.single('
     });
     const filePath = `/uploads/${file.filename}`;
     const doc = await Resource.create({
-      title: title || file.originalname,
-      subject: subject || '',
-      class: String(klass || ''),
-      filename: file.filename,
-      originalname: file.originalname,
-      uploadedBy: req.user && req.user.sub
+      data: {
+        title: title || file.originalname,
+        subject: subject || '',
+        class: String(klass || ''),
+        filename: file.filename,
+        originalname: file.originalname,
+        uploadedBy: req.user && req.user.sub
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -120,7 +122,7 @@ router.delete("/:id", verifyToken, requireRole(['faculty', 'admin']), async (req
     } catch (fileErr) {
       console.warn('Failed to delete resource file', fileErr && fileErr.message);
     }
-    await item.deleteOne();
+    await prisma.resource.delete({ where: { id: item.id } });
     return res.json({
       ok: true
     });

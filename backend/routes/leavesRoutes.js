@@ -77,7 +77,7 @@ router.post("/", verifyToken, async (req, res) => {
     // notify admin UIs via SSE
     try {
       sendSseEvent('leave_created', {
-        id: doc._id,
+        id: (doc.id || doc._id),
         email: doc.email,
         username: doc.username
       });
@@ -158,7 +158,7 @@ router.get("/", verifyToken, async (req, res) => {
         }
       }
       if (orClauses.length === 0) return res.json([]);
-      q.$or = orClauses;
+      q.OR = orClauses;
       const items = await prisma.leave.findMany({
         where: q,
 
@@ -236,18 +236,20 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     l.reviewedAt = new Date();
     l.reviewNote = note || '';
     // Transpiled save()
-    if (l && l.id) {
-      const { id: _id_unused, ..._updateData } = l;
+    if (l) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = l;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.leave.update({
-        where: { id: String(l.id) },
+        where: { id: String((l.id || l._id)) },
         data: _updateData
-      });
-    } else if (l && l._id) {
-      const { _id: _id_unused2, ..._updateData2 } = l;
-      await prisma.leave.update({
-        where: { id: String(l._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // attempt to send email notification to student
@@ -280,7 +282,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     }
     try {
       sendSseEvent('leave_updated', {
-        id: l._id,
+        id: (l.id || l._id),
         status: l.status,
         email: l.email
       });
@@ -309,11 +311,13 @@ router.post("/", verifyToken, async (req, res) => {
   });
   try {
     const l = await Leave.create({
-      userId: req.user.sub,
-      username: req.user.username,
-      from: new Date(from),
-      to: new Date(to),
-      reason
+      data: {
+        userId: req.user.sub,
+        username: req.user.username,
+        from: new Date(from),
+        to: new Date(to),
+        reason
+      }
     });
     return res.status(201).json(l);
   } catch (e) {
@@ -385,18 +389,20 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     leave.reviewedAt = new Date();
     leave.reviewNote = note || '';
     const saved = leave; // Transpiled save()
-    if (leave && leave.id) {
-      const { id: _id_unused, ..._updateData } = leave;
+    if (leave) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = leave;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.leave.update({
-        where: { id: String(leave.id) },
+        where: { id: String((leave.id || leave._id)) },
         data: _updateData
-      });
-    } else if (leave && leave._id) {
-      const { _id: _id_unused2, ..._updateData2 } = leave;
-      await prisma.leave.update({
-        where: { id: String(leave._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // If approved and user is faculty, auto-mark absent in faculty attendance for the date range
@@ -421,7 +427,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
             }
           }).catch(() => null);
         }
-        if (faculty && faculty._id && leave.from && leave.to) {
+        if (faculty && (faculty.id || faculty._id) && leave.from && leave.to) {
           const start = new Date(leave.from);
           start.setHours(0, 0, 0, 0);
           const end = new Date(leave.to);
@@ -434,34 +440,38 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
               }
             });
             const rec = {
-              facultyId: faculty._id,
+              facultyId: (faculty.id || faculty._id),
               status: 'absent',
               markedBy: req.user.sub
             };
             if (att) {
               // replace or add record for this faculty
-              const idx = Array.isArray(att.records) ? att.records.findIndex(r => String(r.facultyId) === String(faculty._id)) : -1;
+              const idx = Array.isArray(att.records) ? att.records.findIndex(r => String(r.facultyId) === String((faculty.id || faculty._id))) : -1;
               if (idx >= 0) att.records[idx] = rec;else att.records.push(rec);
               att.createdBy = req.user.sub;
               // Transpiled save()
-    if (att && att.id) {
-      const { id: _id_unused, ..._updateData } = att;
+    if (att) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = att;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyAttendance.update({
-        where: { id: String(att.id) },
+        where: { id: String((att.id || att._id)) },
         data: _updateData
-      });
-    } else if (att && att._id) {
-      const { _id: _id_unused2, ..._updateData2 } = att;
-      await prisma.facultyAttendance.update({
-        where: { id: String(att._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
             } else {
               await FacultyAttendance.create({
-                date: ymd,
-                records: [rec],
-                createdBy: req.user.sub
+                data: {
+                  date: ymd,
+                  records: [rec],
+                  createdBy: req.user.sub
+                }
               });
             }
           }

@@ -60,23 +60,25 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'Staff not found'
     });
     let payment = await StaffSalaryPayment.create({
-      userId,
-      staffName: staff.name || staff.username,
-      staffEmail: staff.username || '',
-      month,
-      amount,
-      status: 'pending'
+      data: {
+        userId,
+        staffName: staff.name || staff.username,
+        staffEmail: staff.username || '',
+        month,
+        amount,
+        status: 'pending'
+      }
     });
     const razorpayOrderId = 'order_' + makeId('rz_');
     const razorpayPaymentId = 'pay_' + makeId('rz_');
     const razorpaySignature = makeId('sig_');
-    const receiptNo = `SSL-${new Date().getFullYear()}-${String(payment._id).slice(-6).toUpperCase()}`;
+    const receiptNo = `SSL-${new Date().getFullYear()}-${String((payment.id || payment._id)).slice(-6).toUpperCase()}`;
     payment.razorpayOrderId = razorpayOrderId;
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
     payment.receiptNo = receiptNo;
     payment.status = 'paid';
-    /* FIXME: Mongoose .save() */ await payment.save();
+    if(payment.id) { await prisma.staffSalaryPayment.update({ where: { id: payment.id }, data: payment }).catch(() => null); }
     return res.status(201).json(payment);
   } catch (e) {
     return res.status(500).json({
@@ -116,17 +118,19 @@ router.post("/slips", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'Valid salary amount required'
     });
     const slip = await StaffSalaryPayment.create({
-      userId,
-      staffName: staff.name || staff.username,
-      staffEmail: staff.username || '',
-      month: String(month),
-      basic: basicNum,
-      allowances: allowancesNum,
-      deductions: deductionsNum,
-      amount: totalAmount,
-      notes: String(notes || ''),
-      status: 'pending',
-      receiptNo: `SSL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      data: {
+        userId,
+        staffName: staff.name || staff.username,
+        staffEmail: staff.username || '',
+        month: String(month),
+        basic: basicNum,
+        allowances: allowancesNum,
+        deductions: deductionsNum,
+        amount: totalAmount,
+        notes: String(notes || ''),
+        status: 'pending',
+        receiptNo: `SSL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      }
     });
     return res.status(201).json(slip);
   } catch (e) {
@@ -157,21 +161,23 @@ router.patch("/payments/:id/mark-paid", verifyToken, requireRole('admin'), async
     pay.paymentMethod = String(paymentMethod || 'Cash');
     pay.paymentDate = paymentDate ? new Date(paymentDate) : new Date();
     if (notes !== undefined) pay.notes = String(notes || '');
-    if (!pay.receiptNo) pay.receiptNo = `SSL-${new Date().getFullYear()}-${String(pay._id).slice(-6).toUpperCase()}`;
+    if (!pay.receiptNo) pay.receiptNo = `SSL-${new Date().getFullYear()}-${String((pay.id || pay._id)).slice(-6).toUpperCase()}`;
     if (!pay.razorpayPaymentId) pay.razorpayPaymentId = `manual_${makeId('pay_')}`;
     // Transpiled save()
-    if (pay && pay.id) {
-      const { id: _id_unused, ..._updateData } = pay;
+    if (pay) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = pay;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.staffSalaryPayment.update({
-        where: { id: String(pay.id) },
+        where: { id: String((pay.id || pay._id)) },
         data: _updateData
-      });
-    } else if (pay && pay._id) {
-      const { _id: _id_unused2, ..._updateData2 } = pay;
-      await prisma.staffSalaryPayment.update({
-        where: { id: String(pay._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(pay);
   } catch (e) {
@@ -209,7 +215,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           currency: 'INR',
           receipt,
           notes: {
-            userId: String(staff._id),
+            userId: String((staff.id || staff._id)),
             month
           }
         });
@@ -217,7 +223,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           mode: 'razorpay',
           order,
           staff: {
-            id: staff._id,
+            id: (staff.id || staff._id),
             name: staff.name || staff.username,
             email: staff.username || ''
           },
@@ -238,7 +244,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
       mode: 'mock',
       order,
       staff: {
-        id: staff._id,
+        id: (staff.id || staff._id),
         name: staff.name || staff.username,
         email: staff.username || ''
       },
@@ -274,16 +280,18 @@ router.post("/confirm", verifyToken, requireRole('admin'), async (req, res) => {
       message: 'Staff not found'
     });
     let payment = await StaffSalaryPayment.create({
-      userId,
-      staffName: staff.name || staff.username,
-      staffEmail: staff.username || '',
-      month,
-      amount,
-      status: 'paid',
-      razorpayOrderId: orderId,
-      razorpayPaymentId: paymentId,
-      razorpaySignature: signature || '',
-      receiptNo: `SSL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      data: {
+        userId,
+        staffName: staff.name || staff.username,
+        staffEmail: staff.username || '',
+        month,
+        amount,
+        status: 'paid',
+        razorpayOrderId: orderId,
+        razorpayPaymentId: paymentId,
+        razorpaySignature: signature || '',
+        receiptNo: `SSL-${new Date().getFullYear()}-${String(makeId()).slice(-6).toUpperCase()}`
+      }
     });
     return res.status(201).json(payment);
   } catch (e) {

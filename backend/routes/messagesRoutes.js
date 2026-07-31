@@ -41,14 +41,16 @@ router.post("/", verifyToken, async (req, res) => {
   });
   try {
     const m = await Message.create({
-      parentName,
-      studentName,
-      className,
-      subject,
-      description,
-      priority,
-      createdBy: req.user.sub,
-      createdByUsername: req.user.username
+      data: {
+        parentName,
+        studentName,
+        className,
+        subject,
+        description,
+        priority,
+        createdBy: req.user.sub,
+        createdByUsername: req.user.username
+      }
     });
     return res.status(201).json(m);
   } catch (e) {
@@ -147,18 +149,20 @@ router.put("/:id/status", verifyToken, async (req, res) => {
     m.history = m.history || [];
     m.history.push(entry);
     const saved = m; // Transpiled save()
-    if (m && m.id) {
-      const { id: _id_unused, ..._updateData } = m;
+    if (m) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = m;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.message.update({
-        where: { id: String(m.id) },
+        where: { id: String((m.id || m._id)) },
         data: _updateData
-      });
-    } else if (m && m._id) {
-      const { _id: _id_unused2, ..._updateData2 } = m;
-      await prisma.message.update({
-        where: { id: String(m._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(saved);
   } catch (e) {

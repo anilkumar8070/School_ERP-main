@@ -27,9 +27,10 @@ async function verifyToken(req, res, next) {
 
     // check whether the user account has been disabled (if using DB)
     try {
-      const User = require('../models/User')
+      const { PrismaClient } = require('@prisma/client')
+      const prisma = new PrismaClient()
       if (payload && payload.sub) {
-        const u = await User.findById(payload.sub).lean().catch(() => null)
+        const u = await prisma.user.findUnique({ where: { id: payload.sub } })
         if (u && u.disabled) return res.status(403).json({ message: 'Account blocked' })
       }
     } catch (e) {

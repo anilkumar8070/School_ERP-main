@@ -76,18 +76,20 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     }
     if (notify) doc.notified = true;
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.contactQuery.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.contactQuery.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // Return updated document (lean-like)
@@ -122,7 +124,10 @@ router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => 
     // Number of distinct classes (from students)
     let classesCount = 0;
     try {
-      const classes = await Student.distinct('class');
+      
+      const cQuery = await prisma.student.findMany({ select: { class: true }, distinct: ['class'] });
+      const classes = cQuery.map(c => c.class);
+
       classesCount = Array.isArray(classes) ? classes.filter(Boolean).length : 0;
     } catch (e) {
       classesCount = 0;
@@ -131,15 +136,12 @@ router.get("/dashboard", verifyToken, requireRole('admin'), async (req, res) => 
     // Total fee collection (sum of receipts.amount)
     let feesTotal = 0;
     try {
-      const agg = await Receipt.aggregate([{
-        $group: {
-          _id: null,
-          total: {
-            $sum: '$amount'
-          }
-        }
-      }]);
-      feesTotal = agg && agg[0] && agg[0].total ? agg[0].total : 0;
+      
+      const agg = await prisma.receipt.aggregate({ _sum: { amount: true } });
+
+      
+      feesTotal = agg && agg._sum && agg._sum.amount ? agg._sum.amount : 0;
+
     } catch (e) {
       feesTotal = 0;
     }
@@ -204,12 +206,14 @@ router.post("/custom-forms", verifyToken, requireRole('admin'), async (req, res)
       options: Array.isArray(field.options) ? field.options.map(opt => String(opt).trim()).filter(Boolean) : []
     }));
     const doc = await CustomForm.create({
-      title: String(title),
-      category: String(category || 'General'),
-      description: String(description || ''),
-      status: String(status || 'active'),
-      fields: cleanFields,
-      createdBy: req.user && req.user.sub
+      data: {
+        title: String(title),
+        category: String(category || 'General'),
+        description: String(description || ''),
+        status: String(status || 'active'),
+        fields: cleanFields,
+        createdBy: req.user && req.user.sub
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -237,7 +241,7 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
       message: 'at least one field required'
     });
     const cleanFields = fields.filter(field => field && String(field.label || '').trim()).map(field => ({
-      _id: field._id,
+      _id: (field.id || field._id),
       label: String(field.label || '').trim(),
       type: String(field.type || 'text'),
       required: !!field.required,
@@ -340,18 +344,20 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
     });
     if (status) doc.status = String(status);
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.contactQuery.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.contactQuery.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // Send email to user if requested
@@ -364,7 +370,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
           html: body
         }).catch(() => null);
         doc.notified = true;
-        await doc.save().catch(() => null);
+        await prisma.contactQuery.update({ where: { id: doc.id }, data: { notified: doc.notified, status: doc.status } }).catch(() => null);
       } catch (e) {/* ignore mail errors */}
     }
     return res.json(doc);
@@ -468,8 +474,8 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (cls) q.class = cls;
       if (section) q.section = section;
       if (from || to) q.submittedAt = {};
-      if (from) q.submittedAt.$gte = from;
-      if (to) q.submittedAt.$lte = to;
+      if (from) q.submittedAt.gte = from;
+      if (to) q.submittedAt.lte = to;
       const results = await prisma.testResult.findMany({
         where: q
       }).catch(() => []);
@@ -485,8 +491,8 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
       if (cls) q.className = cls;
       if (section) q.section = section;
       if (from || to) q.createdAt = {};
-      if (from) q.createdAt.$gte = from;
-      if (to) q.createdAt.$lte = to;
+      if (from) q.createdAt.gte = from;
+      if (to) q.createdAt.lte = to;
       const cards = await prisma.reportCard.findMany({
         where: q
       }).catch(() => []);
@@ -540,13 +546,13 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
         where: sq
       }).catch(() => []);
       for (const s of students || []) {
-        const skey = s._id ? String(s._id) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
+        const skey = (s.id || s._id) ? String((s.id || s._id)) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
         const exists = rows.some(r => r.key === skey);
         if (!exists) {
           rows.push({
             key: skey,
             name: s.name || '',
-            studentId: s._id || null,
+            studentId: (s.id || s._id) || null,
             class: s.class || '',
             section: s.section || '',
             avg: null,

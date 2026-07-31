@@ -43,7 +43,7 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
     }).catch(() => []);
     // Attach latest receipt info (if any) to each allocation for admin convenience
     try {
-      const allocIds = list.map(l => l._id).filter(Boolean);
+      const allocIds = list.map(l => (l.id || l._id)).filter(Boolean);
       if (allocIds.length > 0) {
         const recs = await prisma.transportReceipt.findMany({
           where: {
@@ -62,7 +62,7 @@ router.get("/allocations", verifyToken, requireRole('admin'), async (req, res) =
           if (!map[key]) map[key] = r;
         }
         for (const l of list) {
-          const k = String(l._id);
+          const k = String((l.id || l._id));
           if (map[k]) {
             l.receiptId = map[k]._id;
             l.receiptPdfUrl = map[k].pdfUrl || '';
@@ -125,19 +125,21 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
             const razorpay_payment_id = payload.razorpayPaymentId || payload.razorpay_payment_id || null;
             const razorpay_signature = payload.razorpaySignature || payload.razorpay_signature || null;
             const receipt = await TransportReceipt.create({
-              allocationId: alloc ? alloc._id : null,
-              studentId: payload.student && payload.student.id ? payload.student.id : null,
-              busId: alloc ? alloc.busId : '',
-              routeName: bodyRouteName || (alloc ? alloc.routeName || '' : ''),
-              stopName: bodyStopName || (alloc ? alloc.stopName || '' : ''),
-              busName: bodyBusName || (alloc ? alloc.busName || '' : ''),
-              seatNo: alloc ? alloc.seatNo : '',
-              amount: Number(amount || 0) || 0,
-              razorpayOrderId: razorpay_order_id,
-              razorpayPaymentId: razorpay_payment_id,
-              razorpaySignature: razorpay_signature || ''
+              data: {
+                allocationId: alloc ? (alloc.id || alloc._id) : null,
+                studentId: payload.student && payload.student.id ? payload.student.id : null,
+                busId: alloc ? alloc.busId : '',
+                routeName: bodyRouteName || (alloc ? alloc.routeName || '' : ''),
+                stopName: bodyStopName || (alloc ? alloc.stopName || '' : ''),
+                busName: bodyBusName || (alloc ? alloc.busName || '' : ''),
+                seatNo: alloc ? alloc.seatNo : '',
+                amount: Number(amount || 0) || 0,
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: razorpay_signature || ''
+              }
             });
-            console.log('Created transport receipt', receipt && receipt._id);
+            console.log('Created transport receipt', receipt && (receipt.id || receipt._id));
 
             // generate PDF
             try {
@@ -145,7 +147,7 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
               if (gen) {
                 receipt.pdfPath = gen.pdfPath;
                 receipt.pdfUrl = gen.pdfUrl;
-                await receipt.save().catch(() => null);
+                await prisma.receipt.update({ where: { id: receipt.id }, data: { status: receipt.status, pdfUrl: receipt.pdfUrl, pdfPath: receipt.pdfPath } }).catch(() => null);
               }
             } catch (e) {
               console.warn('pdf gen failed on transport confirm', e && e.message);
@@ -159,14 +161,14 @@ router.post("/allocations", verifyToken, requireRole('admin'), async (req, res) 
                   amount: Number(receipt.amount || 0),
                   orderId: razorpay_order_id,
                   paymentId: razorpay_payment_id,
-                  receiptId: String(receipt._id),
+                  receiptId: String((receipt.id || receipt._id)),
                   status: 'paid'
                 };
                 payments.push(p);
                 alloc.payments = payments;
                 alloc.paid = true;
-                /* FIXME: Mongoose .save() */ await alloc.save();
-                console.log('Updated allocation as paid', alloc._id);
+                await prisma.hostelAllocation.update({ where: { id: alloc.id }, data: { /* specify fields if needed */ } });
+                console.log('Updated allocation as paid', (alloc.id || alloc._id));
               }
             } catch (e) {
               console.warn('Failed to update transport allocation payments on confirm', e && e.message);

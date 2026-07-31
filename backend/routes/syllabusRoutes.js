@@ -40,13 +40,15 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
     const file = req.file;
     const filePath = file ? `/uploads/${file.filename}` : '';
     const doc = await Syllabus.create({
-      class: String(cls),
-      section: section || 'ALL',
-      subject: subject || '',
-      name: file ? file.originalname : '',
-      mime: file ? file.mimetype : '',
-      filePath,
-      uploadedBy: req.user && req.user.sub
+      data: {
+        class: String(cls),
+        section: section || 'ALL',
+        subject: subject || '',
+        name: file ? file.originalname : '',
+        mime: file ? file.mimetype : '',
+        filePath,
+        uploadedBy: req.user && req.user.sub
+      }
     });
     return res.status(201).json(doc);
   } catch (e) {
@@ -80,7 +82,7 @@ router.get("/", async (req, res) => {
     const q = {
       class: String(cls)
     };
-    if (section) q.$or = [{
+    if (section) q.OR = [{
       section
     }, {
       section: 'ALL'
@@ -129,9 +131,9 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     } catch (e) {
       console.warn('Failed to unlink syllabus file', doc.filePath, e && e.message);
     }
-    await Syllabus.deleteOne({
-      _id: id
-    });
+    await Syllabus.deleteMany({ where: {
+      id: id
+    } });
     return res.json({
       ok: true
     });
@@ -158,15 +160,18 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     message: 'subject required'
   });
   try {
-    const s = await Syllabus.findOneAndUpdate({
-      subject
-    }, {
-      content,
-      uploadedBy: req.user.sub
-    }, {
-      upsert: true,
-      new: true
-    });
+    const existing = await prisma.syllabus.findFirst({ where: { subject } });
+    let s;
+    if (existing) {
+      s = await prisma.syllabus.update({
+        where: { id: existing.id },
+        data: { content, uploadedBy: req.user.sub }
+      });
+    } else {
+      s = await prisma.syllabus.create({
+        data: { class: '', subject, content, uploadedBy: req.user.sub }
+      });
+    }
     return res.status(201).json(s);
   } catch (e) {
     return res.status(500).json({

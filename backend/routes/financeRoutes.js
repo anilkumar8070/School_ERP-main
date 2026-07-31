@@ -58,7 +58,7 @@ router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'paren
         OR: [{
           studentEmail: student.email
         }, {
-          studentId: student._id
+          studentId: (student.id || student._id)
         }]
       },
 
@@ -295,18 +295,20 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
       existing.term2FineMode = term2FineMode || 'none';
       existing.term2FineAmount = Number(term2FineAmount || 0);
       // Transpiled save()
-    if (existing && existing.id) {
-      const { id: _id_unused, ..._updateData } = existing;
+    if (existing) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = existing;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.feeStructure.update({
-        where: { id: String(existing.id) },
+        where: { id: String((existing.id || existing._id)) },
         data: _updateData
-      });
-    } else if (existing && existing._id) {
-      const { _id: _id_unused2, ..._updateData2 } = existing;
-      await prisma.feeStructure.update({
-        where: { id: String(existing._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
       // Auto-propagate assignment to students for this class/section
       try {
@@ -322,42 +324,31 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
             where: studentQuery
           });
           for (const s of students || []) {
-            const id = s._id;
+            const id = (s.id || s._id);
             const hasT1 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term1');
-            if (hasT1) {
-              await Student.updateOne({
-                _id: id,
-                'assignedFees.term': 'Term1'
-              }, {
-                'assignedFees.$.amount': Number(term1),
-                'assignedFees.$.assignedAt': new Date(),
-                'assignedFees.$.by': actor
-              });
+            
+            let fees = Array.isArray(s.assignedFees) ? s.assignedFees : [];
+            const idx = fees.findIndex(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term1');
+            if (idx !== -1) {
+               fees[idx].amount = Number(term1);
+               fees[idx].assignedAt = new Date();
+               fees[idx].by = actor;
             } else {
-              await Student.updateOne({
-                _id: id
-              }, {
-                push: {
-                  assignedFees: {
-                    term: 'Term1',
-                    amount: Number(term1),
-                    note: String(note || ''),
-                    by: actor,
-                    assignedAt: new Date()
-                  }
-                }
-              });
+               fees.push({ term: 'Term1', amount: Number(term1), note: String(note || ''), by: actor, assignedAt: new Date() });
             }
+            await prisma.student.update({ where: { id }, data: { assignedFees: fees } });
+
           }
         } else {
+          
           // remove Term1 assignment if amount is 0
-          await Student.updateMany(studentQuery, {
-            disconnect: {
-              assignedFees: {
-                term: 'Term1'
-              }
-            }
-          });
+          const studentsToRemove = await prisma.student.findMany({ where: studentQuery });
+          for (const sToRemove of studentsToRemove) {
+             let fees = Array.isArray(sToRemove.assignedFees) ? sToRemove.assignedFees : [];
+             const filtered = fees.filter(f => String(f.term).toLowerCase().replace(/\s+/g, '') !== 'term1');
+             await prisma.student.update({ where: { id: sToRemove.id }, data: { assignedFees: filtered } });
+          }
+
         }
         // Term2 handling
         if (Number(term2 || 0) > 0) {
@@ -365,42 +356,31 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
             where: studentQuery
           });
           for (const s of students || []) {
-            const id = s._id;
+            const id = (s.id || s._id);
             const hasT2 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term2');
-            if (hasT2) {
-              await Student.updateOne({
-                _id: id,
-                'assignedFees.term': 'Term2'
-              }, {
-                'assignedFees.$.amount': Number(term2),
-                'assignedFees.$.assignedAt': new Date(),
-                'assignedFees.$.by': actor
-              });
+            
+            let fees2 = Array.isArray(s.assignedFees) ? s.assignedFees : [];
+            const idx2 = fees2.findIndex(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term2');
+            if (idx2 !== -1) {
+               fees2[idx2].amount = Number(term2);
+               fees2[idx2].assignedAt = new Date();
+               fees2[idx2].by = actor;
             } else {
-              await Student.updateOne({
-                _id: id
-              }, {
-                push: {
-                  assignedFees: {
-                    term: 'Term2',
-                    amount: Number(term2),
-                    note: String(note || ''),
-                    by: actor,
-                    assignedAt: new Date()
-                  }
-                }
-              });
+               fees2.push({ term: 'Term2', amount: Number(term2), note: String(note || ''), by: actor, assignedAt: new Date() });
             }
+            await prisma.student.update({ where: { id }, data: { assignedFees: fees2 } });
+
           }
         } else {
+          
           // remove Term2 assignment if amount is 0
-          await Student.updateMany(studentQuery, {
-            disconnect: {
-              assignedFees: {
-                term: 'Term2'
-              }
-            }
-          });
+          const studentsToRemove2 = await prisma.student.findMany({ where: studentQuery });
+          for (const sToRemove of studentsToRemove2) {
+             let fees = Array.isArray(sToRemove.assignedFees) ? sToRemove.assignedFees : [];
+             const filtered = fees.filter(f => String(f.term).toLowerCase().replace(/\s+/g, '') !== 'term2');
+             await prisma.student.update({ where: { id: sToRemove.id }, data: { assignedFees: filtered } });
+          }
+
         }
       } catch (propErr) {
         console.warn('Failed to auto-assign fees to students:', propErr && (propErr.message || String(propErr)));
@@ -408,29 +388,31 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
       return res.json(existing);
     }
     const created = await FeeStructure.create({
-      class: String(cls),
-      section: sec,
-      term1: Number(term1 || 0),
-      term2: Number(term2 || 0),
-      term1DueDate: term1DueDate || '',
-      term2DueDate: term2DueDate || '',
-      term1FineMode: term1FineMode || 'none',
-      term1FineAmount: Number(term1FineAmount || 0),
-      term2FineMode: term2FineMode || 'none',
-      term2FineAmount: Number(term2FineAmount || 0),
-      history: [{
-        by: actor,
-        at: new Date(),
+      data: {
+        class: String(cls),
+        section: sec,
         term1: Number(term1 || 0),
         term2: Number(term2 || 0),
-        note,
         term1DueDate: term1DueDate || '',
         term2DueDate: term2DueDate || '',
         term1FineMode: term1FineMode || 'none',
         term1FineAmount: Number(term1FineAmount || 0),
         term2FineMode: term2FineMode || 'none',
-        term2FineAmount: Number(term2FineAmount || 0)
-      }]
+        term2FineAmount: Number(term2FineAmount || 0),
+        history: [{
+          by: actor,
+          at: new Date(),
+          term1: Number(term1 || 0),
+          term2: Number(term2 || 0),
+          note,
+          term1DueDate: term1DueDate || '',
+          term2DueDate: term2DueDate || '',
+          term1FineMode: term1FineMode || 'none',
+          term1FineAmount: Number(term1FineAmount || 0),
+          term2FineMode: term2FineMode || 'none',
+          term2FineAmount: Number(term2FineAmount || 0)
+        }]
+      }
     });
     // Auto-propagate for newly created fee structure
     try {
@@ -440,28 +422,26 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
         }
       };
       if (sec && sec !== 'ALL') studentQuery.section = sec;
-      if (Number(term1 || 0) > 0) await Student.updateMany(studentQuery, {
-        push: {
-          assignedFees: {
-            term: 'Term1',
-            amount: Number(term1),
-            note: String(note || ''),
-            by: actor,
-            assignedAt: new Date()
+      
+      if (Number(term1 || 0) > 0) {
+          const students = await prisma.student.findMany({ where: studentQuery });
+          for (const s of students) {
+             let fees = Array.isArray(s.assignedFees) ? s.assignedFees : [];
+             fees.push({ term: 'Term1', amount: Number(term1), note: String(note || ''), by: actor, assignedAt: new Date() });
+             await prisma.student.update({ where: { id: s.id }, data: { assignedFees: fees } });
           }
-        }
-      });
-      if (Number(term2 || 0) > 0) await Student.updateMany(studentQuery, {
-        push: {
-          assignedFees: {
-            term: 'Term2',
-            amount: Number(term2),
-            note: String(note || ''),
-            by: actor,
-            assignedAt: new Date()
+      }
+
+      
+      if (Number(term2 || 0) > 0) {
+          const students = await prisma.student.findMany({ where: studentQuery });
+          for (const s of students) {
+             let fees = Array.isArray(s.assignedFees) ? s.assignedFees : [];
+             fees.push({ term: 'Term2', amount: Number(term2), note: String(note || ''), by: actor, assignedAt: new Date() });
+             await prisma.student.update({ where: { id: s.id }, data: { assignedFees: fees } });
           }
-        }
-      });
+      }
+
     } catch (propErr) {
       console.warn('Failed to auto-assign fees to students (create):', propErr && (propErr.message || String(propErr)));
     }
@@ -499,7 +479,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
     let removed = false;
     if (fee.history && fee.history.length) {
       // prefer exact _id match (compare as strings)
-      const idx = fee.history.findIndex(h => String(h._id) === String(hid));
+      const idx = fee.history.findIndex(h => String((h.id || h._id)) === String(hid));
       if (idx >= 0) {
         fee.history.splice(idx, 1);
         removed = true;
@@ -522,18 +502,20 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
       message: 'History entry not found'
     });
     // Transpiled save()
-    if (fee && fee.id) {
-      const { id: _id_unused, ..._updateData } = fee;
+    if (fee) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = fee;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.feeStructure.update({
-        where: { id: String(fee.id) },
+        where: { id: String((fee.id || fee._id)) },
         data: _updateData
-      });
-    } else if (fee && fee._id) {
-      const { _id: _id_unused2, ..._updateData2 } = fee;
-      await prisma.feeStructure.update({
-        where: { id: String(fee._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     const updated = await prisma.feeStructure.findUnique({
       where: {
@@ -669,12 +651,18 @@ router.post("/assign-fee", verifyToken, requireRole('admin'), async (req, res) =
       assignedAt: new Date()
     };
 
+    
     // Push assignedFees entry to matching students
-    const r = await Student.updateMany(q, {
-      push: {
-        assignedFees: entry
-      }
-    });
+    let matchedCount = 0;
+    const targets = await prisma.student.findMany({ where: q });
+    for (const s of targets) {
+       let fees = Array.isArray(s.assignedFees) ? s.assignedFees : [];
+       fees.push(entry);
+       await prisma.student.update({ where: { id: s.id }, data: { assignedFees: fees } });
+       matchedCount++;
+    }
+    const r = { matchedCount, modifiedCount: matchedCount };
+
     for (const student of students) {
       if (student.contact || student.email) {
         await notifyEvent({
@@ -730,16 +718,18 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
 
     // create receipt record
     const rec = await Receipt.create({
-      studentId: studentId || null,
-      allocationId: allocationId || null,
-      studentName: studentName || '',
-      studentEmail: studentEmail || req.user && req.user.username || '',
-      class: cls || '',
-      term: term || '',
-      amount: Number(amount || 0),
-      razorpayOrderId: razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      razorpaySignature: razorpay_signature
+      data: {
+        studentId: studentId || null,
+        allocationId: allocationId || null,
+        studentName: studentName || '',
+        studentEmail: studentEmail || req.user && req.user.username || '',
+        class: cls || '',
+        term: term || '',
+        amount: Number(amount || 0),
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature
+      }
     });
 
     // send receipt email to student if email present (with PDF attachment)
@@ -756,7 +746,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                 <p>Hi ${rec.studentName || rec.studentEmail},</p>
                 <p>Thank you. Your payment has been received.</p>
                 <table style="width:100%;border-collapse:collapse;margin-top:8px">
-                  <tr><td style="font-weight:700;padding:6px 0">Receipt ID</td><td style="padding:6px 0">${rec._id}</td></tr>
+                  <tr><td style="font-weight:700;padding:6px 0">Receipt ID</td><td style="padding:6px 0">${(rec.id || rec._id)}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Class</td><td style="padding:6px 0">${rec.class}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Term</td><td style="padding:6px 0">${rec.term}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Amount</td><td style="padding:6px 0">₹${rec.amount}</td></tr>
@@ -785,7 +775,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                   subject,
                   html,
                   attachments: [{
-                    filename: `receipt_${rec._id}.pdf`,
+                    filename: `receipt_${(rec.id || rec._id)}.pdf`,
                     content: pdfData
                   }]
                 }).catch(() => {});
@@ -802,7 +792,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
               align: 'left'
             });
             doc.moveDown(1);
-            doc.fontSize(12).text(`Receipt ID: ${rec._id}`);
+            doc.fontSize(12).text(`Receipt ID: ${(rec.id || rec._id)}`);
             doc.text(`Date: ${new Date(rec.createdAt).toLocaleString()}`);
             doc.moveDown(0.5);
             doc.fontSize(12).text(`Student: ${rec.studentName || ''}`);
@@ -878,7 +868,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                 amount: Number(amount || 0),
                 orderId: razorpay_order_id,
                 paymentId: razorpay_payment_id,
-                receiptId: rec._id,
+                receiptId: (rec.id || rec._id),
                 status: 'paid'
               });
             }
@@ -887,7 +877,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
               amount: Number(amount || 0),
               orderId: razorpay_order_id,
               paymentId: razorpay_payment_id,
-              receiptId: rec._id,
+              receiptId: (rec.id || rec._id),
               status: 'paid'
             });
           }
@@ -922,7 +912,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
     // emit SSE for admin UIs
     try {
       sendSseEvent('receipt_created', {
-        id: rec._id,
+        id: (rec.id || rec._id),
         email: rec.studentEmail,
         name: rec.studentName,
         amount: rec.amount

@@ -114,9 +114,11 @@ router.post("/staff", verifyToken, requireRole(['admin', 'staff']), async (req, 
       }
     }).catch(() => null);
     if (!doc) doc = await StaffAttendance.create({
-      date,
-      records: [],
-      createdBy: req.user.sub
+      data: {
+        date,
+        records: [],
+        createdBy: req.user.sub
+      }
     });
     for (const rec of records) {
       const idx = Array.isArray(doc.records) ? doc.records.findIndex(r => String(r.userId) === String(rec.userId)) : -1;
@@ -128,18 +130,20 @@ router.post("/staff", verifyToken, requireRole(['admin', 'staff']), async (req, 
       if (idx >= 0) doc.records[idx] = payload;else doc.records.push(payload);
     }
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.staffAttendance.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.staffAttendance.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json(doc);
   } catch (e) {
@@ -179,7 +183,7 @@ router.get("/staff/export", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         } catch {}
-        const staffId = u ? `STF-${String(u._id).slice(-6).toUpperCase()}` : '';
+        const staffId = u ? `STF-${String((u.id || u._id)).slice(-6).toUpperCase()}` : '';
         rows.push([d.date, u ? u.name || u.username : String(r.userId), staffId, r.status || '']);
       }
     }
@@ -285,8 +289,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
       const ids = (enriched || []).map(r => String(r.studentId)).filter(Boolean);
       if (ids.length > 0) {
         const studs = await prisma.student.findMany({
-          where: {
-            _id: {
+          where: { id: {
               in: ids
             }
           }
@@ -296,10 +299,10 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
         });
         for (const s of studs) {
           if (String(s.class) !== String(cls)) return res.status(400).json({
-            message: `Student ${s._id} not in class ${cls}`
+            message: `Student ${(s.id || s._id)} not in class ${cls}`
           });
           if (section && String(section || '') !== '' && String(s.section || '') !== String(section || '')) return res.status(400).json({
-            message: `Student ${s._id} not in section ${section}`
+            message: `Student ${(s.id || s._id)} not in section ${section}`
           });
         }
       }
@@ -321,26 +324,30 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
       att.records = enriched;
       att.createdBy = req.user.sub;
       // Transpiled save()
-    if (att && att.id) {
-      const { id: _id_unused, ..._updateData } = att;
+    if (att) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = att;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.attendance.update({
-        where: { id: String(att.id) },
+        where: { id: String((att.id || att._id)) },
         data: _updateData
-      });
-    } else if (att && att._id) {
-      const { _id: _id_unused2, ..._updateData2 } = att;
-      await prisma.attendance.update({
-        where: { id: String(att._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     } else {
       att = await Attendance.create({
-        class: String(cls),
-        section: section || '',
-        date: String(date),
-        records: enriched,
-        createdBy: req.user.sub
+        data: {
+          class: String(cls),
+          section: section || '',
+          date: String(date),
+          records: enriched,
+          createdBy: req.user.sub
+        }
       });
     }
 
@@ -370,15 +377,14 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
         // fetch students in one query
         const ids = toNotify.map(r => r.studentId);
         const students = await prisma.student.findMany({
-          where: {
-            _id: {
+          where: { id: {
               in: ids
             }
           }
         });
         const byId = {};
         students.forEach(s => {
-          byId[String(s._id)] = s;
+          byId[String((s.id || s._id))] = s;
         });
         const titleDate = String(date);
         const classLabel = `Class ${String(cls)}${section ? ' - Section ' + String(section) : ''}`;
@@ -478,7 +484,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
       if (!me) return res.status(404).json({
         message: 'Student record not found'
       });
-      effectiveStudentId = String(me._id);
+      effectiveStudentId = String((me.id || me._id));
     } else if (role === 'parent') {
       if (!rawStudentId) return res.status(400).json({
         message: 'studentId required for parent'
@@ -502,8 +508,8 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
     if (section) q.section = String(section);
     if (from || to) {
       q.date = {};
-      if (from) q.date.$gte = String(from);
-      if (to) q.date.$lte = String(to);
+      if (from) q.date.gte = String(from);
+      if (to) q.date.lte = String(to);
     }
     const items = await prisma.attendance.findMany({
       where: q,
@@ -524,14 +530,13 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
     const byId = {};
     if (ids.size > 0) {
       const docs = await prisma.student.findMany({
-        where: {
-          _id: {
+        where: { id: {
             in: Array.from(ids)
           }
         }
       });
       (docs || []).forEach(s => {
-        byId[String(s._id)] = s;
+        byId[String((s.id || s._id))] = s;
       });
     }
     const rows = [['Date', 'Class', 'Section', 'StudentId', 'StudentName', 'Roll', 'Status']];
@@ -595,24 +600,28 @@ router.post("/faculty", verifyToken, requireRole(['faculty', 'admin']), async (r
       att.records = enriched;
       att.createdBy = req.user.sub;
       // Transpiled save()
-    if (att && att.id) {
-      const { id: _id_unused, ..._updateData } = att;
+    if (att) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = att;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyAttendance.update({
-        where: { id: String(att.id) },
+        where: { id: String((att.id || att._id)) },
         data: _updateData
-      });
-    } else if (att && att._id) {
-      const { _id: _id_unused2, ..._updateData2 } = att;
-      await prisma.facultyAttendance.update({
-        where: { id: String(att._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     } else {
       att = await FacultyAttendance.create({
-        date: String(date),
-        records: enriched,
-        createdBy: req.user.sub
+        data: {
+          date: String(date),
+          records: enriched,
+          createdBy: req.user.sub
+        }
       });
     }
     // SSE notify for faculty attendance updates
@@ -670,8 +679,8 @@ router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), as
     const q = {};
     if (from || to) {
       q.date = {};
-      if (from) q.date.$gte = String(from);
-      if (to) q.date.$lte = String(to);
+      if (from) q.date.gte = String(from);
+      if (to) q.date.lte = String(to);
     }
     const items = await prisma.facultyAttendance.findMany({
       where: q,
@@ -690,14 +699,13 @@ router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), as
     const fById = {};
     if (ids.size > 0) {
       const docs = await prisma.faculty.findMany({
-        where: {
-          _id: {
+        where: { id: {
             in: Array.from(ids)
           }
         }
       });
       (docs || []).forEach(f => {
-        fById[String(f._id)] = f;
+        fById[String((f.id || f._id))] = f;
       });
     }
     const rows = [['Date', 'FacultyId', 'Name', 'EmployeeId', 'Subject', 'Status']];
@@ -790,13 +798,15 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
       }
     }).catch(() => null);
     if (!doc) doc = await FacultyAttendance.create({
-      date,
-      records: [],
-      createdBy: req.user.sub
+      data: {
+        date,
+        records: [],
+        createdBy: req.user.sub
+      }
     });
     for (const rec of records) {
       // Determine faculty id: prefer provided rec.facultyId; if missing or not found, fall back to current user's mapped faculty
-      let fid = rec && rec.facultyId ? rec.facultyId : currentFaculty && currentFaculty._id;
+      let fid = rec && rec.facultyId ? rec.facultyId : currentFaculty && (currentFaculty.id || currentFaculty._id);
       // If fid is still not resolved, attempt lookup by employeeId
       if (!fid && rec && rec.employeeId) {
         const byEmp = await prisma.faculty.findFirst({
@@ -804,7 +814,7 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
             employeeId: rec.employeeId
           }
         }).catch(() => null);
-        if (byEmp) fid = byEmp._id;
+        if (byEmp) fid = (byEmp.id || byEmp._id);
       }
       if (!fid) continue; // skip if we cannot resolve a faculty id
       const idx = Array.isArray(doc.records) ? doc.records.findIndex(r => String(r.facultyId) === String(fid)) : -1;
@@ -816,18 +826,20 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
       if (idx >= 0) doc.records[idx] = payload;else doc.records.push(payload);
     }
     // Transpiled save()
-    if (doc && doc.id) {
-      const { id: _id_unused, ..._updateData } = doc;
+    if (doc) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = doc;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.facultyAttendance.update({
-        where: { id: String(doc.id) },
+        where: { id: String((doc.id || doc._id)) },
         data: _updateData
-      });
-    } else if (doc && doc._id) {
-      const { _id: _id_unused2, ..._updateData2 } = doc;
-      await prisma.facultyAttendance.update({
-        where: { id: String(doc._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     // Notify UIs to refresh this date (admin/faculty pages)
     try {

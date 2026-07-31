@@ -90,20 +90,22 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
       });
     }
     const m = await Meeting.create({
-      title,
-      summary,
-      datetime: new Date(datetime),
-      link,
-      audience,
-      class: cls,
-      section,
-      studentId,
-      createdBy: req.user.sub
+      data: {
+        title,
+        summary,
+        datetime: new Date(datetime),
+        link,
+        audience,
+        class: cls,
+        section,
+        studentId,
+        createdBy: req.user.sub
+      }
     });
     // notify SSE clients
     try {
       sendSseEvent('meeting_created', {
-        id: m._id,
+        id: (m.id || m._id),
         title: m.title
       });
     } catch (e) {}
@@ -126,7 +128,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
       orderBy: {
         datetime: "desc"
       }
-    }).populate('createdBy', 'name');
+    , include: { createdBy: { select: { name: true } } }});
     return res.json(items);
   } catch (e) {
     return res.status(500).json({
@@ -161,14 +163,10 @@ router.get("/my", verifyToken, async (req, res) => {
         audience: 'all'
       }, {
         audience: 'students',
-        class: {
-          $exists: false
-        }
+        class: null
       }, {
         audience: 'student',
-        class: {
-          $exists: false
-        }
+        class: null
       }, {
         audience: 'students'
       }, {
@@ -199,12 +197,12 @@ router.get("/my", verifyToken, async (req, res) => {
         }
         specific.push({
           audience: 'student',
-          studentId: studentDoc._id
+          studentId: (studentDoc.id || studentDoc._id)
         });
       }
       const finalOr = or.concat(specific);
-      // deduplicate simple: use $or with constructed array
-      q.$or = finalOr;
+      // deduplicate simple: use OR with constructed array
+      q.OR = finalOr;
       const items = await prisma.meeting.findMany({
         where: q,
 
@@ -300,8 +298,8 @@ router.get("/my", verifyToken, async (req, res) => {
           // deduplicate by _id
           const seen = new Set();
           items = items.filter(it => {
-            if (!it || !it._id) return false;
-            const id = String(it._id);
+            if (!it || !(it.id || it._id)) return false;
+            const id = String((it.id || it._id));
             if (seen.has(id)) return false;
             seen.add(id);
             return true;

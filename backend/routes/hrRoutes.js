@@ -38,15 +38,15 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
     if (q) {
       const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter = {
-        $and: [base, {
+        AND: [base, {
           OR: [{
-            name: re
+            name: { contains: q, mode: 'insensitive' }
           }, {
-            username: re
+            username: { contains: q, mode: 'insensitive' }
           }, {
             designation: re
           }, {
-            contact: re
+            contact: { contains: q, mode: 'insensitive' }
           }, {
             fatherName: re
           }]
@@ -114,19 +114,21 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     const plainPassword = password && String(password).length >= 6 ? String(password) : Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10);
     const hashed = await bcrypt.hash(plainPassword, 10);
     const doc = await User.create({
-      username: email,
-      password: hashed,
-      role: 'staff',
-      hr: true,
-      name,
-      fatherName,
-      contact,
-      address,
-      designation,
-      gender: gender || '',
-      age: age !== undefined && age !== '' && age !== null ? Number(age) : null,
-      religion: religion || '',
-      category: category || ''
+      data: {
+        username: email,
+        password: hashed,
+        role: 'staff',
+        hr: true,
+        name,
+        fatherName,
+        contact,
+        address,
+        designation,
+        gender: gender || '',
+        age: age !== undefined && age !== '' && age !== null ? Number(age) : null,
+        religion: religion || '',
+        category: category || ''
+      }
     });
 
     // Send welcome email with credentials (best-effort)
@@ -152,7 +154,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
     } catch (e) {/* ignore mail errors */}
     return res.status(201).json({
       ok: true,
-      id: doc._id,
+      id: (doc.id || doc._id),
       username: doc.username,
       password: plainPassword
     });
@@ -221,18 +223,20 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
     });
     user.disabled = !!block;
     // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json({
       ok: true
@@ -280,23 +284,25 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     if (religion !== undefined) user.religion = religion;
     if (category !== undefined) user.category = category;
     // Transpiled save()
-    if (user && user.id) {
-      const { id: _id_unused, ..._updateData } = user;
+    if (user) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = user;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.user.update({
-        where: { id: String(user.id) },
+        where: { id: String((user.id || user._id)) },
         data: _updateData
-      });
-    } else if (user && user._id) {
-      const { _id: _id_unused2, ..._updateData2 } = user;
-      await prisma.user.update({
-        where: { id: String(user._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json({
       ok: true,
       hr: {
-        id: user._id,
+        id: (user.id || user._id),
         name: user.name,
         fatherName: user.fatherName,
         username: user.username,

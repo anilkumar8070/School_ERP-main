@@ -123,18 +123,20 @@ router.put("/", verifyToken, async (req, res) => {
         if (Object.keys(su).length > 0) {
           s.set(su);
           // Transpiled save()
-    if (s && s.id) {
-      const { id: _id_unused, ..._updateData } = s;
+    if (s) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = s;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.student.update({
-        where: { id: String(s.id) },
+        where: { id: String((s.id || s._id)) },
         data: _updateData
-      });
-    } else if (s && s._id) {
-      const { _id: _id_unused2, ..._updateData2 } = s;
-      await prisma.student.update({
-        where: { id: String(s._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
           updatedStudent = s;
         }
@@ -159,18 +161,20 @@ router.put("/", verifyToken, async (req, res) => {
         if (Object.keys(fu).length > 0) {
           f.set(fu);
           // Transpiled save()
-    if (f && f.id) {
-      const { id: _id_unused, ..._updateData } = f;
+    if (f) {
+      const { id: _unused_id, _id: _unused__id, save: _unused_save, toObject: _unused_toObject, ..._updateData } = f;
+      
+      // Clean out relational arrays if any to prevent Prisma crash
+      for (const k in _updateData) {
+        if (Array.isArray(_updateData[k]) && _updateData[k].length > 0 && typeof _updateData[k][0] === 'object') {
+           delete _updateData[k];
+        }
+      }
+
       await prisma.faculty.update({
-        where: { id: String(f.id) },
+        where: { id: String((f.id || f._id)) },
         data: _updateData
-      });
-    } else if (f && f._id) {
-      const { _id: _id_unused2, ..._updateData2 } = f;
-      await prisma.faculty.update({
-        where: { id: String(f._id) },
-        data: _updateData2
-      });
+      }).catch(e => console.error("Transpiled save error:", e.message));
     }
           updatedFaculty = f;
         }

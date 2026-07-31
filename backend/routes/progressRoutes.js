@@ -65,7 +65,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
       const tests = await prisma.testResult.findMany({
         where: {
           OR: [{
-            studentId: s._id
+            studentId: (s.id || s._id)
           }, {
             email: s.email
           }]
@@ -76,7 +76,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
           OR: [{
             recipientEmail: s.email
           }, {
-            recipientId: s._id
+            recipientId: (s.id || s._id)
           }, {
             rollNumber: s.rollNo,
             className: s.class,
@@ -93,7 +93,7 @@ router.get("/rank/:id", verifyToken, requireRole(['student', 'parent', 'admin', 
       const scores = reportPercentages.length ? reportPercentages : testPercentages;
       const avg = scores.length ? scores.reduce((sum, n) => sum + n, 0) / scores.length : null;
       rows.push({
-        studentId: String(s._id),
+        studentId: String((s.id || s._id)),
         name: s.name,
         rollNo: s.rollNo,
         avg: avg == null ? null : Number(avg.toFixed(2)),

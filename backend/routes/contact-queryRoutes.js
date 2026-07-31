@@ -98,13 +98,15 @@ router.post("/", upload.single('attachment'), async (req, res) => {
       message: 'description too long'
     });
     const doc = await ContactQuery.create({
-      name: String(name).trim(),
-      email: String(email).trim(),
-      contact: String(contact).trim(),
-      description: String(description).trim(),
-      filename: req.file && req.file.filename ? req.file.filename : undefined,
-      originalname: req.file && req.file.originalname ? req.file.originalname : undefined,
-      createdBy: req.user && req.user.sub ? req.user.sub : undefined
+      data: {
+        name: String(name).trim(),
+        email: String(email).trim(),
+        contact: String(contact).trim(),
+        description: String(description).trim(),
+        filename: req.file && req.file.filename ? req.file.filename : undefined,
+        originalname: req.file && req.file.originalname ? req.file.originalname : undefined,
+        createdBy: req.user && req.user.sub ? req.user.sub : undefined
+      }
     });
 
     // Return saved object
@@ -131,12 +133,14 @@ router.post("/", upload.single('attachment'), async (req, res) => {
       message: 'name and email required'
     });
     const doc = await ContactQuery.create({
-      name: String(name),
-      email: String(email),
-      contact: contact ? String(contact) : '',
-      description: description ? String(description) : '',
-      filename: req.file ? req.file.filename : undefined,
-      originalname: req.file ? req.file.originalname : undefined
+      data: {
+        name: String(name),
+        email: String(email),
+        contact: contact ? String(contact) : '',
+        description: description ? String(description) : '',
+        filename: req.file ? req.file.filename : undefined,
+        originalname: req.file ? req.file.originalname : undefined
+      }
     });
 
     // Try to notify admin email about new contact (best-effort)
