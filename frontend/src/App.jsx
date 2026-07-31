@@ -1,7 +1,10 @@
-import React, { useEffect, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
+import React, { useEffect } from 'react'
+import * as Router from 'react-router-dom'
+import * as ReactToastify from 'react-toastify'
 import './index.css'
+
+void Router
+void ReactToastify
 
 import { getAuth } from './utils/session'
 import 'react-toastify/dist/ReactToastify.css'
@@ -155,162 +158,162 @@ function App() {
   // Simple protected route helper inside App
   function Protected({ children, role }) {
     const { token, role: userRole } = getAuth()
-    if (!token) return <Navigate to="/start" replace />
-    if (role && userRole !== role) return <Navigate to="/start" replace />
+    if (!token) return <Router.Navigate to="/start" replace />
+    if (role && userRole !== role) return <Router.Navigate to="/start" replace />
     return children
   }
 
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <ToastContainer position="top-right" autoClose={3000} />
-      <Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
-        <Routes>
-        <Route path="/start" element={<Navigate to="/" replace />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
+    <Router.BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ReactToastify.ToastContainer position="top-right" autoClose={3000} />
+      <React.Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
+        <Router.Routes>
+        <Router.Route path="/start" element={<Router.Navigate to="/" replace />} />
+        <Router.Route path="/admin-login" element={<AdminLogin />} />
         {/* Staff login */}
-        <Route path="/staff-login" element={<StaffLogin />} />
-        <Route path="/admin-register" element={<AdminRegister />} />
-        <Route path="/faculty-login" element={<FacultyLogin />} />
-        <Route path="/faculty-register" element={<FacultyRegister />} />
+        <Router.Route path="/staff-login" element={<StaffLogin />} />
+        <Router.Route path="/admin-register" element={<AdminRegister />} />
+        <Router.Route path="/faculty-login" element={<FacultyLogin />} />
+        <Router.Route path="/faculty-register" element={<FacultyRegister />} />
 
-        <Route path="/faculty-dashboard" element={<Protected role="faculty"><FacultyDashboard /></Protected>} />
-        <Route path="/faculty/add-marks" element={<Protected role="faculty"><AddMarks /></Protected>} />
-        <Route path="/faculty/attendance" element={<Protected role="faculty"><Attendance /></Protected>} />
-        <Route path="/faculty/attendance-self" element={<Protected role="faculty"><FacultyAttendanceSelf /></Protected>} />
-        <Route path="/faculty/students" element={<Protected role="faculty"><Students /></Protected>} />
-        <Route path="/faculty/assignments" element={<Protected role="faculty"><Assignments /></Protected>} />
-        <Route path="/faculty/leaves" element={<Protected role="faculty"><Leaves /></Protected>} />
-        <Route path="/faculty/resources" element={<Protected role="faculty"><Resources /></Protected>} />
-        <Route path="/faculty/library" element={<Protected role="faculty"><Resources /></Protected>} />
-        <Route path="/faculty/meeting" element={<Protected role="faculty"><FacultyMeeting /></Protected>} />
-        <Route path="/faculty/salary" element={<Protected role="faculty"><FacultySalary /></Protected>} />
-        <Route path="/faculty/card-management" element={<Protected role="faculty"><FacultyCard /></Protected>} />
-        <Route path="/faculty/house-management" element={<Protected role="faculty"><FacultyHouseManagement /></Protected>} />
+        <Router.Route path="/faculty-dashboard" element={<Protected role="faculty"><FacultyDashboard /></Protected>} />
+        <Router.Route path="/faculty/add-marks" element={<Protected role="faculty"><AddMarks /></Protected>} />
+        <Router.Route path="/faculty/attendance" element={<Protected role="faculty"><Attendance /></Protected>} />
+        <Router.Route path="/faculty/attendance-self" element={<Protected role="faculty"><FacultyAttendanceSelf /></Protected>} />
+        <Router.Route path="/faculty/students" element={<Protected role="faculty"><Students /></Protected>} />
+        <Router.Route path="/faculty/assignments" element={<Protected role="faculty"><Assignments /></Protected>} />
+        <Router.Route path="/faculty/leaves" element={<Protected role="faculty"><Leaves /></Protected>} />
+        <Router.Route path="/faculty/resources" element={<Protected role="faculty"><Resources /></Protected>} />
+        <Router.Route path="/faculty/library" element={<Protected role="faculty"><Resources /></Protected>} />
+        <Router.Route path="/faculty/meeting" element={<Protected role="faculty"><FacultyMeeting /></Protected>} />
+        <Router.Route path="/faculty/salary" element={<Protected role="faculty"><FacultySalary /></Protected>} />
+        <Router.Route path="/faculty/card-management" element={<Protected role="faculty"><FacultyCard /></Protected>} />
+        <Router.Route path="/faculty/house-management" element={<Protected role="faculty"><FacultyHouseManagement /></Protected>} />
 
-        <Route path="/faculty/faculty-timetable" element={<Protected role="faculty"><FacultyTimetable /></Protected>} />
-        <Route path="/faculty/certificates" element={<Protected role="faculty"><FacultyCertificates /></Protected>} />
-        <Route path="/faculty/admit-cards" element={<Protected role="faculty"><FacultyAdmitCards /></Protected>} />
-        <Route path="/faculty/report-card" element={<Protected role="faculty"><FacultyReportCard /></Protected>} />
-        {/* <Route path="/faculty/report-card" element={<Protected role="faculty"><FacultyReportCard /></Protected>} /> */}
+        <Router.Route path="/faculty/faculty-timetable" element={<Protected role="faculty"><FacultyTimetable /></Protected>} />
+        <Router.Route path="/faculty/certificates" element={<Protected role="faculty"><FacultyCertificates /></Protected>} />
+        <Router.Route path="/faculty/admit-cards" element={<Protected role="faculty"><FacultyAdmitCards /></Protected>} />
+        <Router.Route path="/faculty/report-card" element={<Protected role="faculty"><FacultyReportCard /></Protected>} />
+        {/* <Router.Route path="/faculty/report-card" element={<Protected role="faculty"><FacultyReportCard /></Protected>} /> */}
 
-        <Route path="/student-dashboard" element={<Protected role="student"><StudentLayout><StudentDashboard /></StudentLayout></Protected>} />
-        <Route path="/student/attendance" element={<Protected role="student"><StudentLayout><StudentAttendance /></StudentLayout></Protected>} />
-        <Route path="/student/meeting" element={<Protected role="student"><StudentLayout><StudentMeeting /></StudentLayout></Protected>} />
-        <Route path="/student/syllabus" element={<Protected role="student"><StudentLayout><StudentSyllabus /></StudentLayout></Protected>} />
-        <Route path="/student/assignments" element={<Protected role="student"><StudentLayout><StudentAssignments /></StudentLayout></Protected>} />
-        <Route path="/student/resources" element={<Protected role="student"><StudentLayout><StudentResources /></StudentLayout></Protected>} />
-        <Route path="/student/timetable" element={<Protected role="student"><StudentLayout><StudentTimetable /></StudentLayout></Protected>} />
-        <Route path="/student/transport" element={<Protected role="student"><StudentLayout><StudentTransport /></StudentLayout></Protected>} />
-        <Route path="/student/marks" element={<Protected role="student"><StudentLayout><StudentMarks /></StudentLayout></Protected>} />
-        <Route path="/student/certificates" element={<Protected role="student"><StudentLayout><StudentCertificates /></StudentLayout></Protected>} />
-        <Route path="/student/admit-cards" element={<Protected role="student"><StudentLayout><StudentAdmitCards /></StudentLayout></Protected>} />
-        <Route path="/student/report-card" element={<Protected role="student"><StudentLayout><StudentReportCard /></StudentLayout></Protected>} />
-        <Route path="/student/results" element={<Protected role="student"><StudentLayout><StudentResults /></StudentLayout></Protected>} />
-        <Route path="/student/tests" element={<Protected role="student"><StudentLayout><StudentTests /></StudentLayout></Protected>} />
-        <Route path="/student/test-results" element={<Navigate to="/student/results" replace />} />
-        <Route path="/student/tests/:id/start" element={<Protected role="student"><StartTestScreen /></Protected>} />
-        <Route path="/student/tests/:id" element={<Protected role="student"><StudentLayout><TakeTest /></StudentLayout></Protected>} />
-        <Route path="/student/notices" element={<Protected role="student"><StudentLayout><StudentNotices /></StudentLayout></Protected>} />
-        <Route path="/student/calendar" element={<Protected role="student"><StudentLayout><StudentCalendar /></StudentLayout></Protected>} />
-        <Route path="/student/complaint" element={<Protected role="student"><StudentLayout><StudentComplaint /></StudentLayout></Protected>} />
-        <Route path="/student/fees" element={<Protected role="student"><StudentLayout><StudentFees /></StudentLayout></Protected>} />
-        <Route path="/student/hostel" element={<Protected role="student"><StudentLayout><StudentHostel /></StudentLayout></Protected>} />
-        <Route path="/student/parents" element={<Protected role="student"><StudentLayout><StudentParents /></StudentLayout></Protected>} />
-        <Route path="/student/card" element={<Protected role="student"><StudentLayout><StudentCard /></StudentLayout></Protected>} />
-        <Route path="/student-login" element={<StudentLogin />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/student-register" element={<StudentRegister />} />
-        <Route path="/parents-login" element={<ParentsLogin />} />
-        <Route path="/parents-register" element={<ParentsRegister />} />
-        <Route path="/parent-dashboard" element={<Protected role="parent"><ParentDashboard /></Protected>} />
-        <Route path="/parent/progress" element={<Protected role="parent"><ParentProgress /></Protected>} />
-        <Route path="/parent/attendance" element={<Protected role="parent"><ParentAttendance /></Protected>} />
-        <Route path="/parent/notices" element={<Protected role="parent"><ParentNotices /></Protected>} />
-        <Route path="/parent/meeting" element={<Protected role="parent"><ParentMeeting /></Protected>} />
-        <Route path="/parent/messages" element={<Protected role="parent"><ParentMessages /></Protected>} />
-        <Route path="/parent/profile" element={<Protected role="parent"><ParentProfile /></Protected>} />
-        <Route path="/parent/link-student" element={<Protected role="parent"><ParentLinkStudent /></Protected>} />
+        <Router.Route path="/student-dashboard" element={<Protected role="student"><StudentLayout><StudentDashboard /></StudentLayout></Protected>} />
+        <Router.Route path="/student/attendance" element={<Protected role="student"><StudentLayout><StudentAttendance /></StudentLayout></Protected>} />
+        <Router.Route path="/student/meeting" element={<Protected role="student"><StudentLayout><StudentMeeting /></StudentLayout></Protected>} />
+        <Router.Route path="/student/syllabus" element={<Protected role="student"><StudentLayout><StudentSyllabus /></StudentLayout></Protected>} />
+        <Router.Route path="/student/assignments" element={<Protected role="student"><StudentLayout><StudentAssignments /></StudentLayout></Protected>} />
+        <Router.Route path="/student/resources" element={<Protected role="student"><StudentLayout><StudentResources /></StudentLayout></Protected>} />
+        <Router.Route path="/student/timetable" element={<Protected role="student"><StudentLayout><StudentTimetable /></StudentLayout></Protected>} />
+        <Router.Route path="/student/transport" element={<Protected role="student"><StudentLayout><StudentTransport /></StudentLayout></Protected>} />
+        <Router.Route path="/student/marks" element={<Protected role="student"><StudentLayout><StudentMarks /></StudentLayout></Protected>} />
+        <Router.Route path="/student/certificates" element={<Protected role="student"><StudentLayout><StudentCertificates /></StudentLayout></Protected>} />
+        <Router.Route path="/student/admit-cards" element={<Protected role="student"><StudentLayout><StudentAdmitCards /></StudentLayout></Protected>} />
+        <Router.Route path="/student/report-card" element={<Protected role="student"><StudentLayout><StudentReportCard /></StudentLayout></Protected>} />
+        <Router.Route path="/student/results" element={<Protected role="student"><StudentLayout><StudentResults /></StudentLayout></Protected>} />
+        <Router.Route path="/student/tests" element={<Protected role="student"><StudentLayout><StudentTests /></StudentLayout></Protected>} />
+        <Router.Route path="/student/test-results" element={<Router.Navigate to="/student/results" replace />} />
+        <Router.Route path="/student/tests/:id/start" element={<Protected role="student"><StartTestScreen /></Protected>} />
+        <Router.Route path="/student/tests/:id" element={<Protected role="student"><StudentLayout><TakeTest /></StudentLayout></Protected>} />
+        <Router.Route path="/student/notices" element={<Protected role="student"><StudentLayout><StudentNotices /></StudentLayout></Protected>} />
+        <Router.Route path="/student/calendar" element={<Protected role="student"><StudentLayout><StudentCalendar /></StudentLayout></Protected>} />
+        <Router.Route path="/student/complaint" element={<Protected role="student"><StudentLayout><StudentComplaint /></StudentLayout></Protected>} />
+        <Router.Route path="/student/fees" element={<Protected role="student"><StudentLayout><StudentFees /></StudentLayout></Protected>} />
+        <Router.Route path="/student/hostel" element={<Protected role="student"><StudentLayout><StudentHostel /></StudentLayout></Protected>} />
+        <Router.Route path="/student/parents" element={<Protected role="student"><StudentLayout><StudentParents /></StudentLayout></Protected>} />
+        <Router.Route path="/student/card" element={<Protected role="student"><StudentLayout><StudentCard /></StudentLayout></Protected>} />
+        <Router.Route path="/student-login" element={<StudentLogin />} />
+        <Router.Route path="/forgot-password" element={<ForgotPassword />} />
+        <Router.Route path="/reset-password" element={<ResetPassword />} />
+        <Router.Route path="/student-register" element={<StudentRegister />} />
+        <Router.Route path="/parents-login" element={<ParentsLogin />} />
+        <Router.Route path="/parents-register" element={<ParentsRegister />} />
+        <Router.Route path="/parent-dashboard" element={<Protected role="parent"><ParentDashboard /></Protected>} />
+        <Router.Route path="/parent/progress" element={<Protected role="parent"><ParentProgress /></Protected>} />
+        <Router.Route path="/parent/attendance" element={<Protected role="parent"><ParentAttendance /></Protected>} />
+        <Router.Route path="/parent/notices" element={<Protected role="parent"><ParentNotices /></Protected>} />
+        <Router.Route path="/parent/meeting" element={<Protected role="parent"><ParentMeeting /></Protected>} />
+        <Router.Route path="/parent/messages" element={<Protected role="parent"><ParentMessages /></Protected>} />
+        <Router.Route path="/parent/profile" element={<Protected role="parent"><ParentProfile /></Protected>} />
+        <Router.Route path="/parent/link-student" element={<Protected role="parent"><ParentLinkStudent /></Protected>} />
         {/* support plural legacy path */}
-        <Route path="/parents-dashboard" element={<Navigate to="/parent-dashboard" replace />} />
+        <Router.Route path="/parents-dashboard" element={<Router.Navigate to="/parent-dashboard" replace />} />
 
-        <Route path="/admin-dashboard" element={<Protected role="admin"><AdminPanel /></Protected>} />
+        <Router.Route path="/admin-dashboard" element={<Protected role="admin"><AdminPanel /></Protected>} />
         {/* legacy route support: redirect older /admin/dashboard to the new /admin-dashboard */}
-        <Route path="/admin/dashboard" element={<Navigate to="/admin-dashboard" replace />} />
-        <Route path="/admin/messages" element={<Protected role="admin"><AdminMessages /></Protected>} />
+        <Router.Route path="/admin/dashboard" element={<Router.Navigate to="/admin-dashboard" replace />} />
+        <Router.Route path="/admin/messages" element={<Protected role="admin"><AdminMessages /></Protected>} />
         {/* Staff routes - staff-only layout */}
-        <Route path="/staff-dashboard" element={<Protected role="staff"><StaffDashboard /></Protected>} />
-        <Route path="/staff/notices" element={<Protected role="staff"><StaffNotices /></Protected>} />
-        <Route path="/staff/meeting" element={<Protected role="staff"><StaffMeeting /></Protected>} />
-        <Route path="/staff/card" element={<Protected role="staff"><StaffCard /></Protected>} />
-        <Route path="/staff/profile" element={<Protected role="staff"><StaffLayout><StaffProfile /></StaffLayout></Protected>} />
-        <Route path="/staff/calendar" element={<Protected role="staff"><StaffCalendar /></Protected>} />
-        <Route path="/staff/salary" element={<Protected role="staff"><StaffSalary /></Protected>} />
-        <Route path="/staff/attendance" element={<Protected role="staff"><StaffAttendance /></Protected>} />
-        <Route path="/staff/certificates" element={<Protected role="staff"><StaffLayout><StaffCertificates /></StaffLayout></Protected>} />
-        <Route path="/admin/academics" element={<Protected role="admin"><Academics /></Protected>} />
-        <Route path="/admin/notices" element={<Protected role="admin"><AdminNotices /></Protected>} />
-        <Route path="/admin/form" element={<Protected role="admin"><AdminForm /></Protected>} />
-        <Route path="/admin/form-queries" element={<Protected role="admin"><AdminFormQueries /></Protected>} />
-        <Route path="/admin/contact-queries" element={<Protected role="admin"><ContactQueries /></Protected>} />
-        <Route path="/admin/analytics-student-rank" element={<Protected role="admin"><AnalyticsStudentRank /></Protected>} />
-        <Route path="/forms" element={<Forms />} />
-        <Route path="/admin/faculty-timetable" element={<Protected role="admin"><AdminFacultyTimetable /></Protected>} />
-        <Route path="/admin/certificates" element={<Protected role="admin"><AdminCertificates /></Protected>} />
-        <Route path="/admin/admit-cards" element={<Protected role="admin"><AdminAdmitCards /></Protected>} />
-        <Route path="/admin/report-card" element={<Protected role="admin"><AdminReportCard /></Protected>} />
-        <Route path="/admin/gallery" element={<Protected role="admin"><GalleryAdmin /></Protected>} />
-        <Route path="/admin/leaves/student" element={<Protected role="admin"><StudentLeaves /></Protected>} />
-        <Route path="/admin/leaves/faculty" element={<Protected role="admin"><FacultyLeavesAdmin /></Protected>} />
-        <Route path="/admin/leaves/staff" element={<Protected role="admin"><StaffLeavesAdmin /></Protected>} />
-        <Route path="/admin/academics/syllabus" element={<Protected role="admin"><AcademicsSyllabus /></Protected>} />
-        <Route path="/admin/academics/timetable" element={<Protected role="admin"><AcademicsTimetable /></Protected>} />
-        <Route path="/admin/academics/results" element={<Protected role="admin"><AcademicsResults /></Protected>} />
-        <Route path="/admin/finance" element={<Protected role="admin"><Finance /></Protected>} />
-        <Route path="/admin/salary" element={<Protected role="admin"><AdminSalary /></Protected>} />
-        <Route path="/admin/staff-salary" element={<Protected role="admin"><AdminStaffSalary /></Protected>} />
-        <Route path="/admin/card-management" element={<Protected role="admin"><AdminCardManagement /></Protected>} />
-        <Route path="/admin/meeting" element={<Protected role="admin"><Meeting /></Protected>} />
-        <Route path="/admin/attendance/students" element={<Protected role="admin"><AdminStudentAttendance /></Protected>} />
-        <Route path="/admin/attendance/faculty" element={<Protected role="admin"><AdminFacultyAttendance /></Protected>} />
-        <Route path="/admin/attendance/staff" element={<Protected role="admin"><AdminStaffAttendance /></Protected>} />
-        <Route path="/admin/tests" element={<Protected role="admin"><AdminTests /></Protected>} />
-        <Route path="/admin/view-test-series" element={<Protected role="admin"><ViewTestSeries /></Protected>} />
-        <Route path="/admin/test-results" element={<Protected role="admin"><AdminTestResults /></Protected>} />
-        <Route path="/admin/complaints" element={<Protected role="admin"><Complaints /></Protected>} />
-        <Route path="/admin/events" element={<Protected role="admin"><Events /></Protected>} />
-        <Route path="/admin/profile" element={<Protected role="admin"><AdminProfile /></Protected>} />
-        <Route path="/admin/students" element={<Protected role="admin"><AdminStudents /></Protected>} />
+        <Router.Route path="/staff-dashboard" element={<Protected role="staff"><StaffDashboard /></Protected>} />
+        <Router.Route path="/staff/notices" element={<Protected role="staff"><StaffNotices /></Protected>} />
+        <Router.Route path="/staff/meeting" element={<Protected role="staff"><StaffMeeting /></Protected>} />
+        <Router.Route path="/staff/card" element={<Protected role="staff"><StaffCard /></Protected>} />
+        <Router.Route path="/staff/profile" element={<Protected role="staff"><StaffLayout><StaffProfile /></StaffLayout></Protected>} />
+        <Router.Route path="/staff/calendar" element={<Protected role="staff"><StaffCalendar /></Protected>} />
+        <Router.Route path="/staff/salary" element={<Protected role="staff"><StaffSalary /></Protected>} />
+        <Router.Route path="/staff/attendance" element={<Protected role="staff"><StaffAttendance /></Protected>} />
+        <Router.Route path="/staff/certificates" element={<Protected role="staff"><StaffLayout><StaffCertificates /></StaffLayout></Protected>} />
+        <Router.Route path="/admin/academics" element={<Protected role="admin"><Academics /></Protected>} />
+        <Router.Route path="/admin/notices" element={<Protected role="admin"><AdminNotices /></Protected>} />
+        <Router.Route path="/admin/form" element={<Protected role="admin"><AdminForm /></Protected>} />
+        <Router.Route path="/admin/form-queries" element={<Protected role="admin"><AdminFormQueries /></Protected>} />
+        <Router.Route path="/admin/contact-queries" element={<Protected role="admin"><ContactQueries /></Protected>} />
+        <Router.Route path="/admin/analytics-student-rank" element={<Protected role="admin"><AnalyticsStudentRank /></Protected>} />
+        <Router.Route path="/forms" element={<Forms />} />
+        <Router.Route path="/admin/faculty-timetable" element={<Protected role="admin"><AdminFacultyTimetable /></Protected>} />
+        <Router.Route path="/admin/certificates" element={<Protected role="admin"><AdminCertificates /></Protected>} />
+        <Router.Route path="/admin/admit-cards" element={<Protected role="admin"><AdminAdmitCards /></Protected>} />
+        <Router.Route path="/admin/report-card" element={<Protected role="admin"><AdminReportCard /></Protected>} />
+        <Router.Route path="/admin/gallery" element={<Protected role="admin"><GalleryAdmin /></Protected>} />
+        <Router.Route path="/admin/leaves/student" element={<Protected role="admin"><StudentLeaves /></Protected>} />
+        <Router.Route path="/admin/leaves/faculty" element={<Protected role="admin"><FacultyLeavesAdmin /></Protected>} />
+        <Router.Route path="/admin/leaves/staff" element={<Protected role="admin"><StaffLeavesAdmin /></Protected>} />
+        <Router.Route path="/admin/academics/syllabus" element={<Protected role="admin"><AcademicsSyllabus /></Protected>} />
+        <Router.Route path="/admin/academics/timetable" element={<Protected role="admin"><AcademicsTimetable /></Protected>} />
+        <Router.Route path="/admin/academics/results" element={<Protected role="admin"><AcademicsResults /></Protected>} />
+        <Router.Route path="/admin/finance" element={<Protected role="admin"><Finance /></Protected>} />
+        <Router.Route path="/admin/salary" element={<Protected role="admin"><AdminSalary /></Protected>} />
+        <Router.Route path="/admin/staff-salary" element={<Protected role="admin"><AdminStaffSalary /></Protected>} />
+        <Router.Route path="/admin/card-management" element={<Protected role="admin"><AdminCardManagement /></Protected>} />
+        <Router.Route path="/admin/meeting" element={<Protected role="admin"><Meeting /></Protected>} />
+        <Router.Route path="/admin/attendance/students" element={<Protected role="admin"><AdminStudentAttendance /></Protected>} />
+        <Router.Route path="/admin/attendance/faculty" element={<Protected role="admin"><AdminFacultyAttendance /></Protected>} />
+        <Router.Route path="/admin/attendance/staff" element={<Protected role="admin"><AdminStaffAttendance /></Protected>} />
+        <Router.Route path="/admin/tests" element={<Protected role="admin"><AdminTests /></Protected>} />
+        <Router.Route path="/admin/view-test-series" element={<Protected role="admin"><ViewTestSeries /></Protected>} />
+        <Router.Route path="/admin/test-results" element={<Protected role="admin"><AdminTestResults /></Protected>} />
+        <Router.Route path="/admin/complaints" element={<Protected role="admin"><Complaints /></Protected>} />
+        <Router.Route path="/admin/events" element={<Protected role="admin"><Events /></Protected>} />
+        <Router.Route path="/admin/profile" element={<Protected role="admin"><AdminProfile /></Protected>} />
+        <Router.Route path="/admin/students" element={<Protected role="admin"><AdminStudents /></Protected>} />
         {/* House/Hostel management */}
-        <Route path="/admin/hostel-management" element={<Protected role="admin"><AdminHostelManagement /></Protected>} />
-        <Route path="/admin/house-management" element={<Protected role="admin"><AdminHouseManagement /></Protected>} />
-        <Route path="/admin/transport-management" element={<Protected role="admin"><AdminTransportManagement /></Protected>} />
-        <Route path="/admin/staff" element={<Protected role="admin"><AdminStaff /></Protected>} />
-        <Route path="/admin/hr" element={<Protected role="admin"><AdminHr /></Protected>} />
-        <Route path="/admin/student-approvals" element={<Protected role="admin"><AdminStudentApprovals /></Protected>} />
-        <Route path="/admin/faculty" element={<Protected role="admin"><AdminFaculty /></Protected>} />
-        <Route path="/admin/parents" element={<Protected role="admin"><AdminParents /></Protected>} />
-        <Route path="/admin/admins" element={<Protected role="admin"><AdminAdmins /></Protected>} />
-        <Route path="/admin/approvals" element={<Protected role="admin"><AdminApprovals /></Protected>} />
-        <Route path="/admin/requests" element={<Protected role="admin"><AdminDeleteRequests /></Protected>} />
-        <Route path="/admin/library-management" element={<Protected role="admin"><LibraryManagement /></Protected>} />
-        <Route path="/admin/behavior-records" element={<Protected role="admin"><BehaviorRecordsAdmin /></Protected>} />
-        <Route path="/admin/notification-settings" element={<Protected role="admin"><AdminNotificationSettings /></Protected>} />
+        <Router.Route path="/admin/hostel-management" element={<Protected role="admin"><AdminHostelManagement /></Protected>} />
+        <Router.Route path="/admin/house-management" element={<Protected role="admin"><AdminHouseManagement /></Protected>} />
+        <Router.Route path="/admin/transport-management" element={<Protected role="admin"><AdminTransportManagement /></Protected>} />
+        <Router.Route path="/admin/staff" element={<Protected role="admin"><AdminStaff /></Protected>} />
+        <Router.Route path="/admin/hr" element={<Protected role="admin"><AdminHr /></Protected>} />
+        <Router.Route path="/admin/student-approvals" element={<Protected role="admin"><AdminStudentApprovals /></Protected>} />
+        <Router.Route path="/admin/faculty" element={<Protected role="admin"><AdminFaculty /></Protected>} />
+        <Router.Route path="/admin/parents" element={<Protected role="admin"><AdminParents /></Protected>} />
+        <Router.Route path="/admin/admins" element={<Protected role="admin"><AdminAdmins /></Protected>} />
+        <Router.Route path="/admin/approvals" element={<Protected role="admin"><AdminApprovals /></Protected>} />
+        <Router.Route path="/admin/requests" element={<Protected role="admin"><AdminDeleteRequests /></Protected>} />
+        <Router.Route path="/admin/library-management" element={<Protected role="admin"><LibraryManagement /></Protected>} />
+        <Router.Route path="/admin/behavior-records" element={<Protected role="admin"><BehaviorRecordsAdmin /></Protected>} />
+        <Router.Route path="/admin/notification-settings" element={<Protected role="admin"><AdminNotificationSettings /></Protected>} />
 
-        <Route path="/faculty/profile" element={<Protected role="faculty"><FacultyProfile /></Protected>} />
-        <Route path="/faculty/tests" element={<Protected role="faculty"><FacultyTests /></Protected>} />
-        <Route path="/faculty/test-results" element={<Protected role="faculty"><FacultyTestResults /></Protected>} />
+        <Router.Route path="/faculty/profile" element={<Protected role="faculty"><FacultyProfile /></Protected>} />
+        <Router.Route path="/faculty/tests" element={<Protected role="faculty"><FacultyTests /></Protected>} />
+        <Router.Route path="/faculty/test-results" element={<Protected role="faculty"><FacultyTestResults /></Protected>} />
 
 
-        <Route path="/student/profile" element={<Protected role="student"><StudentLayout><StudentProfile /></StudentLayout></Protected>} />
+        <Router.Route path="/student/profile" element={<Protected role="student"><StudentLayout><StudentProfile /></StudentLayout></Protected>} />
 
-        <Route path="/" element={<Start />} />
-        <Route path="/faculty/notices" element={<Protected role="faculty"><FacultyNotices /></Protected>} />
-        <Route path="/faculty/behavior-records" element={<Protected role="faculty"><BehaviorRecordsFaculty /></Protected>} />
-        <Route path="/faculty/lesson-plan" element={<Protected role="faculty"><LessonPlan /></Protected>} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+        <Router.Route path="/" element={<Start />} />
+        <Router.Route path="/faculty/notices" element={<Protected role="faculty"><FacultyNotices /></Protected>} />
+        <Router.Route path="/faculty/behavior-records" element={<Protected role="faculty"><BehaviorRecordsFaculty /></Protected>} />
+        <Router.Route path="/faculty/lesson-plan" element={<Protected role="faculty"><LessonPlan /></Protected>} />
+        </Router.Routes>
+      </React.Suspense>
+    </Router.BrowserRouter>
   )
 }
 

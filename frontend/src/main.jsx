@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
+import * as Tanstack from '@tanstack/react-query'
 import App from './App'
 import './index.css'
 import './styles/mobile.css'
 import './styles/ui-refresh.css'
+
+void React
+void Tanstack
 
 // Suppress React DevTools console hint in development when desired
 try {
@@ -24,12 +28,14 @@ const queryClient = new QueryClient({
   },
 })
 
+const AppComponent = App
+
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </StrictMode>,
+  <React.StrictMode>
+    <Tanstack.QueryClientProvider client={queryClient}>
+      <AppComponent />
+    </Tanstack.QueryClientProvider>
+  </React.StrictMode>,
 )
 
 // Global sanitizer: fix any SVG/IMG elements that may have width/height set to 'auto'

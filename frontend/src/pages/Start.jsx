@@ -1,22 +1,22 @@
 import { useRef, useState } from 'react'
-import { FaBell, FaChalkboardTeacher, FaChartLine, FaFileAlt, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie, FaSchool, FaArrowRight, FaCheckCircle, FaShieldAlt, FaLock, FaIdCard } from 'react-icons/fa'
+import * as FaIcons from 'react-icons/fa'
 import { getIdCardByCode, API_BASE, postContactQuery } from '../api'
 import { toast } from 'react-toastify'
 import './Start.css'
 import './Auth.css'
 
 const LOGIN_ROLES = [
-    { id: 'admin', title: 'Admin', desc: 'Create and manage your school ecosystem with full administrative privileges.', icon: FaUserShield, link: '/admin-login', className: 'admin' },
-    { id: 'student', title: 'Student', desc: 'Access assignments, timetables, tests, fees, resources, and academic progress.', icon: FaUserGraduate, link: '/student-login', className: 'student' },
-    { id: 'faculty', title: 'Teacher', desc: 'Manage classes, assignments, attendance, marks, notices, and student growth.', icon: FaChalkboardTeacher, link: '/faculty-login', className: 'teacher' },
-    { id: 'parent', title: 'Parent', desc: 'Follow attendance, results, notices, meetings, and communication in one place.', icon: FaUserFriends, link: '/parents-login', className: 'parent' },
-    { id: 'staff', title: 'Staff', desc: 'Handle receipts, salary, notices, cards, certificates, and daily operations.', icon: FaUserTie, link: '/staff-login', className: 'staff' },
+    { id: 'admin', title: 'Admin', desc: 'Create and manage your school ecosystem with full administrative privileges.', icon: FaIcons.FaUserShield, link: '/admin-login', className: 'admin' },
+    { id: 'student', title: 'Student', desc: 'Access assignments, timetables, tests, fees, resources, and academic progress.', icon: FaIcons.FaUserGraduate, link: '/student-login', className: 'student' },
+    { id: 'faculty', title: 'Teacher', desc: 'Manage classes, assignments, attendance, marks, notices, and student growth.', icon: FaIcons.FaChalkboardTeacher, link: '/faculty-login', className: 'teacher' },
+    { id: 'parent', title: 'Parent', desc: 'Follow attendance, results, notices, meetings, and communication in one place.', icon: FaIcons.FaUserFriends, link: '/parents-login', className: 'parent' },
+    { id: 'staff', title: 'Staff', desc: 'Handle receipts, salary, notices, cards, certificates, and daily operations.', icon: FaIcons.FaUserTie, link: '/staff-login', className: 'staff' },
 ]
 
 const FEATURES = [
-    { icon: FaChartLine, title: 'Academic command center', text: 'Attendance, results, timetables, assignments, and report cards in one focused workspace.' },
-    { icon: FaBell, title: 'Instant communication', text: 'Notices, meetings, complaints, resources, and messages move cleanly between every role.' },
-    { icon: FaFileAlt, title: 'Document automation', text: 'Generate receipts, ID cards, certificates, admit cards, and transport records without friction.' },
+    { icon: FaIcons.FaChartLine, title: 'Academic command center', text: 'Attendance, results, timetables, assignments, and report cards in one focused workspace.' },
+    { icon: FaIcons.FaBell, title: 'Instant communication', text: 'Notices, meetings, complaints, resources, and messages move cleanly between every role.' },
+    { icon: FaIcons.FaFileAlt, title: 'Document automation', text: 'Generate receipts, ID cards, certificates, admit cards, and transport records without friction.' },
 ]
 
 const SECURITY_POINTS = ['Role-based dashboards', 'JWT protected sessions', 'Verified ID-card lookup', 'Secure uploads and records']
@@ -88,7 +88,7 @@ export default function Start() {
         <div className="start-page">
             <header className="start-nav">
                 <a className="brand-lockup" href="/start" onClick={(e) => handleNav(e, '/start')}>
-                    <span className="brand-mark"><FaSchool /></span>
+                    <span className="brand-mark"><FaIcons.FaSchool /></span>
                     <span>
                         <strong>ERP-School</strong>
                         <small>Smart Campus Portal</small>
@@ -101,18 +101,18 @@ export default function Start() {
                 </nav>
                 <div className="nav-actions">
                     <button className="ghost-link" onClick={() => setContactOpen(true)}>Contact</button>
-                    <a className="login-pill" href="#roles">Login <FaArrowRight /></a>
+                    <a className="login-pill" href="#roles">Login <FaIcons.FaArrowRight /></a>
                 </div>
             </header>
 
             <main>
                 <section className="hero-shell">
                     <div className="hero-copy">
-                        <div className="eyebrow"><FaCheckCircle /> Complete school management system</div>
+                        <div className="eyebrow"><FaIcons.FaCheckCircle /> Complete school management system</div>
                         <h1>ERP-School</h1>
                         <p>Manage academics, attendance, fees, staff, students, parents, documents, and communication from one secure school portal.</p>
                         <div className="hero-cta">
-                            <a className="primary-cta" href="#roles">Login to Portal <FaArrowRight /></a>
+                            <a className="primary-cta" href="#roles">Login to Portal <FaIcons.FaArrowRight /></a>
                             <a className="secondary-cta" href="#features">View Features</a>
                         </div>
                     </div>
@@ -167,7 +167,7 @@ export default function Start() {
                                 <div className="card-icon"><role.icon /></div>
                                 <h3>{role.title}</h3>
                                 <p>{role.desc}</p>
-                                <strong>Continue <FaArrowRight /></strong>
+                                <strong>Continue <FaIcons.FaArrowRight /></strong>
                             </a>
                         ))}
                     </div>
@@ -191,11 +191,11 @@ export default function Start() {
 
                 <section className="security-band" id="security">
                     <div>
-                        <span className="security-kicker"><FaShieldAlt /> Security</span>
+                        <span className="security-kicker"><FaIcons.FaShieldAlt /> Security</span>
                         <h2>Access is organized by role, identity, and session.</h2>
                     </div>
                     <div className="security-list">
-                        {SECURITY_POINTS.map(point => <span key={point}><FaLock /> {point}</span>)}
+                        {SECURITY_POINTS.map(point => <span key={point}><FaIcons.FaLock /> {point}</span>)}
                     </div>
                 </section>
 
@@ -205,7 +205,7 @@ export default function Start() {
                         <p>Reliable, secure, and easy-to-use school management platform for students, staff, finances, and communication.</p>
                         <span>Contact: <a href="tel:6378452145">6378452145</a> | Email: <a href="mailto:erp@creator">erp@creator</a></span>
                     </div>
-                    <a href="/forms" onClick={(e) => handleNav(e, '/forms')}>View Forms <FaArrowRight /></a>
+                    <a href="/forms" onClick={(e) => handleNav(e, '/forms')}>View Forms <FaIcons.FaArrowRight /></a>
                 </section>
             </main>
 
@@ -215,7 +215,7 @@ export default function Start() {
             </footer>
 
             <button onClick={() => setVerifyOpen(true)} className="verify-fab">
-                <FaIdCard />
+                <FaIcons.FaIdCard />
                 Verify ID
             </button>
 
