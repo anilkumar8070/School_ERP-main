@@ -1,48 +1,10 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
 import './index.css'
 
 import { getAuth } from './utils/session'
-import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import Dashboard from './pages/Dashboard'
-import Start from './pages/Start'
-import AdminLogin from './pages/AdminLogin'
-import StaffLogin from './pages/StaffLogin'
-import AdminRegister from './pages/AdminRegister'
-import FacultyLogin from './pages/FacultyLogin'
-import FacultyRegister from './pages/FacultyRegister'
-import StudentLogin from './pages/StudentLogin'
-import StudentRegister from './pages/StudentRegister'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import ParentsLogin from './pages/ParentsLogin'
-import ParentsRegister from './pages/ParentsRegister'
-import FacultyDashboard from './pages/FacultyDashboard'
-import StudentDashboard from './pages/StudentDashboard'
-import StudentMeeting from './pages/student/Meeting'
-import AddMarks from './pages/faculty/AddMarks'
-import Attendance from './pages/faculty/Attendance'
-import Students from './pages/faculty/Students'
-import Assignments from './pages/faculty/Assignments'
-import Leaves from './pages/faculty/Leaves'
-import Resources from './pages/faculty/Resources'
-import FacultyMeeting from './pages/faculty/Meeting'
-import StudentAttendance from './pages/student/Attendance'
-import StudentSyllabus from './pages/student/Syllabus'
-import StudentAssignments from './pages/student/Assignments'
-import StudentTimetable from './pages/student/Timetable'
-import StudentResults from './pages/student/Results'
-import StudentTests from './pages/student/Tests'
-import TakeTest from './pages/student/TakeTest'
-import StartTestScreen from './pages/student/StartTestScreen'
-import StudentResources from './pages/student/Resources'
-import StudentNotices from './pages/student/Notices'
-import StudentCalendar from './pages/student/Calendar'
-import StudentComplaint from './pages/student/ComplaintFixed'
-import StudentFees from './pages/student/Fees'
-import StudentParents from './pages/student/Parents'
-import StudentLayout from './components/student/StudentLayout'
 
 const AdminPanel = React.lazy(() => import('./pages/AdminPanel'))
 const AdminMessages = React.lazy(() => import('./pages/AdminMessages'))
@@ -139,6 +101,44 @@ const StaffAttendance = React.lazy(() => import('./pages/StaffAttendance'))
 const StaffCertificates = React.lazy(() => import('./pages/staff/Certificates'))
 const BehaviorRecordsFaculty = React.lazy(() => import('./pages/faculty/BehaviorRecords'))
 const LessonPlan = React.lazy(() => import('./pages/faculty/LessonPlan'))
+
+const AdminLogin = React.lazy(() => import('./pages/AdminLogin'))
+const StaffLogin = React.lazy(() => import('./pages/StaffLogin'))
+const AdminRegister = React.lazy(() => import('./pages/AdminRegister'))
+const FacultyLogin = React.lazy(() => import('./pages/FacultyLogin'))
+const FacultyRegister = React.lazy(() => import('./pages/FacultyRegister'))
+const FacultyDashboard = React.lazy(() => import('./pages/FacultyDashboard'))
+const AddMarks = React.lazy(() => import('./pages/faculty/AddMarks'))
+const Attendance = React.lazy(() => import('./pages/faculty/Attendance'))
+const Students = React.lazy(() => import('./pages/faculty/Students'))
+const Assignments = React.lazy(() => import('./pages/faculty/Assignments'))
+const Leaves = React.lazy(() => import('./pages/faculty/Leaves'))
+const Resources = React.lazy(() => import('./pages/faculty/Resources'))
+const FacultyMeeting = React.lazy(() => import('./pages/faculty/Meeting'))
+const StudentLayout = React.lazy(() => import('./components/student/StudentLayout'))
+const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'))
+const StudentAttendance = React.lazy(() => import('./pages/student/Attendance'))
+const StudentMeeting = React.lazy(() => import('./pages/student/Meeting'))
+const StudentSyllabus = React.lazy(() => import('./pages/student/Syllabus'))
+const StudentAssignments = React.lazy(() => import('./pages/student/Assignments'))
+const StudentResources = React.lazy(() => import('./pages/student/Resources'))
+const StudentTimetable = React.lazy(() => import('./pages/student/Timetable'))
+const StudentResults = React.lazy(() => import('./pages/student/Results'))
+const StudentTests = React.lazy(() => import('./pages/student/Tests'))
+const StartTestScreen = React.lazy(() => import('./pages/student/StartTestScreen'))
+const TakeTest = React.lazy(() => import('./pages/student/TakeTest'))
+const StudentNotices = React.lazy(() => import('./pages/student/Notices'))
+const StudentCalendar = React.lazy(() => import('./pages/student/Calendar'))
+const StudentComplaint = React.lazy(() => import('./pages/student/Complaint'))
+const StudentFees = React.lazy(() => import('./pages/student/Fees'))
+const StudentParents = React.lazy(() => import('./pages/student/Parents'))
+const StudentLogin = React.lazy(() => import('./pages/StudentLogin'))
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
+const StudentRegister = React.lazy(() => import('./pages/StudentRegister'))
+const ParentsLogin = React.lazy(() => import('./pages/ParentsLogin'))
+const ParentsRegister = React.lazy(() => import('./pages/ParentsRegister'))
+const Start = React.lazy(() => import('./pages/Start'))
 
 function App() {
   // Listen for global logout events from other tabs
