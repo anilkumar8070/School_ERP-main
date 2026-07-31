@@ -14,6 +14,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const adapters = require('./mongoose_to_prisma');
+const prisma = require('./prisma/client');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');

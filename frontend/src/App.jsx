@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
 import './index.css'
 
 import { getAuth } from './utils/session'
@@ -99,6 +101,44 @@ const StaffAttendance = React.lazy(() => import('./pages/StaffAttendance'))
 const StaffCertificates = React.lazy(() => import('./pages/staff/Certificates'))
 const BehaviorRecordsFaculty = React.lazy(() => import('./pages/faculty/BehaviorRecords'))
 const LessonPlan = React.lazy(() => import('./pages/faculty/LessonPlan'))
+
+const AdminLogin = React.lazy(() => import('./pages/AdminLogin'))
+const StaffLogin = React.lazy(() => import('./pages/StaffLogin'))
+const AdminRegister = React.lazy(() => import('./pages/AdminRegister'))
+const FacultyLogin = React.lazy(() => import('./pages/FacultyLogin'))
+const FacultyRegister = React.lazy(() => import('./pages/FacultyRegister'))
+const FacultyDashboard = React.lazy(() => import('./pages/FacultyDashboard'))
+const AddMarks = React.lazy(() => import('./pages/faculty/AddMarks'))
+const Attendance = React.lazy(() => import('./pages/faculty/Attendance'))
+const Students = React.lazy(() => import('./pages/faculty/Students'))
+const Assignments = React.lazy(() => import('./pages/faculty/Assignments'))
+const Leaves = React.lazy(() => import('./pages/faculty/Leaves'))
+const Resources = React.lazy(() => import('./pages/faculty/Resources'))
+const FacultyMeeting = React.lazy(() => import('./pages/faculty/Meeting'))
+const StudentLayout = React.lazy(() => import('./components/student/StudentLayout'))
+const StudentDashboard = React.lazy(() => import('./pages/StudentDashboard'))
+const StudentAttendance = React.lazy(() => import('./pages/student/Attendance'))
+const StudentMeeting = React.lazy(() => import('./pages/student/Meeting'))
+const StudentSyllabus = React.lazy(() => import('./pages/student/Syllabus'))
+const StudentAssignments = React.lazy(() => import('./pages/student/Assignments'))
+const StudentResources = React.lazy(() => import('./pages/student/Resources'))
+const StudentTimetable = React.lazy(() => import('./pages/student/Timetable'))
+const StudentResults = React.lazy(() => import('./pages/student/Results'))
+const StudentTests = React.lazy(() => import('./pages/student/Tests'))
+const StartTestScreen = React.lazy(() => import('./pages/student/StartTestScreen'))
+const TakeTest = React.lazy(() => import('./pages/student/TakeTest'))
+const StudentNotices = React.lazy(() => import('./pages/student/Notices'))
+const StudentCalendar = React.lazy(() => import('./pages/student/Calendar'))
+const StudentComplaint = React.lazy(() => import('./pages/student/Complaint'))
+const StudentFees = React.lazy(() => import('./pages/student/Fees'))
+const StudentParents = React.lazy(() => import('./pages/student/Parents'))
+const StudentLogin = React.lazy(() => import('./pages/StudentLogin'))
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
+const StudentRegister = React.lazy(() => import('./pages/StudentRegister'))
+const ParentsLogin = React.lazy(() => import('./pages/ParentsLogin'))
+const ParentsRegister = React.lazy(() => import('./pages/ParentsRegister'))
+const Start = React.lazy(() => import('./pages/Start'))
 
 function App() {
   // Listen for global logout events from other tabs

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { FaBell, FaChalkboardTeacher, FaChartLine, FaFileAlt, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie } from 'react-icons/fa'
+import { FaBell, FaChalkboardTeacher, FaChartLine, FaFileAlt, FaUserFriends, FaUserGraduate, FaUserShield, FaUserTie, FaSchool, FaArrowRight, FaCheckCircle, FaShieldAlt, FaLock, FaIdCard } from 'react-icons/fa'
 import { getIdCardByCode, API_BASE, postContactQuery } from '../api'
 import { toast } from 'react-toastify'
 import './Start.css'
