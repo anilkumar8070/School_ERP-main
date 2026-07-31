@@ -160,7 +160,7 @@ router.put("/:id/status", verifyToken, async (req, res) => {
       }
 
       await prisma.message.update({
-        where: { id: String((m.id || m._id)) },
+        where: { id: String(((m.id || m._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

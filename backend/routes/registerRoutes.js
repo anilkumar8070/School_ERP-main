@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
       }
     });
     return res.status(201).json({
-      id: (created.id || created._id),
+      id: ((created.id || created._id)),
       username: created.username,
       role: created.role,
       name: created.name

@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useState, useEffect } from 'react'
 import { getStudents, postAttendance, getAttendance, exportAttendanceCsv, API_BASE, getMyFaculty } from '../../api'
-import BusyButton from '../../components/common/BusyButton'
 
 export default function Attendance() {
     const [klass, setKlass] = useState('')
@@ -48,7 +46,7 @@ export default function Attendance() {
             } catch (e) { console.warn('resolve assignments failed', e); setNotAssigned(true) }
         }
         resolve()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     useEffect(() => { loadStudents(); }, [klass, section, date, notAssigned])

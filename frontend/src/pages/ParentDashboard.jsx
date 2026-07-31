@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { FaArrowRight, FaBell, FaCalendarCheck, FaComments, FaLink, FaUserGraduate } from 'react-icons/fa'
-import ParentLayout from '../components/parent/ParentLayout'
+import { useEffect, useState } from 'react'
 import { getAuth } from '../utils/session'
 import { getMyMeetings, getNotices } from '../api'
 

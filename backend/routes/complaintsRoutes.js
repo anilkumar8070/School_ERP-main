@@ -122,7 +122,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       }
 
       await prisma.complaint.update({
-        where: { id: String((c.id || c._id)) },
+        where: { id: String(((c.id || c._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

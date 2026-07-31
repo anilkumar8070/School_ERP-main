@@ -77,7 +77,7 @@ router.post("/", verifyToken, async (req, res) => {
     // notify admin UIs via SSE
     try {
       sendSseEvent('leave_created', {
-        id: (doc.id || doc._id),
+        id: ((doc.id || doc._id)),
         email: doc.email,
         username: doc.username
       });
@@ -247,7 +247,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       }
 
       await prisma.leave.update({
-        where: { id: String((l.id || l._id)) },
+        where: { id: String(((l.id || l._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -282,7 +282,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
     }
     try {
       sendSseEvent('leave_updated', {
-        id: (l.id || l._id),
+        id: ((l.id || l._id)),
         status: l.status,
         email: l.email
       });
@@ -400,7 +400,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       }
 
       await prisma.leave.update({
-        where: { id: String((leave.id || leave._id)) },
+        where: { id: String(((leave.id || leave._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -427,7 +427,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
             }
           }).catch(() => null);
         }
-        if (faculty && (faculty.id || faculty._id) && leave.from && leave.to) {
+        if (faculty && ((faculty.id || faculty._id)) && leave.from && leave.to) {
           const start = new Date(leave.from);
           start.setHours(0, 0, 0, 0);
           const end = new Date(leave.to);
@@ -440,13 +440,13 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
               }
             });
             const rec = {
-              facultyId: (faculty.id || faculty._id),
+              facultyId: ((faculty.id || faculty._id)),
               status: 'absent',
               markedBy: req.user.sub
             };
             if (att) {
               // replace or add record for this faculty
-              const idx = Array.isArray(att.records) ? att.records.findIndex(r => String(r.facultyId) === String((faculty.id || faculty._id))) : -1;
+              const idx = Array.isArray(att.records) ? att.records.findIndex(r => String(r.facultyId) === String(((faculty.id || faculty._id)))) : -1;
               if (idx >= 0) att.records[idx] = rec;else att.records.push(rec);
               att.createdBy = req.user.sub;
               // Transpiled save()
@@ -461,7 +461,7 @@ router.put("/:id/status", verifyToken, requireRole('admin'), async (req, res) =>
       }
 
       await prisma.facultyAttendance.update({
-        where: { id: String((att.id || att._id)) },
+        where: { id: String(((att.id || att._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

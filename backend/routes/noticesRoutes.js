@@ -65,7 +65,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
     });
     try {
       sendSseEvent('notice_created', {
-        id: (doc.id || doc._id),
+        id: ((doc.id || doc._id)),
         targets: doc.targets
       });
     } catch (e) {}
@@ -161,7 +161,18 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
-// Public: get syllabus for a class and section (match specific section or ALL)
+// Admin: delete a notice
+router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const id = req.params.id;
+    await prisma.notice.delete({
+      where: { id: String(id) }
+    });
+    return res.json({ message: 'Notice deleted' });
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+});
 
   return router;
 };

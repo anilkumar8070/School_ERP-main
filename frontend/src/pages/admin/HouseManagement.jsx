@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useMemo, useState } from 'react'
 import '../../pages/AdminPanel.css'
 import { getStudents, changeStudentHouse, bulkChangeStudentHouse, setStudentHouseRole } from '../../api'
 import { getAuth } from '../../utils/session'

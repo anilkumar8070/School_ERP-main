@@ -51,11 +51,11 @@ router.post("/forgot", async (req, res) => {
 
     // remove existing tokens for user
     await PasswordReset.deleteMany({ where: {
-      userId: (user.id || user._id)
+      userId: ((user.id || user._id))
     } }).catch(() => {});
     await PasswordReset.create({
       data: {
-        userId: (user.id || user._id),
+        userId: ((user.id || user._id)),
         token,
         expiresAt
       }
@@ -119,7 +119,7 @@ router.post("/reset", async (req, res) => {
     });
     if (new Date() > pr.expiresAt) {
       await PasswordReset.deleteMany({ where: {
-        id: (pr.id || pr._id)
+        id: ((pr.id || pr._id))
       } }).catch(() => {});
       return res.status(400).json({
         message: 'Token expired'
@@ -147,14 +147,14 @@ router.post("/reset", async (req, res) => {
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
 
     // cleanup tokens
     await PasswordReset.deleteMany({ where: {
-      userId: (user.id || user._id)
+      userId: ((user.id || user._id))
     } }).catch(() => {});
 
     // send confirmation email

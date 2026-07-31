@@ -167,7 +167,7 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
         const fileP = `/uploads/${filename}`;
         await prisma.timetable.update({
           where: {
-            id: String((t.id || t._id))
+            id: String(((t.id || t._id)))
           },
 
           data: {
@@ -176,11 +176,11 @@ router.post("/regenerate-pdfs", verifyToken, requireRole('admin'), async (req, r
           }
         });
         results.push({
-          id: (t.id || t._id),
+          id: ((t.id || t._id)),
           filePath: fileP
         });
       } catch (errT) {
-        console.warn('Failed to regenerate PDF for timetable', (t.id || t._id), errT && (errT.message || String(errT)));
+        console.warn('Failed to regenerate PDF for timetable', ((t.id || t._id)), errT && (errT.message || String(errT)));
       }
     }
     return res.json({
@@ -484,7 +484,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
           const fileP = `/uploads/${filename}`;
           created = await prisma.timetable.update({
             where: {
-              id: String((created.id || created._id))
+              id: String(((created.id || created._id)))
             },
 
             data: {
@@ -501,7 +501,7 @@ router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async
     }
     try {
       sendSseEvent('timetable_uploaded', {
-        id: (created.id || created._id),
+        id: ((created.id || created._id)),
         class: created.class,
         section: created.section,
         name: created.name

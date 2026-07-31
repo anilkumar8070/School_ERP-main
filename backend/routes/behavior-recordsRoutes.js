@@ -39,7 +39,7 @@ router.get("/my", verifyToken, requireRole('student'), async (req, res) => {
     });
     const items = await prisma.behaviorRecord.findMany({
       where: {
-        studentId: (student.id || student._id)
+        studentId: ((student.id || student._id))
       },
 
       orderBy: [{

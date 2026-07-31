@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { getMySalaryPayments } from '../api'
 import { getAuth } from '../utils/session'
-import FacultyLayout from '../components/faculty/FacultyLayout'
 // css removed
 import { useQuery, useMutation } from '@tanstack/react-query'
 

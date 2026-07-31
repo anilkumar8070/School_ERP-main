@@ -94,7 +94,7 @@ router.post("/", verifyToken, requireRole('admin|faculty'), async (req, res) => 
       }
 
       await prisma.facultyAttendance.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

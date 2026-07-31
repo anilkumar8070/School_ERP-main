@@ -48,7 +48,7 @@ router.post("/generate", verifyToken, requireRole('admin'), async (req, res) => 
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            studentId: (st.id || st._id)
+            studentId: ((st.id || st._id))
           },
 
           orderBy: [{
@@ -65,7 +65,7 @@ router.post("/generate", verifyToken, requireRole('admin'), async (req, res) => 
         try {
           created = await IDCard.create({
             data: {
-              studentId: (st.id || st._id),
+              studentId: ((st.id || st._id)),
               type: 'student',
               name: st.name || '',
               fatherName: st.fatherName || '',
@@ -125,7 +125,7 @@ router.post("/generate-faculty", verifyToken, requireRole('admin'), async (req, 
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            facultyId: (f.id || f._id)
+            facultyId: ((f.id || f._id))
           },
 
           orderBy: [{
@@ -142,7 +142,7 @@ router.post("/generate-faculty", verifyToken, requireRole('admin'), async (req, 
         try {
           created = await IDCard.create({
             data: {
-              facultyId: (f.id || f._id),
+              facultyId: ((f.id || f._id)),
               type: 'faculty',
               name: f.name || '',
               fatherName: '',
@@ -206,7 +206,7 @@ router.post("/generate-staff", verifyToken, requireRole('admin'), async (req, re
       try {
         latest = await prisma.iDCard.findFirst({
           where: {
-            userId: (u.id || u._id)
+            userId: ((u.id || u._id))
           },
 
           orderBy: [{
@@ -218,13 +218,13 @@ router.post("/generate-staff", verifyToken, requireRole('admin'), async (req, re
       } catch {}
       const version = latest ? Number(latest.version || 1) + 1 : 1;
       let idCode = latest && latest.idCode ? latest.idCode : makeId('IDS_');
-      const staffId = `STF-${String((u.id || u._id)).slice(-6).toUpperCase()}`;
+      const staffId = `STF-${String(((u.id || u._id))).slice(-6).toUpperCase()}`;
       let created = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           created = await IDCard.create({
             data: {
-              userId: (u.id || u._id),
+              userId: ((u.id || u._id)),
               type: 'staff',
               name: u.name || u.username || '',
               fatherName: '',
@@ -506,7 +506,7 @@ router.post("/backfill-codes", verifyToken, requireRole('admin'), async (req, re
     for (const c of cards) {
       const code = makeId('IDC_');
       await prisma.iDCard.update({
-        where: { id: (c.id || c._id) },
+        where: { id: ((c.id || c._id)) },
         data: { idCode: code }
       }).catch(() => null);
       updated++;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { getMyStudent } from '../../api'
 import { getSyllabus, API_BASE } from '../../api'

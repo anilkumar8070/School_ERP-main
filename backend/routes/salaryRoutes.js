@@ -75,7 +75,7 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     const razorpaySignature = makeId('sig_');
 
     // Generate a simple receipt number
-    const receiptNo = `SAL-${new Date().getFullYear()}-${String((payment.id || payment._id)).slice(-6).toUpperCase()}`;
+    const receiptNo = `SAL-${new Date().getFullYear()}-${String(((payment.id || payment._id))).slice(-6).toUpperCase()}`;
     payment.razorpayOrderId = razorpayOrderId;
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
@@ -118,7 +118,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           currency: 'INR',
           receipt,
           notes: {
-            facultyId: String((fac.id || fac._id)),
+            facultyId: String(((fac.id || fac._id))),
             month
           }
         });
@@ -126,7 +126,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           mode: 'razorpay',
           order,
           faculty: {
-            id: (fac.id || fac._id),
+            id: ((fac.id || fac._id)),
             name: fac.name,
             email: fac.email
           },
@@ -149,7 +149,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
       mode: 'mock',
       order,
       faculty: {
-        id: (fac.id || fac._id),
+        id: ((fac.id || fac._id)),
         name: fac.name,
         email: fac.email
       },
@@ -254,7 +254,7 @@ router.get("/my", verifyToken, requireRole('faculty'), async (req, res) => {
     });
     const list = await prisma.salaryPayment.findMany({
       where: {
-        facultyId: (fac.id || fac._id)
+        facultyId: ((fac.id || fac._id))
       },
 
       orderBy: {
@@ -303,7 +303,7 @@ router.get("/receipt/:id", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         }
-        if (fac && String((fac.id || fac._id)) === String(pay.facultyId)) allowed = true;
+        if (fac && String(((fac.id || fac._id))) === String(pay.facultyId)) allowed = true;
       } catch {}
     }
     if (!allowed) return res.status(403).send('Forbidden');
@@ -394,7 +394,7 @@ router.get("/receipt/:id.pdf", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         }
-        if (fac && String((fac.id || fac._id)) === String(pay.facultyId)) allowed = true;
+        if (fac && String(((fac.id || fac._id))) === String(pay.facultyId)) allowed = true;
       } catch {}
     }
     if (!allowed) return res.status(403).json({

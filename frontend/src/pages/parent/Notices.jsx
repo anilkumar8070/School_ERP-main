@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import ParentLayout from '../../components/parent/ParentLayout'
+import { useEffect, useState } from 'react'
 import { getNotices, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

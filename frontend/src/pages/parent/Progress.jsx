@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import ParentLayout from '../../components/parent/ParentLayout'
+import { useEffect, useMemo, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { getMyMarks, getTestResultsByStudent } from '../../api'
 

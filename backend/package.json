@@ -8,7 +8,13 @@
         "dev": "nodemon index.js",
         "migrate:set-medium": "node scripts/set_all_students_medium_to_english.js",
         "test": "jest --runInBand",
-        "sync-env": "node ../sync-env.js"
+        "sync-env": "node ../sync-env.js",
+        "prisma:generate": "prisma generate",
+        "prisma:db-push": "prisma db push",
+        "prisma:seed": "node prisma/seed.js"
+    },
+    "prisma": {
+        "seed": "node prisma/seed.js"
     },
     "dependencies": {
         "@prisma/client": "^5.22.0",

@@ -87,7 +87,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
       }
 
       await prisma.contactQuery.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -241,7 +241,7 @@ router.put("/custom-forms/:id", verifyToken, requireRole('admin'), async (req, r
       message: 'at least one field required'
     });
     const cleanFields = fields.filter(field => field && String(field.label || '').trim()).map(field => ({
-      _id: (field.id || field._id),
+      _id: ((field.id || field._id)),
       label: String(field.label || '').trim(),
       type: String(field.type || 'text'),
       required: !!field.required,
@@ -355,7 +355,7 @@ router.patch("/contact-queries/:id/status", verifyToken, requireRole('admin'), a
       }
 
       await prisma.contactQuery.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -546,13 +546,13 @@ router.get("/analytics/student-rank", verifyToken, requireRole('admin'), async (
         where: sq
       }).catch(() => []);
       for (const s of students || []) {
-        const skey = (s.id || s._id) ? String((s.id || s._id)) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
+        const skey = ((s.id || s._id)) ? String(((s.id || s._id))) : `${s.email || s.name || ''}::${s.class || ''}::${s.section || ''}`;
         const exists = rows.some(r => r.key === skey);
         if (!exists) {
           rows.push({
             key: skey,
             name: s.name || '',
-            studentId: (s.id || s._id) || null,
+            studentId: ((s.id || s._id)) || null,
             class: s.class || '',
             section: s.section || '',
             avg: null,

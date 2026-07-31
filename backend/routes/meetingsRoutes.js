@@ -105,7 +105,7 @@ router.post("/", verifyToken, requireRole(['admin', 'faculty']), async (req, res
     // notify SSE clients
     try {
       sendSseEvent('meeting_created', {
-        id: (m.id || m._id),
+        id: ((m.id || m._id)),
         title: m.title
       });
     } catch (e) {}
@@ -197,7 +197,7 @@ router.get("/my", verifyToken, async (req, res) => {
         }
         specific.push({
           audience: 'student',
-          studentId: (studentDoc.id || studentDoc._id)
+          studentId: ((studentDoc.id || studentDoc._id))
         });
       }
       const finalOr = or.concat(specific);
@@ -298,8 +298,8 @@ router.get("/my", verifyToken, async (req, res) => {
           // deduplicate by _id
           const seen = new Set();
           items = items.filter(it => {
-            if (!it || !(it.id || it._id)) return false;
-            const id = String((it.id || it._id));
+            if (!it || !((it.id || it._id))) return false;
+            const id = String(((it.id || it._id)));
             if (seen.has(id)) return false;
             seen.add(id);
             return true;

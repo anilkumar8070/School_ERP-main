@@ -128,7 +128,7 @@ router.post("/", verifyToken, requireRole('faculty'), async (req, res) => {
       }
 
       await prisma.mark.update({
-        where: { id: String((existing.id || existing._id)) },
+        where: { id: String(((existing.id || existing._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -202,7 +202,7 @@ router.post("/bulk", verifyToken, requireRole('faculty'), async (req, res) => {
       }
 
       await prisma.mark.update({
-        where: { id: String((existing.id || existing._id)) },
+        where: { id: String(((existing.id || existing._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -265,7 +265,7 @@ router.put("/:id", verifyToken, requireRole('faculty'), async (req, res) => {
       }
 
       await prisma.mark.update({
-        where: { id: String((upd.id || upd._id)) },
+        where: { id: String(((upd.id || upd._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -324,7 +324,7 @@ router.get("/my", verifyToken, requireRole(['student', 'parent', 'faculty', 'adm
       });
       const items = await prisma.mark.findMany({
         where: {
-          studentId: (s.id || s._id)
+          studentId: ((s.id || s._id))
         },
 
         orderBy: {

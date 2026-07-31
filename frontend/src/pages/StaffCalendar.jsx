@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import StaffLayout from '../components/staff/StaffLayout'
+import { useEffect, useMemo, useState } from 'react'
 import { getEvents } from '../api'
 import './Events.css'
 

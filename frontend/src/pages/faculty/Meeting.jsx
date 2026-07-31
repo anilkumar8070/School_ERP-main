@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
-import { getMyMeetings, getMeetings, createMeeting, getProfile, getMyFaculty } from '../../api'
+import { useEffect, useState } from 'react'
+import { getMyMeetings, createMeeting, getProfile, getMyFaculty } from '../../api'
 import '../Student.css'
 
 export default function Meeting() {

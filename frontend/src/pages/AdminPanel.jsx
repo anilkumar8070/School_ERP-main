@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import { API_BASE } from '../api'
 import { getAuth } from '../utils/session'
 
@@ -8,7 +7,6 @@ function formatNumber(n) {
     return num.toLocaleString()
 }
 
-import { FiUsers, FiCheckCircle, FiDollarSign, FiBriefcase } from 'react-icons/fi'
 
 // ... existing imports
 

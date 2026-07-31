@@ -134,7 +134,7 @@ router.put("/", verifyToken, async (req, res) => {
       }
 
       await prisma.student.update({
-        where: { id: String((s.id || s._id)) },
+        where: { id: String(((s.id || s._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -172,7 +172,7 @@ router.put("/", verifyToken, async (req, res) => {
       }
 
       await prisma.faculty.update({
-        where: { id: String((f.id || f._id)) },
+        where: { id: String(((f.id || f._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

@@ -1,6 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
-import IDCard from '../../components/common/IDCard'
+import { useEffect, useMemo, useState } from 'react'
 import { generateIdCards, generateFacultyIdCards, generateStaffIdCards, listIdCards, listIdCardBatches, getIdCardsByBatch, updateIdCard, uploadFile } from '../../api'
 import { getAuth } from '../../utils/session'
 import { toast } from 'react-toastify'

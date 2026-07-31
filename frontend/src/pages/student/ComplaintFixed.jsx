@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { postComplaint, getComplaints } from '../../api'
 import { getAuth } from '../../utils/session'
 import { toast } from 'react-toastify'

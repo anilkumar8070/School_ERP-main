@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
 
 // Admin: list parents
@@ -95,7 +95,7 @@ router.get("/", verifyToken, requireRole('admin'), async (req, res) => {
         });
         const idToName = {};
         students.forEach(s => {
-          idToName[String((s.id || s._id))] = s.name;
+          idToName[String(((s.id || s._id)))] = s.name;
         });
         parents = parents.map(p => {
           if (!Array.isArray(p.parentOf) || p.parentOf.length === 0) return p;
@@ -217,7 +217,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -297,8 +297,25 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
         avatar: avatar || ''
       }
     });
+
+    // Notify parent by email with credentials
+    try {
+      await sendCredentialEmail({
+        to: email,
+        name: name,
+        role: 'Parent',
+        username: email,
+        password: password,
+        extraDetails: {
+          'Contact': contact || '-'
+        }
+      });
+    } catch (mailErr) {
+      console.warn('Failed to send parent welcome email:', mailErr && (mailErr.message || String(mailErr)));
+    }
+
     return res.status(201).json({
-      id: (created.id || created._id),
+      id: ((created.id || created._id)),
       username: created.username,
       name: created.name
     });
@@ -337,7 +354,7 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     if (!user || user.role !== 'parent') return res.status(403).json({
       message: 'Unauthorized'
     });
-    const sid = String((student.id || student._id));
+    const sid = String(((student.id || student._id)));
     const exists = Array.isArray(user.parentOf) && user.parentOf.some(x => String(x) === sid);
     if (!exists) {
       if (!Array.isArray(user.parentOf)) user.parentOf = [];
@@ -354,7 +371,7 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -362,7 +379,7 @@ router.post("/link", verifyToken, requireRole('parent'), async (req, res) => {
     return res.json({
       ok: true,
       student: {
-        id: (student.id || student._id),
+        id: ((student.id || student._id)),
         name: student.name,
         class: student.class,
         section: student.section,

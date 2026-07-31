@@ -117,7 +117,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
             email: req.user && req.user.username
           }
         }).catch(() => null);
-        if (!currentStudent || String((currentStudent.id || currentStudent._id)) !== String(studentId)) return res.status(403).json({
+        if (!currentStudent || String(((currentStudent.id || currentStudent._id))) !== String(studentId)) return res.status(403).json({
           message: 'Cannot pay for another student'
         });
       }
@@ -130,7 +130,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
     const receipt = await ReceiptModel.create({
       data: {
         studentId: studentId || alloc && alloc.student && alloc.student.id || null,
-        allocationId: allocationId || alloc && (alloc.id || alloc._id) || null,
+        allocationId: allocationId || alloc && ((alloc.id || alloc._id)) || null,
         studentName: studentName || alloc && alloc.student && alloc.student.name || '',
         studentEmail: studentEmail || alloc && alloc.student && alloc.student.email || '',
         class: studentClass || alloc && alloc.student && alloc.student.class || '',
@@ -202,7 +202,7 @@ router.post("/confirm", verifyToken, async (req, res) => {
           amount: Number(receipt.amount || 0),
           orderId: razorpay_order_id,
           paymentId: razorpay_payment_id,
-          receiptId: String((receipt.id || receipt._id)),
+          receiptId: String(((receipt.id || receipt._id))),
           status: 'paid'
         };
         payments.push(p);

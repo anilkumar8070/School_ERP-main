@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { submitOnlineAdmission } from '../api'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'

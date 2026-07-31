@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import StaffLayout from '../../components/staff/StaffLayout'
+import { useEffect, useState } from 'react'
 import { getMyMeetings } from '../../api'
 import { getAuth } from '../../utils/session'
 

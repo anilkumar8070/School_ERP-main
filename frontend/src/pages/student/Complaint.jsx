@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import { getAuth } from '../../utils/session'
+import { useState, useEffect } from 'react'
 
 export default function Complaint() {
     const [text, setText] = useState('')

@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useState } from 'react'
 import { createTimetable, getTimetable, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

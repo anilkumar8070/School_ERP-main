@@ -141,7 +141,7 @@ router.post("/staff", verifyToken, requireRole(['admin', 'staff']), async (req, 
       }
 
       await prisma.staffAttendance.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -183,7 +183,7 @@ router.get("/staff/export", verifyToken, async (req, res) => {
             }
           }).catch(() => null);
         } catch {}
-        const staffId = u ? `STF-${String((u.id || u._id)).slice(-6).toUpperCase()}` : '';
+        const staffId = u ? `STF-${String(((u.id || u._id))).slice(-6).toUpperCase()}` : '';
         rows.push([d.date, u ? u.name || u.username : String(r.userId), staffId, r.status || '']);
       }
     }
@@ -299,10 +299,10 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
         });
         for (const s of studs) {
           if (String(s.class) !== String(cls)) return res.status(400).json({
-            message: `Student ${(s.id || s._id)} not in class ${cls}`
+            message: `Student ${((s.id || s._id))} not in class ${cls}`
           });
           if (section && String(section || '') !== '' && String(s.section || '') !== String(section || '')) return res.status(400).json({
-            message: `Student ${(s.id || s._id)} not in section ${section}`
+            message: `Student ${((s.id || s._id))} not in section ${section}`
           });
         }
       }
@@ -335,7 +335,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
       }
 
       await prisma.attendance.update({
-        where: { id: String((att.id || att._id)) },
+        where: { id: String(((att.id || att._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -384,7 +384,7 @@ router.post("/", verifyToken, requireRole(['faculty', 'admin']), async (req, res
         });
         const byId = {};
         students.forEach(s => {
-          byId[String((s.id || s._id))] = s;
+          byId[String(((s.id || s._id)))] = s;
         });
         const titleDate = String(date);
         const classLabel = `Class ${String(cls)}${section ? ' - Section ' + String(section) : ''}`;
@@ -484,7 +484,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
       if (!me) return res.status(404).json({
         message: 'Student record not found'
       });
-      effectiveStudentId = String((me.id || me._id));
+      effectiveStudentId = String(((me.id || me._id)));
     } else if (role === 'parent') {
       if (!rawStudentId) return res.status(400).json({
         message: 'studentId required for parent'
@@ -536,7 +536,7 @@ router.get("/export", verifyToken, requireRole(['admin', 'faculty', 'student', '
         }
       });
       (docs || []).forEach(s => {
-        byId[String((s.id || s._id))] = s;
+        byId[String(((s.id || s._id)))] = s;
       });
     }
     const rows = [['Date', 'Class', 'Section', 'StudentId', 'StudentName', 'Roll', 'Status']];
@@ -611,7 +611,7 @@ router.post("/faculty", verifyToken, requireRole(['faculty', 'admin']), async (r
       }
 
       await prisma.facultyAttendance.update({
-        where: { id: String((att.id || att._id)) },
+        where: { id: String(((att.id || att._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -705,7 +705,7 @@ router.get("/faculty/export", verifyToken, requireRole(['admin', 'faculty']), as
         }
       });
       (docs || []).forEach(f => {
-        fById[String((f.id || f._id))] = f;
+        fById[String(((f.id || f._id)))] = f;
       });
     }
     const rows = [['Date', 'FacultyId', 'Name', 'EmployeeId', 'Subject', 'Status']];
@@ -806,7 +806,7 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
     });
     for (const rec of records) {
       // Determine faculty id: prefer provided rec.facultyId; if missing or not found, fall back to current user's mapped faculty
-      let fid = rec && rec.facultyId ? rec.facultyId : currentFaculty && (currentFaculty.id || currentFaculty._id);
+      let fid = rec && rec.facultyId ? rec.facultyId : currentFaculty && ((currentFaculty.id || currentFaculty._id));
       // If fid is still not resolved, attempt lookup by employeeId
       if (!fid && rec && rec.employeeId) {
         const byEmp = await prisma.faculty.findFirst({
@@ -814,7 +814,7 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
             employeeId: rec.employeeId
           }
         }).catch(() => null);
-        if (byEmp) fid = (byEmp.id || byEmp._id);
+        if (byEmp) fid = ((byEmp.id || byEmp._id));
       }
       if (!fid) continue; // skip if we cannot resolve a faculty id
       const idx = Array.isArray(doc.records) ? doc.records.findIndex(r => String(r.facultyId) === String(fid)) : -1;
@@ -837,7 +837,7 @@ router.post("/faculty", verifyToken, requireRole('admin|faculty'), async (req, r
       }
 
       await prisma.facultyAttendance.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

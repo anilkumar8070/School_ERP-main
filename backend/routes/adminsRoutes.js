@@ -147,7 +147,7 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       console.warn('Failed to send admin creation email:', mailErr && (mailErr.message || String(mailErr)));
     }
     return res.status(201).json({
-      id: (created.id || created._id),
+      id: ((created.id || created._id)),
       username: created.username
     });
   } catch (e) {
@@ -232,7 +232,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -297,14 +297,14 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json({
       ok: true,
       admin: {
-        id: (user.id || user._id),
+        id: ((user.id || user._id)),
         name: user.name,
         fatherName: user.fatherName,
         username: user.username,

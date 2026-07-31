@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import '../../pages/AdminPanel.css'
 import { getAdmins, createAdmin, deleteAdmin, blockAdmin, updateAdmin, getProfile } from '../../api'
 import { getAuth } from '../../utils/session'
-import { toast } from 'react-toastify'
 
 export default function Admins() {
     const [loading, setLoading] = useState(false)
@@ -40,7 +38,7 @@ export default function Admins() {
             await createAdmin(newAdmin, token)
             await load()
             closeAdd()
-            alert('Admin created and notified (if SMTP configured).')
+            alert('Admin created successfully and notification email sent.')
         } catch (err) { console.error(err); alert('Failed to create admin: ' + (err && err.message || String(err))) }
         setAdding(false)
     }

@@ -1,4 +1,3 @@
-import React from 'react'
 import './IDCard.css'
 import { API_BASE } from '../../api'
 

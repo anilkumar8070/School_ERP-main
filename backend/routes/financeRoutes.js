@@ -58,7 +58,7 @@ router.get("/receipts/by-student/:id", verifyToken, requireRole(['admin', 'paren
         OR: [{
           studentEmail: student.email
         }, {
-          studentId: (student.id || student._id)
+          studentId: ((student.id || student._id))
         }]
       },
 
@@ -306,7 +306,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
       }
 
       await prisma.feeStructure.update({
-        where: { id: String((existing.id || existing._id)) },
+        where: { id: String(((existing.id || existing._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -324,7 +324,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
             where: studentQuery
           });
           for (const s of students || []) {
-            const id = (s.id || s._id);
+            const id = ((s.id || s._id));
             const hasT1 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term1');
             
             let fees = Array.isArray(s.assignedFees) ? s.assignedFees : [];
@@ -356,7 +356,7 @@ router.post("/fee-structure", verifyToken, requireRole('admin'), async (req, res
             where: studentQuery
           });
           for (const s of students || []) {
-            const id = (s.id || s._id);
+            const id = ((s.id || s._id));
             const hasT2 = Array.isArray(s.assignedFees) && s.assignedFees.some(f => String(f.term).toLowerCase().replace(/\s+/g, '') === 'term2');
             
             let fees2 = Array.isArray(s.assignedFees) ? s.assignedFees : [];
@@ -479,7 +479,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
     let removed = false;
     if (fee.history && fee.history.length) {
       // prefer exact _id match (compare as strings)
-      const idx = fee.history.findIndex(h => String((h.id || h._id)) === String(hid));
+      const idx = fee.history.findIndex(h => String(((h.id || h._id))) === String(hid));
       if (idx >= 0) {
         fee.history.splice(idx, 1);
         removed = true;
@@ -513,7 +513,7 @@ router.delete("/fee-structure/:id/history/:hid", verifyToken, requireRole('admin
       }
 
       await prisma.feeStructure.update({
-        where: { id: String((fee.id || fee._id)) },
+        where: { id: String(((fee.id || fee._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -746,7 +746,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                 <p>Hi ${rec.studentName || rec.studentEmail},</p>
                 <p>Thank you. Your payment has been received.</p>
                 <table style="width:100%;border-collapse:collapse;margin-top:8px">
-                  <tr><td style="font-weight:700;padding:6px 0">Receipt ID</td><td style="padding:6px 0">${(rec.id || rec._id)}</td></tr>
+                  <tr><td style="font-weight:700;padding:6px 0">Receipt ID</td><td style="padding:6px 0">${((rec.id || rec._id))}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Class</td><td style="padding:6px 0">${rec.class}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Term</td><td style="padding:6px 0">${rec.term}</td></tr>
                   <tr><td style="font-weight:700;padding:6px 0">Amount</td><td style="padding:6px 0">₹${rec.amount}</td></tr>
@@ -775,7 +775,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                   subject,
                   html,
                   attachments: [{
-                    filename: `receipt_${(rec.id || rec._id)}.pdf`,
+                    filename: `receipt_${((rec.id || rec._id))}.pdf`,
                     content: pdfData
                   }]
                 }).catch(() => {});
@@ -792,7 +792,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
               align: 'left'
             });
             doc.moveDown(1);
-            doc.fontSize(12).text(`Receipt ID: ${(rec.id || rec._id)}`);
+            doc.fontSize(12).text(`Receipt ID: ${((rec.id || rec._id))}`);
             doc.text(`Date: ${new Date(rec.createdAt).toLocaleString()}`);
             doc.moveDown(0.5);
             doc.fontSize(12).text(`Student: ${rec.studentName || ''}`);
@@ -868,7 +868,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
                 amount: Number(amount || 0),
                 orderId: razorpay_order_id,
                 paymentId: razorpay_payment_id,
-                receiptId: (rec.id || rec._id),
+                receiptId: ((rec.id || rec._id)),
                 status: 'paid'
               });
             }
@@ -877,7 +877,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
               amount: Number(amount || 0),
               orderId: razorpay_order_id,
               paymentId: razorpay_payment_id,
-              receiptId: (rec.id || rec._id),
+              receiptId: ((rec.id || rec._id)),
               status: 'paid'
             });
           }
@@ -912,7 +912,7 @@ router.post("/confirm-payment", verifyToken, async (req, res) => {
     // emit SSE for admin UIs
     try {
       sendSseEvent('receipt_created', {
-        id: (rec.id || rec._id),
+        id: ((rec.id || rec._id)),
         email: rec.studentEmail,
         name: rec.studentName,
         amount: rec.amount

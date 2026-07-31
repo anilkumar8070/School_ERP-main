@@ -1,6 +1,4 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import FacultyLayout from '../components/faculty/FacultyLayout'
 import { getAuth } from '../utils/session'
 import { getFacultyDashboard } from '../api'
 import { useQuery } from '@tanstack/react-query'

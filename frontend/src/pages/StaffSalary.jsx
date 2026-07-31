@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { API_BASE, getMyStaffSalaryPayments } from '../api'
 import { getAuth } from '../utils/session'
-import StaffLayout from '../components/staff/StaffLayout'
 import './AdminSalary.css'
 
 export default function StaffSalary() {

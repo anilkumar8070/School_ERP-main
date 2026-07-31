@@ -1,0 +1,190 @@
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+D:\Projects\School_ERP-main\backend\index.js:16
+const prisma = require('./prisma/client');
+      ^
+
+SyntaxError: Identifier 'prisma' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1515:18)
+    at Module._compile (node:internal/modules/cjs/loader:1537:20)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49
+
+Node.js v22.12.0
+Demo admin password not set (env DEMO_ADMIN_PASSWORD). Generated: 3a985673
+Demo faculty password not set (env DEMO_FACULTY_PASSWORD). Generated: 87883694
+Demo student password not set (env DEMO_STUDENT_PASSWORD). Generated: 311e22e2
+Demo parent password not set (env DEMO_PARENT_PASSWORD). Generated: 68484504
+CORS: permissive mode enabled (allowing all origins)
+(node:22852) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 exit listeners added to [Bus]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+Demo admin password not set (env DEMO_ADMIN_PASSWORD). Generated: 67c22423
+Demo faculty password not set (env DEMO_FACULTY_PASSWORD). Generated: be591d97
+Demo student password not set (env DEMO_STUDENT_PASSWORD). Generated: e7e69454
+Demo parent password not set (env DEMO_PARENT_PASSWORD). Generated: 30110956
+CORS: permissive mode enabled (allowing all origins)
+Uncaught Exception thrown: Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (D:\Projects\School_ERP-main\backend\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\School_ERP-main\backend\index.js:1576:20)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49 {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 4000
+}
+Demo admin password not set (env DEMO_ADMIN_PASSWORD). Generated: 7dae9049
+Demo faculty password not set (env DEMO_FACULTY_PASSWORD). Generated: 5aba4de0
+Demo student password not set (env DEMO_STUDENT_PASSWORD). Generated: b6e394c4
+Demo parent password not set (env DEMO_PARENT_PASSWORD). Generated: 10c6c559
+CORS: permissive mode enabled (allowing all origins)
+Uncaught Exception thrown: Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:1912:16)
+    at listenInCluster (node:net:1969:12)
+    at Server.listen (node:net:2074:7)
+    at Function.listen (D:\Projects\School_ERP-main\backend\node_modules\express\lib\application.js:635:24)
+    at Object.<anonymous> (D:\Projects\School_ERP-main\backend\index.js:1576:20)
+    at Module._compile (node:internal/modules/cjs/loader:1565:14)
+    at Object..js (node:internal/modules/cjs/loader:1708:10)
+    at Module.load (node:internal/modules/cjs/loader:1318:32)
+    at Function._load (node:internal/modules/cjs/loader:1128:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:219:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:170:5)
+    at node:internal/main/run_main_module:36:49 {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 4000
+}
+Demo admin password not set (env DEMO_ADMIN_PASSWORD). Generated: 66553b10
+Demo faculty password not set (env DEMO_FACULTY_PASSWORD). Generated: 93d31de2
+Demo student password not set (env DEMO_STUDENT_PASSWORD). Generated: 11cc0cf5
+Demo parent password not set (env DEMO_PARENT_PASSWORD). Generated: aa6ff7ad
+CORS: permissive mode enabled (allowing all origins)

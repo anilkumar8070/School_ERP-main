@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getMyCertificates, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

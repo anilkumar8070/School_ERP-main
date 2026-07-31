@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-import StaffLayout from '../../components/staff/StaffLayout'
+import { useEffect, useRef, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { getProfile, getStaffCard } from '../../api'
-import IDCard from '../../components/common/IDCard'
 import html2canvas from 'html2canvas'
 
 export default function StaffCard() {

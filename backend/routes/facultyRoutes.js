@@ -20,8 +20,22 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
+
+// Admin: create new faculty member
+router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { name, email, subject, classGrade, contact, experience, employeeId } = req.body || {};
+    if (!name) return res.status(400).json({ message: 'name is required' });
+    const created = await prisma.faculty.create({
+      data: { name, email, subject, classGrade, contact, experience, employeeId, createdAt: new Date() }
+    });
+    return res.status(201).json(created);
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+});
 
 // Admin: update faculty fields (accept assignments, houses, role)
 router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
@@ -83,10 +97,10 @@ router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (
     // Count upcoming meetings linked to this faculty (if any)
     let upcomingMeetings = 0;
     try {
-      if (fac && (fac.id || fac._id)) {
+      if (fac && ((fac.id || fac._id))) {
         upcomingMeetings = await prisma.meeting.count({
           where: {
-            facultyId: String((fac.id || fac._id)),
+            facultyId: String(((fac.id || fac._id))),
             date: {
               gte: new Date()
             }
@@ -124,7 +138,7 @@ router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (
     }
     const summary = {
       faculty: fac ? {
-        _id: (fac.id || fac._id),
+        _id: ((fac.id || fac._id)),
         name: fac.name,
         email: fac.email,
         subject: fac.subject,
@@ -268,7 +282,7 @@ router.post("/register", async (req, res) => {
     // emit SSE event for admin UIs
     try {
       sendSseEvent('faculty_registration', {
-        id: (reg.id || reg._id),
+        id: ((reg.id || reg._id)),
         name: reg.name,
         email: reg.email
       });
@@ -360,7 +374,7 @@ router.post("/lesson-plans", verifyToken, requireRole('faculty'), async (req, re
     const doc = await LessonPlan.create({
       data: {
         facultyUserId: req.user.sub,
-        facultyId: faculty && (faculty.id || faculty._id),
+        facultyId: faculty && ((faculty.id || faculty._id)),
         teacherName: faculty && faculty.name || user && user.name || req.user.username || '',
         class: String(cls),
         section: String(section || 'ALL'),
@@ -414,7 +428,7 @@ router.put("/lesson-plans/:id", verifyToken, requireRole('faculty'), async (req,
       }
 
       await prisma.lessonPlan.update({
-        where: { id: String((doc.id || doc._id)) },
+        where: { id: String(((doc.id || doc._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -562,7 +576,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       }
 
       await prisma.facultyRegistration.update({
-        where: { id: String((reg.id || reg._id)) },
+        where: { id: String(((reg.id || reg._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -570,14 +584,14 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
     // notify admin UIs via SSE
     try {
       sendSseEvent('faculty_approved', {
-        id: (reg.id || reg._id),
+        id: ((reg.id || reg._id)),
         name: reg.name,
         email: reg.email,
         employeeId: facultyDoc.employeeId
       });
     } catch (e) {}
 
-    // try to send a congratulation email with credentials (if SMTP configured)
+    // try to send a congratulation email with credentials
     let mailStatus = {
       attempted: false,
       sent: false,
@@ -585,58 +599,19 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       error: null
     };
     try {
-      const loginUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
-      const subject = 'Congratulations — you have been selected as a Teacher';
-      const passwordRow = generatedPassword ? `
-            <tr>
-              <td style="padding:8px 12px;background:#fafafa;font-weight:600;border-top:1px solid #eee">Password</td>
-              <td style="padding:8px 12px;background:#fafafa;border-top:1px solid #eee"><strong>${generatedPassword}</strong></td>
-            </tr>` : '';
-      const html = `
-        <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
-          <div style="max-width:680px;margin:0 auto;">
-            <div style="background:linear-gradient(90deg,#6a4ef6,#9f7efe);padding:20px;border-radius:10px 10px 0 0;color:#fff;text-align:left;">
-              <h1 style="margin:0;font-size:22px;">Congratulations ${reg.name}!</h1>
-              <div style="margin-top:6px;opacity:0.95">You have been selected for the role of <strong>Teacher</strong>.</div>
-            </div>
-            <div style="background:#ffffff;padding:18px;border:1px solid #e8e8f0;border-top:0;border-radius:0 0 10px 10px;">
-              <p style="margin:0 0 12px;color:#374151">An account has been created for you on our ERP system. Below are your account details — keep them secure.</p>
-
-              <table style="width:100%;border-collapse:collapse;margin-top:8px;border-radius:6px;overflow:hidden;box-shadow:0 6px 18px rgba(99,102,241,0.08)">
-                <tr>
-                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-bottom:1px solid #f1f1f5;width:40%">Username</td>
-                  <td style="padding:12px 16px;background:#fff;border-bottom:1px solid #f1f1f5">${reg.email}</td>
-                </tr>
-                ${passwordRow}
-                <tr>
-                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-top:${generatedPassword ? '0' : '1px solid #f1f1f5'}">Employee ID</td>
-                  <td style="padding:12px 16px;background:#fff">${facultyDoc.employeeId}</td>
-                </tr>
-                <tr>
-                  <td style="padding:12px 12px 12px 16px;background:#f9fafb;font-weight:700;color:#111;border-top:1px solid #f1f1f5">Class</td>
-                  <td style="padding:12px 16px;background:#fff">${facultyDoc.classGrade || reg.classGrade || '-'}</td>
-                </tr>
-              </table>
-
-              <div style="margin-top:16px;text-align:left">
-                <a href="${loginUrl}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white;text-decoration:none;font-weight:600">Login to ERP</a>
-              </div>
-
-              <p style="margin-top:14px;color:#6b7280;font-size:13px">${generatedPassword ? 'Please change your password after first login.' : 'Use your existing credentials to login.'}</p>
-              <p style="margin-top:10px;color:#9ca3af;font-size:12px">If you did not expect this email or there is an issue, please contact the administrator.</p>
-              <div style="margin-top:18px;color:#6b7280;font-size:13px">Regards,<br/>Admin</div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // Use shared sendMail helper.
-      mailStatus = await sendMail({
+      mailStatus = await sendCredentialEmail({
         to: reg.email,
-        subject,
-        html
+        name: reg.name,
+        role: 'Teacher',
+        username: reg.email,
+        password: generatedPassword,
+        extraDetails: {
+          'Employee ID': facultyDoc.employeeId,
+          'Subject': reg.subject || '-',
+          'Class Grade': facultyDoc.classGrade || reg.classGrade || '-'
+        }
       });
-      if (mailStatus.sent) console.log('Approval email sent to', reg.email);
+      if (mailStatus.sent) console.log('Teacher approval credential email sent to', reg.email);
     } catch (mailErr) {
       mailStatus.error = mailErr && (mailErr.message || String(mailErr));
       console.warn('Failed to send approval email:', mailStatus.error);
@@ -645,7 +620,7 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
       registration: reg,
       faculty: facultyDoc,
       user: user ? {
-        id: (user.id || user._id),
+        id: ((user.id || user._id)),
         username: user.username
       } : null,
       mail: mailStatus
@@ -690,7 +665,7 @@ router.put("/registrations/:id/reject", verifyToken, requireRole('admin'), async
       }
 
       await prisma.facultyRegistration.update({
-        where: { id: String((reg.id || reg._id)) },
+        where: { id: String(((reg.id || reg._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -830,13 +805,13 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
     try {
       sendSseEvent('faculty_blocked', {
-        id: (f.id || f._id),
+        id: ((f.id || f._id)),
         email: f.email,
         blocked: user.disabled
       });
@@ -908,7 +883,7 @@ router.delete("/:id", verifyToken, requireRole('admin'), async (req, res) => {
     // emit SSE event so admin UI can refresh lists
     try {
       sendSseEvent('faculty_deleted', {
-        id: (removed.id || removed._id),
+        id: ((removed.id || removed._id)),
         email: removed.email,
         name: removed.name
       });

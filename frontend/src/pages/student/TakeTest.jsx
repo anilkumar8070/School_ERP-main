@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import StudentLayout from '../../components/student/StudentLayout'
 import { getAuth } from '../../utils/session'
 import { getTestQuestions, getMyTests, API_BASE } from '../../api'
 import { useSubmitTest, useForfeitTest } from '../../hooks/useTakeTest'

@@ -161,7 +161,7 @@ router.post("/:id/images", verifyToken, requireRole('admin'), upload.array('imag
       }
 
       await prisma.gallery.update({
-        where: { id: String((gallery.id || gallery._id)) },
+        where: { id: String(((gallery.id || gallery._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -219,7 +219,7 @@ router.delete("/:id/images", verifyToken, requireRole('admin'), async (req, res)
       }
 
       await prisma.gallery.update({
-        where: { id: String((gallery.id || gallery._id)) },
+        where: { id: String(((gallery.id || gallery._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }

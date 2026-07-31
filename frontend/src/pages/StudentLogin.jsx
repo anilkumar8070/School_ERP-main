@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { login } from '../api'
 import { setAuth } from '../utils/session'
-import LoginLayout from '../components/LoginLayout'
 
 export default function StudentLogin() {
     const [username, setUsername] = useState('')

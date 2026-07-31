@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import Header from './Header'
-import Sidebar from './Sidebar'
-import Footer from './Footer'
+import { useEffect, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import '../../pages/Faculty.css'
 

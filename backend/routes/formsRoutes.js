@@ -44,7 +44,7 @@ router.get("/", async (req, res) => {
       }
     }).catch(() => []);
     const mappedResources = (items || []).map(it => ({
-      _id: (it.id || it._id),
+      _id: ((it.id || it._id)),
       kind: 'resource',
       title: it.title || it.originalname || it.filename,
       filename: it.filename,
@@ -52,7 +52,7 @@ router.get("/", async (req, res) => {
       createdAt: it.createdAt
     }));
     const mappedCustom = (customForms || []).map(form => ({
-      _id: (form.id || form._id),
+      _id: ((form.id || form._id)),
       kind: 'custom',
       title: form.title,
       category: form.category,

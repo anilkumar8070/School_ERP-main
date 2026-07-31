@@ -58,7 +58,7 @@ module.exports = function(helpers) {
       try {
         if (typeof sendSseEvent === 'function') {
           sendSseEvent('assignment_created', {
-            id: (doc.id || doc._id),
+            id: ((doc.id || doc._id)),
             class: doc.class,
             section: doc.section
           });
@@ -101,7 +101,7 @@ module.exports = function(helpers) {
       const sub = await Submission.create({
         data: {
           assignmentId: aid,
-          studentId: studentRec ? ((studentRec.id || studentRec._id)) : undefined,
+          studentId: studentRec ? (((studentRec.id || studentRec._id))) : undefined,
           studentName: studentRec ? studentRec.name : (req.body.studentName || ''),
           studentRoll: studentRec ? studentRec.rollNo : (req.body.studentRoll || ''),
           studentClass: studentRec ? studentRec.class : (req.body.studentClass || ''),

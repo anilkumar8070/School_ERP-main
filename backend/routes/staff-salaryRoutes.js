@@ -72,7 +72,7 @@ router.post("/pay", verifyToken, requireRole('admin'), async (req, res) => {
     const razorpayOrderId = 'order_' + makeId('rz_');
     const razorpayPaymentId = 'pay_' + makeId('rz_');
     const razorpaySignature = makeId('sig_');
-    const receiptNo = `SSL-${new Date().getFullYear()}-${String((payment.id || payment._id)).slice(-6).toUpperCase()}`;
+    const receiptNo = `SSL-${new Date().getFullYear()}-${String(((payment.id || payment._id))).slice(-6).toUpperCase()}`;
     payment.razorpayOrderId = razorpayOrderId;
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
@@ -161,7 +161,7 @@ router.patch("/payments/:id/mark-paid", verifyToken, requireRole('admin'), async
     pay.paymentMethod = String(paymentMethod || 'Cash');
     pay.paymentDate = paymentDate ? new Date(paymentDate) : new Date();
     if (notes !== undefined) pay.notes = String(notes || '');
-    if (!pay.receiptNo) pay.receiptNo = `SSL-${new Date().getFullYear()}-${String((pay.id || pay._id)).slice(-6).toUpperCase()}`;
+    if (!pay.receiptNo) pay.receiptNo = `SSL-${new Date().getFullYear()}-${String(((pay.id || pay._id))).slice(-6).toUpperCase()}`;
     if (!pay.razorpayPaymentId) pay.razorpayPaymentId = `manual_${makeId('pay_')}`;
     // Transpiled save()
     if (pay) {
@@ -175,7 +175,7 @@ router.patch("/payments/:id/mark-paid", verifyToken, requireRole('admin'), async
       }
 
       await prisma.staffSalaryPayment.update({
-        where: { id: String((pay.id || pay._id)) },
+        where: { id: String(((pay.id || pay._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -215,7 +215,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           currency: 'INR',
           receipt,
           notes: {
-            userId: String((staff.id || staff._id)),
+            userId: String(((staff.id || staff._id))),
             month
           }
         });
@@ -223,7 +223,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
           mode: 'razorpay',
           order,
           staff: {
-            id: (staff.id || staff._id),
+            id: ((staff.id || staff._id)),
             name: staff.name || staff.username,
             email: staff.username || ''
           },
@@ -244,7 +244,7 @@ router.post("/order", verifyToken, requireRole('admin'), async (req, res) => {
       mode: 'mock',
       order,
       staff: {
-        id: (staff.id || staff._id),
+        id: ((staff.id || staff._id)),
         name: staff.name || staff.username,
         email: staff.username || ''
       },

@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
 
 // HR management (admin) - expose endpoints for frontend `/api/hr` calls
@@ -131,30 +131,23 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       }
     });
 
-    // Send welcome email with credentials (best-effort)
+    // Send welcome email with credentials
     try {
-      const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
-      const loginLink = frontendUrl ? `${frontendUrl}/staff-login` : `${process.env.FRONTEND_DIST ? process.env.FRONTEND_DIST : ''}`;
-      const subject = 'Welcome — You have been added as HR';
-      const html = `<p>Hello ${String(name || '')},</p>
-        <p>Congratulations — you have been added as an HR user in the ERP system.</p>
-        <p>Your login credentials are:</p>
-        <ul>
-          <li>Username: <strong>${doc.username}</strong></li>
-          <li>Password: <strong>${plainPassword}</strong></li>
-        </ul>
-        <p>You can login at: <a href="${loginLink}">${loginLink}</a></p>
-        <p>Please change your password after your first login.</p>
-        <p>Regards,<br/>Admin</p>`;
-      sendMail({
-        to: doc.username,
-        subject,
-        html
-      }).catch(() => {});
+      await sendCredentialEmail({
+        to: email,
+        name: name,
+        role: 'Staff',
+        username: email,
+        password: plainPassword,
+        extraDetails: {
+          'Designation': designation || 'HR / Staff',
+          'Contact': contact || '-'
+        }
+      });
     } catch (e) {/* ignore mail errors */}
     return res.status(201).json({
       ok: true,
-      id: (doc.id || doc._id),
+      id: ((doc.id || doc._id)),
       username: doc.username,
       password: plainPassword
     });
@@ -234,7 +227,7 @@ router.put("/:id/block", verifyToken, requireRole('admin'), async (req, res) => 
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
@@ -295,14 +288,14 @@ router.put("/:id", verifyToken, requireRole('admin'), async (req, res) => {
       }
 
       await prisma.user.update({
-        where: { id: String((user.id || user._id)) },
+        where: { id: String(((user.id || user._id))) },
         data: _updateData
       }).catch(e => console.error("Transpiled save error:", e.message));
     }
     return res.json({
       ok: true,
       hr: {
-        id: (user.id || user._id),
+        id: ((user.id || user._id)),
         name: user.name,
         fatherName: user.fatherName,
         username: user.username,

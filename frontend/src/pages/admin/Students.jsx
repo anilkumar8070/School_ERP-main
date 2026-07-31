@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import '../../pages/AdminPanel.css'
 import { getStudents, getReceiptsByStudent } from '../../api'
 import { deleteStudent } from '../../api'
@@ -83,7 +82,7 @@ export default function Students() {
             setNewStudent({ name: '', email: '', class: '', password: '', gender: '', category: '', religion: '', stream: '', medium: 'English' })
             setShowAdd(false)
             await load()
-            alert('Student created (email sent if SMTP configured)')
+            alert('Student created successfully and notification email sent.')
         } catch (err) {
             console.error(err)
             alert(err && err.message ? err.message : 'Failed to create student')

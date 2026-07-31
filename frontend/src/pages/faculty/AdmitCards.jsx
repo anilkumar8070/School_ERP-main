@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { createAdmitCards, getAdmitCards } from '../../api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
