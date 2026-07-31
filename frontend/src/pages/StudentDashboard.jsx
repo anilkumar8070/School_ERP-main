@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { FaBookOpen, FaCalendarAlt, FaClipboardCheck, FaComments, FaFileAlt, FaLayerGroup } from 'react-icons/fa'
+import React, { useEffect, useState } from 'react'
+import { FaArrowRight, FaBookOpen, FaCalendarAlt, FaClipboardCheck, FaComments, FaFileAlt, FaGraduationCap, FaLayerGroup, FaRegClock } from 'react-icons/fa'
 import { getMyMeetings, getStudentDashboardStats } from '../api'
 
 const quickLinks = [

@@ -1,3 +1,6 @@
+import React from 'react'
+import StaffLayout from '../../components/staff/StaffLayout'
+import { Link } from 'react-router-dom'
 
 export default function StaffDashboard() {
     // Minimal attendance card on dashboard; details available on the attendance page

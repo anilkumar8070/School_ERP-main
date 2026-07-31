@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { getStudents, getFaculty, getStaff, createCertificate, getCertificates } from '../../api'
+import React, { useEffect, useState } from 'react'
+import AdminLayout from '../../components/admin/AdminLayout'
+import { getStudents, getFaculty, getStaff, createCertificate, getCertificates, API_BASE } from '../../api'
 import { openOrDownload, downloadFile } from '../../utils/download'
 import { getAuth } from '../../utils/session'
 

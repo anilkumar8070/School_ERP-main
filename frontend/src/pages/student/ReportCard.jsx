@@ -1,3 +1,4 @@
+import React from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getAuth } from '../../utils/session'
 import { getMyReportCards } from '../../api/reportCards'

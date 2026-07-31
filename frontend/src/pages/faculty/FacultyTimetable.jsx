@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import FacultyLayout from '../../components/faculty/FacultyLayout'
 import { getTimetable, API_BASE } from '../../api'
 import { openOrDownload } from '../../utils/download'
 import { getAuth } from '../../utils/session'

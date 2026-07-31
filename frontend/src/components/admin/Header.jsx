@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { clearAuth, getAuth } from '../../utils/session'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi } from '../../api'
+import { FiSun, FiMoon, FiMenu } from 'react-icons/fi'
 import './Header.css'
 
 export default function Header({ onToggleSidebar, onAttachSidebar, sidebarOpen = false, darkMode, toggleTheme }) {

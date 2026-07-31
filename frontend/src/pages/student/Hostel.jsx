@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { getAuth } from '../../utils/session'
 import { getMyHostelAllocations, getHostelsPublic, markHostelAllocationPaid, getMyHostelReceipts, createRazorpayOrder, confirmPayment, getMyStudent, API_BASE } from '../../api'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

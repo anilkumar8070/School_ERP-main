@@ -1,4 +1,5 @@
-import { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
+import StudentLayout from '../../components/student/StudentLayout'
 import { getMyMarks, getMyTestResults } from '../../api'
 
 export default function Results() {

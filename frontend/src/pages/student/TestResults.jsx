@@ -1,3 +1,5 @@
+import React from 'react'
+import StudentLayout from '../../components/student/StudentLayout'
 
 export default function StudentTestResults() {
     return (

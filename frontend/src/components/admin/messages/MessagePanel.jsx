@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import React, { useRef, useEffect } from 'react'
 
 export default function MessagePanel({ message, replyDraft, onChangeDraft, onSendReply, onChangeStatus }) {
     const convoRef = useRef(null)

@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import Header from './Header'
+import Sidebar from './Sidebar'
+import Footer from './Footer'
 import '../../pages/ParentPanel.css'
 import { getAuth } from '../../utils/session'
 

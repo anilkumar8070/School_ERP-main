@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
+import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getStudents, createHostelAllocation, getHostelAllocations, clearHostelAllocations, getHostels, createHostel, deleteHostel, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#f59e0b', '#a855f7', '#14b8a6', '#f97316', '#e11d48', '#0ea5e9', '#84cc16']
 function pickColor(seed) { return COLORS[Math.abs(Number(seed)) % COLORS.length] }

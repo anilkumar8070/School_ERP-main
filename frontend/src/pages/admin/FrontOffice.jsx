@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getFrontOfficeEntries, createFrontOfficeEntry } from '../../api'
 import { getAuth } from '../../utils/session'
