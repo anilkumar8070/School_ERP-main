@@ -34,7 +34,7 @@
         "multer": "^2.0.2",
         "nodemailer": "^7.0.11",
         "pdf-parse": "^2.4.5",
-        "pdfkit": "^0.17.2",
+        "pdfkit": "^0.19.1",
         "razorpay": "^2.9.6",
         "resend": "^6.6.0",
         "twilio": "^6.0.2",
