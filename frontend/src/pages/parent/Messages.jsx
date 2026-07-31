@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import ParentLayout from '../../components/parent/ParentLayout'
+import { useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { postMessage, getMyMessages } from '../../api'
 import { toast } from 'react-toastify'

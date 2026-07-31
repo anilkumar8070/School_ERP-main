@@ -1,8 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useEffect, useRef, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { getMyFaculty, getFacultyCard } from '../../api'
-import IDCard from '../../components/common/IDCard'
 import html2canvas from 'html2canvas'
 
 export default function FacultyCard() {

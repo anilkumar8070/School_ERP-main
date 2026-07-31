@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import './Academics.css'
 import { createTimetable, API_BASE, regenerateTimetablePdf, getTimetable } from '../api'
 import { getAuth } from '../utils/session'

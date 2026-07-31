@@ -1,18 +1,12 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
 import {
-    FaArrowRight,
     FaBell,
     FaBookOpen,
     FaCalendarAlt,
     FaChartLine,
-    FaCheckCircle,
     FaClipboardCheck,
     FaCreditCard,
     FaFileAlt,
-    FaGraduationCap,
     FaLock,
-    FaSchool,
     FaShieldAlt,
     FaUserFriends,
     FaUserGraduate,

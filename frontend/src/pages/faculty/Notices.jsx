@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useEffect, useState } from 'react'
 import { getNotices, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 import { openOrDownload } from '../../utils/download'

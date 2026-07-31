@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import './Auth.css'
 
 export default function FacultyRegister() {

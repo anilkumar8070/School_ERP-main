@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
 import { uploadResource, getMyResources, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 

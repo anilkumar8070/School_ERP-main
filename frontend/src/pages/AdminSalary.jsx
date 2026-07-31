@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSalaryFaculties, getSalaryPayments, createSalaryPayment, createSalaryOrder, confirmSalaryPayment } from '../api'
 import { getAuth } from '../utils/session'
-import AdminLayout from '../components/admin/AdminLayout'
 import './AdminPanel.css'
 
 export default function AdminSalary() {

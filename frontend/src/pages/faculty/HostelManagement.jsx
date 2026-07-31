@@ -1,5 +1,3 @@
-import React from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
 
 export default function HostelManagement() {
     return (

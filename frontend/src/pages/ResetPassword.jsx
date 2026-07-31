@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import './Auth.css'
 import { resetPassword } from '../api'
 import { useSearchParams } from 'react-router-dom'

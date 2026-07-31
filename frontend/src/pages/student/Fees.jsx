@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getFeeStructure, getFeeForClass, createRazorpayOrder, confirmPayment, getMyReceipts, getMyStudent, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,6 +10,7 @@ export default function Fees() {
     const [selectedReceipt, setSelectedReceipt] = useState(null)
     const [paymentModalOpen, setPaymentModalOpen] = useState(false)
     const [paymentDraft, setPaymentDraft] = useState({ cls: '', term: '', amount: 0, name: '', email: '', rollNo: '' })
+    const qc = useQueryClient()
 
     async function load() {
         try {
@@ -91,7 +92,6 @@ export default function Fees() {
             const { token, sub, username } = getAuth()
             const { cls, term, amount, name, email, rollNo } = paymentDraft
             setPaymentModalOpen(false)
-            const qc = useQueryClient()
             const order = await qc.fetchQuery(['createFeeOrder', cls, term, amount], () => createRazorpayOrder(amount, `fee_${cls}_${term}_${Date.now()}`, token))
             const runtimeKey = import.meta.env.VITE_RAZORPAY_KEY || ''
 

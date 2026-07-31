@@ -1,6 +1,4 @@
-import React from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import StudentLayout from '../../components/student/StudentLayout'
 
 export default function StartTestScreen() {
     const { id } = useParams()

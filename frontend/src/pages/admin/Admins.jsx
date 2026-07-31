@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import '../../pages/AdminPanel.css'
 import { getAdmins, createAdmin, deleteAdmin, blockAdmin, updateAdmin, getProfile } from '../../api'
 import { getAuth } from '../../utils/session'
-import { toast } from 'react-toastify'
 
 export default function Admins() {
     const [loading, setLoading] = useState(false)

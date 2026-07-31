@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import StaffLayout from '../components/staff/StaffLayout'
+import { useEffect, useState } from 'react'
 import './Auth.css'
 import { postLeave, getMyLeaves, getStaffAttendance, getProfile } from '../api'
 import { getAuth } from '../utils/session'

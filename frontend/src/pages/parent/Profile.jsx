@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import ParentLayout from '../../components/parent/ParentLayout'
+import { useState, useEffect } from 'react'
 import '../../styles/ProfilePage.css'
 import { toast } from 'react-toastify'
 

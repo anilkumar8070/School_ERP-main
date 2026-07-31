@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useEffect, useState } from 'react'
 import { getStudents, changeStudentClass, facultyBlockStudent, requestStudentDeletion, getReceiptsByStudent, setStudentStream, getMyFaculty } from '../../api'
 import { getAuth } from '../../utils/session'
 import '../Faculty.css'
@@ -58,7 +57,7 @@ export default function Students() {
             } finally { setLoading(false) }
         }
         resolveAssignments()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [])
 
     // load students whenever selection changes (but only if assigned)

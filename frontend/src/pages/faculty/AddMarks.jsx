@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
-import { getStudents, postMark, getMarks, updateMark, getMyFaculty, postMarksBulk } from '../../api'
+import { useState, useEffect } from 'react'
+import { getStudents, getMarks, getMyFaculty, postMarksBulk } from '../../api'
 import { getAuth } from '../../utils/session'
 
 export default function AddMarks() {

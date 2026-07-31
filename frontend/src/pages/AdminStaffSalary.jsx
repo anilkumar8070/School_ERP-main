@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import '../pages/AdminPanel.css'
 import { API_BASE, getStaffList, getStaffSalaryPayments, createStaffSalaryOrder, confirmStaffSalaryPayment } from '../api'
 import { getAuth } from '../utils/session'

@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
-import StudentLayout from '../../components/student/StudentLayout'
+import { useEffect, useState, useRef } from 'react'
 import { getMyTests, getMyStudent } from '../../api'
 import { getAuth } from '../../utils/session'
 import { useNavigate } from 'react-router-dom'

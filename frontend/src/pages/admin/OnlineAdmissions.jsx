@@ -1,5 +1,3 @@
-import React from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getOnlineAdmissions, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'

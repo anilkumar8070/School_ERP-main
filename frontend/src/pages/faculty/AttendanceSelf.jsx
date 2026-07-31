@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import FacultyLayout from '../../components/faculty/FacultyLayout'
+import { useEffect, useState } from 'react'
 import { getAuth } from '../../utils/session'
 import { getFacultyAttendance, postFacultyAttendance, exportFacultyAttendanceCsv, API_BASE, getMyFaculty } from '../../api'
 

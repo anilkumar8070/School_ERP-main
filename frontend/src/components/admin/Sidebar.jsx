@@ -1,19 +1,7 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { FaAngleDown, FaTimes, FaCircle } from 'react-icons/fa'
-import {
-    MdDashboard,
-    MdSchool,
-    MdPerson,
-    MdPeople,
-    MdWork,
-    MdFamilyRestroom,
-    MdAdminPanelSettings,
-    MdAttachMoney,
-    MdEventAvailable,
-    MdImage,
-    MdAssignment
-} from 'react-icons/md'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
+
+
 import './Sidebar.css'
 
 const menuItems = [

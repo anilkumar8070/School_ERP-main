@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiSun, FiMoon } from 'react-icons/fi'
 import { logout } from '../../utils/auth'
 
 export default function Header({ onToggleSidebar, darkMode, toggleTheme }) {

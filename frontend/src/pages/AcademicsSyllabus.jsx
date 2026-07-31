@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import './Academics.css'
 import { getAuth } from '../utils/session'
 import { createSyllabus, createTimetable, getTimetable, getSyllabus, deleteSyllabus, API_BASE } from '../api'

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useState, useEffect } from 'react'
 import { uploadResource, getResources, API_BASE } from '../../api'
 import { getAuth } from '../../utils/session'
 import { toast } from 'react-toastify'

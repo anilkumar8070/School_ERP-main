@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
-import IDCard from '../../components/common/IDCard'
+import { useEffect, useRef, useState } from 'react'
 import { getMyStudent, getStudentCard } from '../../api'
 import { getAuth } from '../../utils/session'
 import html2canvas from 'html2canvas'

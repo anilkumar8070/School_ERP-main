@@ -1,4 +1,3 @@
-import React from 'react'
 
 export default function HistoryPanel({ closed }) {
     if (!closed || closed.length === 0) return null

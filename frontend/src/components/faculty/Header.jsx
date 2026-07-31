@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { clearAuth } from '../../utils/session'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi } from '../../api'
-import { FiSun, FiMoon } from 'react-icons/fi'
 
 export default function Header({ onToggleSidebar, onAttachSidebar, sidebarOpen = false, darkMode, toggleTheme }) {
     const [open, setOpen] = useState(false)

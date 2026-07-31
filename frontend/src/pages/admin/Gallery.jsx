@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import AdminLayout from '../../components/admin/AdminLayout'
+import { useEffect, useState } from 'react'
 import { API_BASE, createGallery, addGalleryImages, deleteGalleryImage, getGallery } from '../../api'
 import '../../pages/AdminPanel.css'
 import { toast } from 'react-toastify'
