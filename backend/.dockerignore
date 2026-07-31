@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Logs & temp files
+*.log
+npm-debug.log*
+scratch
+tmp
+temp
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE files
+.vscode
+.idea

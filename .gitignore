@@ -4,3 +4,7 @@ node_modules/
 .npm-cache/
 .npm-cache-backend/
 .npm-cache-frontend/
+.env
+.env.local
+.env.*.local
+*.log

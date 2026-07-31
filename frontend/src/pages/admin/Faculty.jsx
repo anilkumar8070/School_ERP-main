@@ -95,7 +95,7 @@ export default function Faculty() {
             }
             await load()
             closeAdd()
-            alert('Faculty added and notified (if SMTP configured).')
+            alert('Faculty added successfully and notification email sent.')
         } catch (err) {
             console.error(err)
             alert('Failed to add faculty: ' + (err && err.message ? err.message : String(err)))

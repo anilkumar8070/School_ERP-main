@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
 
 // Admin: list parents
@@ -294,6 +294,23 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       parentOf: parentOf || [],
       avatar: avatar || ''
     });
+
+    // Notify parent by email with credentials
+    try {
+      await sendCredentialEmail({
+        to: email,
+        name: name,
+        role: 'Parent',
+        username: email,
+        password: password,
+        extraDetails: {
+          'Contact': contact || '-'
+        }
+      });
+    } catch (mailErr) {
+      console.warn('Failed to send parent welcome email:', mailErr && (mailErr.message || String(mailErr)));
+    }
+
     return res.status(201).json({
       id: created._id,
       username: created.username,

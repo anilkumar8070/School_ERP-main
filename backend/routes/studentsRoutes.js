@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail, sendCredentialEmail
   } = helpers;
 
 // Student deletion requests (admin): list and approve
@@ -588,36 +588,17 @@ router.put("/registrations/:id/approve", verifyToken, requireRole('admin'), asyn
 
     // send congratulation email with credentials
     try {
-      const loginUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
-      const subject = 'Congratulations — your student registration has been approved';
-      const html = `
-        <div style="font-family: Inter, Arial, sans-serif; background:#f3f4f6; padding:24px;">
-          <div style="max-width:680px;margin:0 auto;">
-            <div style="background:linear-gradient(90deg,#06b6d4,#7c3aed);padding:20px;border-radius:10px 10px 0 0;color:#fff;text-align:left;">
-              <h1 style="margin:0;font-size:22px;">Congratulations ${reg.name}!</h1>
-              <div style="margin-top:6px;opacity:0.95">Your student registration has been approved.</div>
-            </div>
-            <div style="background:#ffffff;padding:18px;border:1px solid #e8e8f0;border-top:0;border-radius:0 0 10px 10px;">
-              <p style="margin:0 0 12px;color:#374151">An account has been created for you on our ERP system. Below are your account details — keep them secure.</p>
-              <table style="width:100%;border-collapse:collapse;margin-top:8px;border-radius:6px;overflow:hidden;box-shadow:0 6px 18px rgba(99,102,241,0.08)">
-                <tr><td style="padding:12px 12px;background:#f9fafb;font-weight:700;color:#111;border-bottom:1px solid #f1f1f5;width:40%">Username</td><td style="padding:12px 16px;background:#fff;border-bottom:1px solid #f1f1f5">${reg.email}</td></tr>
-                ${generatedPassword ? `<tr><td style="padding:8px 12px;background:#fafafa;font-weight:600;border-top:1px solid #eee">Password</td><td style="padding:8px 12px;background:#fafafa"><strong>${generatedPassword}</strong></td></tr>` : ''}
-                <tr><td style="padding:12px 12px;background:#f9fafb;font-weight:700;color:#111;border-top:1px solid #f1f1f5">Class</td><td style="padding:12px 16px;background:#fff">${reg.class}</td></tr>
-                <tr><td style="padding:12px 12px;background:#f9fafb;font-weight:700;color:#111;border-top:1px solid #f1f1f5">Section</td><td style="padding:12px 16px;background:#fff">${assignedSection}</td></tr>
-                <tr><td style="padding:12px 12px;background:#f9fafb;font-weight:700;color:#111;border-top:1px solid #f1f1f5">Roll No</td><td style="padding:12px 16px;background:#fff">${rollNo}</td></tr>
-              </table>
-              <div style="margin-top:16px;text-align:left"><a href="${loginUrl}" style="display:inline-block;padding:10px 18px;border-radius:8px;background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white;text-decoration:none;font-weight:600">Login to ERP</a></div>
-              <p style="margin-top:14px;color:#6b7280;font-size:13px">Please change your password after first login.</p>
-              <p style="margin-top:10px;color:#9ca3af;font-size:12px">If you did not expect this email or there is an issue, please contact the administrator.</p>
-              <div style="margin-top:18px;color:#6b7280;font-size:13px">Regards,<br/>Admin</div>
-            </div>
-          </div>
-        </div>
-      `;
-      await sendMail({
+      await sendCredentialEmail({
         to: reg.email,
-        subject,
-        html
+        name: reg.name,
+        role: 'Student',
+        username: reg.email,
+        password: generatedPassword,
+        extraDetails: {
+          'Class': reg.class,
+          'Section': assignedSection,
+          'Roll No': rollNo
+        }
       });
     } catch (mailErr) {
       console.warn('Failed to send student approval email:', mailErr && (mailErr.message || String(mailErr)));
@@ -957,32 +938,19 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
       }
     }
 
-    // send welcome email with credentials (if SMTP configured)
+    // send welcome email with credentials
     try {
-      const loginUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
-      const subject = 'Welcome — your student account has been created';
-      const html = `
-        <div style="font-family:Inter,Arial,sans-serif;background:#f3f4f6;padding:20px;">
-          <div style="max-width:680px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #eee">
-            <div style="background:linear-gradient(90deg,#06b6d4,#7c3aed);padding:18px;color:white"><h2 style="margin:0">Welcome ${name}!</h2></div>
-            <div style="padding:16px;color:#333">
-              <p>Your student account has been created. Below are your login details — please change your password after first login.</p>
-              <table style="width:100%;border-collapse:collapse;margin-top:8px">
-                <tr><td style="font-weight:700;padding:6px 0">Username</td><td style="padding:6px 0">${email}</td></tr>
-                ${generatedPassword ? `<tr><td style="font-weight:700;padding:6px 0">Password</td><td style="padding:6px 0"><strong>${generatedPassword}</strong></td></tr>` : ''}
-                <tr><td style="font-weight:700;padding:6px 0">Class</td><td style="padding:6px 0">${className}</td></tr>
-                <tr><td style="font-weight:700;padding:6px 0">Section</td><td style="padding:6px 0">${assignedSection}</td></tr>
-                <tr><td style="font-weight:700;padding:6px 0">Roll No</td><td style="padding:6px 0">${rollNo}</td></tr>
-              </table>
-              <p style="margin-top:12px"><a href="${loginUrl}" style="display:inline-block;padding:10px 14px;background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;border-radius:8px;text-decoration:none">Login to ERP</a></p>
-            </div>
-          </div>
-        </div>
-      `;
-      await sendMail({
+      await sendCredentialEmail({
         to: email,
-        subject,
-        html
+        name: name,
+        role: 'Student',
+        username: email,
+        password: generatedPassword,
+        extraDetails: {
+          'Class': className,
+          'Section': assignedSection,
+          'Roll No': rollNo
+        }
       });
     } catch (mailErr) {
       console.warn('Failed to send student creation email:', mailErr && (mailErr.message || String(mailErr)));
