@@ -329,7 +329,6 @@
 .input-group input:focus {
     border-color: var(--ink);
     box-shadow: 0 0 0 4px rgba(255, 213, 43, 0.34);
-    transform: translateY(-2px);
 }
 
 .login-error {
@@ -375,7 +374,6 @@
 }
 
 .login-btn:hover {
-    transform: translateY(-3px);
     box-shadow: 0 24px 48px rgba(17, 17, 17, 0.15);
 }
 

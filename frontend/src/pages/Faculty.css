@@ -553,7 +553,6 @@
 
 .btn-primary:hover {
     background: var(--primary-dark);
-    transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
 }
 
@@ -566,7 +565,6 @@
 .btn:hover,
 .action-btn:hover {
     background: var(--bg-hover);
-    transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 
@@ -608,7 +606,6 @@
 }
 
 .quick-card:hover {
-    transform: translateY(-6px);
     box-shadow: var(--shadow-md);
 }
 

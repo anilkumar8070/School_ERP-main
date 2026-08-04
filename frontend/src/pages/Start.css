@@ -147,7 +147,6 @@
 
 .login-pill:hover,
 .primary-cta:hover {
-    transform: translateY(-2px);
     background: #0c3e75;
     box-shadow: 0 6px 20px rgba(15, 77, 146, 0.6);
 }
@@ -161,7 +160,6 @@
 
 .secondary-cta:hover {
     background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
 }
 
 .hero-shell {
@@ -312,7 +310,6 @@
 }
 
 .role-card:hover {
-    transform: translateY(-8px);
     background: #fff;
     box-shadow: 0 30px 70px rgba(71, 51, 11, 0.12);
 }
@@ -469,7 +466,6 @@
 }
 
 .security-list span:hover {
-    transform: translateY(-5px);
     box-shadow: 0 24px 45px rgba(17, 17, 17, 0.15);
 }
 
@@ -552,7 +548,6 @@
 }
 
 .verify-fab:hover {
-    transform: translateY(-3px);
     box-shadow: 0 22px 50px rgba(17, 17, 17, 0.38);
 }
 
@@ -625,7 +620,6 @@
         transform: translateY(0);
     }
     50% {
-        transform: translateY(-12px);
     }
 }
 
@@ -713,7 +707,6 @@
     }
 
     .role-card:hover {
-        transform: translateY(-8px);
     }
 
     .security-band {

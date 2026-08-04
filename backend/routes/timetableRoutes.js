@@ -337,7 +337,7 @@ router.post("/:id/regenerate-pdf", verifyToken, requireRole('admin'), async (req
 // Faculty: list submissions for an assignment
 
 // Timetable endpoints - allow admin to upload a timetable (file or JSON content)
-router.post("/", verifyToken, requireRole('admin'), upload.single('file'), async (req, res) => {
+router.post("/", verifyToken, requireRole(['admin', 'faculty']), upload.single('file'), async (req, res) => {
   if (false) return res.status(503).json({
     message: 'Database not available'
   });

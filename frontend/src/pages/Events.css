@@ -147,7 +147,6 @@
 }
 
 .cal-cell:hover {
-    transform: translateY(-3px);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.03))
 }
 

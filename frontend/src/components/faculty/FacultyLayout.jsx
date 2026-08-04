@@ -19,19 +19,8 @@ export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
     }, [open])
 
     const [attached, setAttached] = useState(false)
-    const [darkMode, setDarkMode] = useState(() => {
-        try {
-            return localStorage.getItem('faculty_theme') === 'dark'
-        } catch (e) { return false }
-    })
-
-    useEffect(() => {
-        localStorage.setItem('faculty_theme', darkMode ? 'dark' : 'light')
-    }, [darkMode])
-
-    function toggleTheme() {
-        setDarkMode(prev => !prev)
-    }
+    // Dark mode removed as per user request
+    const darkMode = false;
 
     useEffect(() => {
         // require faculty role (session-based)
@@ -65,8 +54,6 @@ export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
                 onAttachSidebar={attachAndOpen}
                 title={title}
                 sidebarOpen={open}
-                darkMode={darkMode}
-                toggleTheme={toggleTheme}
             />
             <Sidebar isOpen={open} onClose={close} />
 
