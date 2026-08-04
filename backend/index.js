@@ -1393,23 +1393,25 @@ if (cluster.isPrimary) {
 }
 
 // Ensure basic classes (1..12) exist for legacy frontend expectations
-(async () => {
-  try {
-     const existing = await prisma.class.count().catch(() => 0);
-    if (!existing || existing === 0) {
-      const toCreate = Array.from({
-        length: 12
-      }, (_, i) => ({
-        name: String(i + 1),
-        subjects: []
-      }));
-      await prisma.class.createMany({ data: toCreate });
-      console.log('Seeded default classes 1..12');
-    };
-  } catch (e) {
-    console.warn('Could not seed default classes:', e && e.message);
-  }
-})();
+if (cluster.isPrimary) {
+  (async () => {
+    try {
+       const existing = await prisma.class.count().catch(() => 0);
+      if (!existing || existing === 0) {
+        const toCreate = Array.from({
+          length: 12
+        }, (_, i) => ({
+          name: String(i + 1),
+          subjects: []
+        }));
+        await prisma.class.createMany({ data: toCreate });
+        console.log('Seeded default classes 1..12');
+      };
+    } catch (e) {
+      console.warn('Could not seed default classes:', e && e.message);
+    }
+  })();
+}
 
 // Legacy-compatible faculty attendance endpoints used by existing frontend
 
@@ -1498,20 +1500,28 @@ app.use((err, req, res, next) => {
 // Graceful Shutdown implementation
 const gracefulShutdown = signal => {
   console.log(`${signal} signal received: closing HTTP server`);
-  server.close(() => {
-    console.log('HTTP server closed');
-    if (false) {
-      Promise.resolve().then(() => {
-        console.log('Mongoose connection closed');
+  if (server) {
+    server.close(() => {
+      console.log('HTTP server closed');
+      if (false) {
+        Promise.resolve().then(() => {
+          console.log('Mongoose connection closed');
+          process.exit(0);
+        }).catch(err => {
+          console.error('Error closing Mongoose connection:', err);
+          process.exit(1);
+        });
+      } else {
         process.exit(0);
-      }).catch(err => {
-        console.error('Error closing Mongoose connection:', err);
-        process.exit(1);
-      });
-    } else {
-      process.exit(0);
+      }
+    });
+  } else {
+    // Primary process: kill all workers before exiting to prevent orphans
+    for (const id in cluster.workers) {
+      cluster.workers[id].kill();
     }
-  });
+    process.exit(0);
+  }
   // Force exit after 10 seconds if shutdown hangs
   setTimeout(() => {
     console.error('Forcing shutdown due to timeout');
@@ -1520,6 +1530,7 @@ const gracefulShutdown = signal => {
 };
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // Handle nodemon restarts
 
 // Catch unhandled rejections and exceptions
 process.on('unhandledRejection', (reason, promise) => {

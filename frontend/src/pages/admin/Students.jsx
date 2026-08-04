@@ -32,16 +32,23 @@ export default function Students() {
          
     }, [])
 
-    // When students change, fetch receipts with throttled concurrency to avoid resource exhaustion
+    // When students or page change, fetch receipts ONLY for the visible students to prevent browser freezing
     useEffect(() => {
         async function loadReceipts(list) {
             try {
                 const { token } = getAuth()
-                const ids = (list || []).map(s => String(s._id))
-                const map = {}
+                // Only process students on the current page
+                const visibleStudents = list.slice((page - 1) * 50, page * 50)
+                const ids = visibleStudents.map(s => String(s._id))
+                
+                const map = { ...receiptsMap } // Keep existing map so we don't clear cached receipts when paginating
+                const idsToFetch = ids.filter(id => !map[id]) // Only fetch if we don't already have it
+                
+                if (idsToFetch.length === 0) return setReceiptsMap(map)
+
                 const CONCURRENCY = 5
-                for (let i = 0; i < ids.length; i += CONCURRENCY) {
-                    const slice = ids.slice(i, i + CONCURRENCY)
+                for (let i = 0; i < idsToFetch.length; i += CONCURRENCY) {
+                    const slice = idsToFetch.slice(i, i + CONCURRENCY)
                     const batch = await Promise.allSettled(slice.map(id => getReceiptsByStudent(id, token)))
                     batch.forEach((res, j) => {
                         const sid = slice[j]
@@ -49,11 +56,10 @@ export default function Students() {
                     })
                 }
                 setReceiptsMap(map)
-            } catch { setReceiptsMap({}) }
+            } catch { /* Handle gracefully */ }
         }
         if (students && students.length) loadReceipts(students)
-        else setReceiptsMap({})
-    }, [students])
+    }, [students, page])
 
     function normalizeTerm(t) { return String(t || '').replace(/\s+/g, '').toLowerCase() }
     function isPaid(studentId, termKey) {
