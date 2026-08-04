@@ -94,14 +94,7 @@ export default function Header({ onToggleSidebar, onAttachSidebar, sidebarOpen =
 
             <div className="header-spacer" />
 
-            {/* Theme Toggle Button */}
-            <button
-                onClick={toggleTheme}
-                style={{ background: 'transparent', border: 'none', color: 'inherit', marginRight: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-                {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-            </button>
+            {/* Theme Toggle Removed */}
 
             <div className="faculty-profile" ref={panelRef}>
                 <button className="profile-btn" onClick={() => setOpen(s => !s)} aria-haspopup="true" aria-expanded={open}>

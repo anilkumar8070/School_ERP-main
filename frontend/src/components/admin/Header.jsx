@@ -104,10 +104,7 @@ export default function Header({ onToggleSidebar, onAttachSidebar, sidebarOpen =
 
 
                 <div className="header-actions">
-                    {/* Theme Toggle */}
-                    <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
-                        {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-                    </button>
+                    {/* Theme Toggle Removed */}
 
 
 
