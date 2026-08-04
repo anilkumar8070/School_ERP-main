@@ -111,7 +111,7 @@ export default function StudentRegister() {
                             onClick={(e) => {
                                 e.preventDefault()
                                 window.history.pushState({}, '', '/student-login')
-                                window.dispatchEvent(new PopStateEvent('popstate'))
+                                window.location.href = '/student-login'
                             }}
                         >
                             Back to Login

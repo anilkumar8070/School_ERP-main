@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
-import { getStudents, getReceiptsByStudent } from '../../api'
-import { deleteStudent } from '../../api'
-import { createStudent, updateStudent, blockStudent } from '../../api'
+import { getStudents, getReceipts, deleteStudent, updateStudent, createStudent, setStudentStream, blockStudent, getReceiptsByStudent } from '../../api'
+import Pagination from '../../components/Pagination'
 import { getAuth } from '../../utils/session'
 
 export default function Students() {
     const [loading, setLoading] = useState(false)
     const [students, setStudents] = useState([])
+    const [page, setPage] = useState(1)
     const [filters, setFilters] = useState({ name: '', class: '', section: '', email: '', gender: '', category: '', religion: '', stream: '', medium: '' })
     const [receiptsMap, setReceiptsMap] = useState({}) // studentId -> receipts
 
@@ -18,6 +18,7 @@ export default function Students() {
             const { token } = getAuth()
             const data = await getStudents(filters, token)
             setStudents(data)
+            setPage(1)
         } catch (e) {
             console.error(e)
             setStudents([])
@@ -81,8 +82,12 @@ export default function Students() {
             if (newStudent.class === '11' || newStudent.class === '12') payload.stream = newStudent.stream || ''
             await createStudent(payload, token)
             setNewStudent({ name: '', email: '', class: '', password: '', gender: '', category: '', religion: '', stream: '', medium: 'English' })
+            const emptyFilters = { name: '', class: '', section: '', email: '', gender: '', category: '', religion: '', stream: '', medium: '' }
+            setFilters(emptyFilters)
+            setPage(1)
+            const data = await getStudents(emptyFilters, token)
+            setStudents(data)
             setShowAdd(false)
-            await load()
             alert('Student created successfully and notification email sent.')
         } catch (err) {
             console.error(err)
@@ -388,7 +393,7 @@ export default function Students() {
                                     <tr><td colSpan={13} style={{ textAlign: 'center', padding: 20 }}>Loading...</td></tr>
                                 ) : students.length === 0 ? (
                                     <tr><td colSpan={13} style={{ textAlign: 'center', padding: 20 }}>No students found</td></tr>
-                                ) : students.map((s) => (
+                                ) : students.slice((page - 1) * 50, page * 50).map((s) => (
                                     <tr key={s._id || s.email}>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -444,6 +449,7 @@ export default function Students() {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination page={page} setPage={setPage} total={students.length} />
                     </div>
                 </div>
             </div>

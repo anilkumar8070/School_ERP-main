@@ -69,6 +69,9 @@ model Attendance {
   createdBy String?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([class, section])
+  @@index([date])
 }
 
 model BehaviorRecord {
@@ -214,6 +217,9 @@ model Faculty {
   houses Json?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([role])
+  @@index([subject])
 }
 
 model FacultyAttendance {
@@ -413,6 +419,9 @@ model Mark {
   createdBy String?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([class, section])
+  @@index([studentId])
 }
 
 model Meeting {
@@ -530,6 +539,9 @@ model Receipt {
   rollNo String?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([studentId])
+  @@index([allocationId])
 }
 
 model ReportCard {
@@ -633,6 +645,12 @@ model Student {
   assignedFees Json?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([class, section])
+  @@index([stream])
+  @@index([gender])
+  @@index([category])
+  @@index([religion])
 }
 
 model StudentRegistration {
@@ -664,6 +682,9 @@ model Submission {
   submittedAt DateTime?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([assignmentId])
+  @@index([studentId])
 }
 
 model Syllabus {
@@ -697,6 +718,9 @@ model TestResult {
   raw Json?
   createdAt DateTime?
   updatedAt DateTime?
+
+  @@index([test])
+  @@index([studentId])
 }
 
 model TestSeries {

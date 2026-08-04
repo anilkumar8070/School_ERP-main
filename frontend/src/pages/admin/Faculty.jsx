@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getFaculty, updateFaculty, deleteFaculty, submitFacultyRegistration, approveFacultyRegistration, blockFaculty } from '../../api'
+import Pagination from '../../components/Pagination'
 import { getAuth } from '../../utils/session'
 
 export default function Faculty() {
     const [loading, setLoading] = useState(false)
     const [faculty, setFaculty] = useState([])
+    const [page, setPage] = useState(1)
     const [filters, setFilters] = useState({ name: '', email: '', employeeId: '', subject: '' })
     const [searchTerm, setSearchTerm] = useState('')
     const [editing, setEditing] = useState(null)
@@ -45,6 +47,7 @@ export default function Faculty() {
                     const { token } = getAuth()
                     const data = await getFaculty({ name: q, email: q, employeeId: q }, token)
                     setFaculty(data)
+                    setPage(1)
                 } catch (err) {
                     console.error(err)
                     setFaculty([])
@@ -144,7 +147,7 @@ export default function Faculty() {
                         />
                         <div className="btn-group">
                             <button className="btn-primary" type="submit">Search</button>
-                            <button type="button" className="btn-secondary" onClick={() => { setSearchTerm(''); setFilters({ name: '', email: '', employeeId: '', subject: '' }); setFaculty([]) }}>Reset</button>
+                            <button type="button" className="btn-secondary" onClick={() => { setSearchTerm(''); setFilters({ name: '', email: '', employeeId: '', subject: '' }); setFaculty([]); setPage(1) }}>Reset</button>
                         </div>
                     </form>
                 </div>
@@ -255,7 +258,7 @@ export default function Faculty() {
                                     <tr><td colSpan={12} style={{ padding: 20, textAlign: 'center' }}>Loading...</td></tr>
                                 ) : faculty.length === 0 ? (
                                     <tr><td colSpan={12} style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>No faculty found</td></tr>
-                                ) : faculty.map((f) => (
+                                ) : faculty.slice((page - 1) * 50, page * 50).map((f) => (
                                     <tr key={f._id || f.employeeId}>
                                         <td>
                                             {f.avatar ? <img src={f.avatar} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: 'var(--text-main)', border: '1px solid var(--border)' }}>{(f.name || 'F')[0]}</div>}
@@ -289,6 +292,7 @@ export default function Faculty() {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination page={page} setPage={setPage} total={faculty.length} />
                     </div>
                 </div>
 

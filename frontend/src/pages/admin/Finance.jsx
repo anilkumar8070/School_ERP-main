@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getFeeStructure, saveFeeStructure, getReceipts, deleteFeeHistory, getStudents, assignFeeToStudents, exportFeesExcel } from '../../api'
+import Pagination from '../../components/Pagination'
 import { getAuth } from '../../utils/session'
 
 export default function Finance() {
@@ -12,6 +13,7 @@ export default function Finance() {
     const [receipts, setReceipts] = useState([])
     const [students, setStudents] = useState([])
     const [selectedStudentIds, setSelectedStudentIds] = useState(new Set())
+    const [page, setPage] = useState(1)
 
     // Fee Form State
     const [term1, setTerm1] = useState(0)
@@ -341,7 +343,7 @@ export default function Finance() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {receipts.map(r => (
+                                        {receipts.slice((page - 1) * 50, page * 50).map(r => (
                                             <tr key={r._id}>
                                                 <td>{String(r._id).slice(-6)}</td>
                                                 <td>{r.studentName || r.studentEmail}</td>
@@ -362,6 +364,7 @@ export default function Finance() {
                                         ))}
                                     </tbody>
                                 </table>
+                                <Pagination page={page} setPage={setPage} total={receipts.length} />
                             </div>
                         )}
                     </div>

@@ -9,6 +9,9 @@ try {
 }
 function registerTransportRoutes() {}
 require('dotenv').config();
+const cluster = require('cluster');
+const os = require('os');
+const compression = require('compression');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -31,6 +34,8 @@ const {
 } = require('./middleware/auth');
 const path = require('path');
 const app = express();
+app.set('trust proxy', 1);
+app.use(compression());
 const PORT = process.env.PORT || 4000;
 // Allow configuring maximum JSON/body size to avoid PayloadTooLargeError.
 // Use `JSON_BODY_LIMIT` (e.g. "10mb" or numeric bytes) or fall back to
@@ -761,8 +766,9 @@ async function buildAttendanceReportRows(query) {
   if (section) q.section = String(section);
   const dateFilter = reportDateFilter(from, to);
   if (dateFilter) q.date = dateFilter;
-  const items = await prisma.attendance.findMany({ where: q }).sort({
-    date: 1
+  const items = await prisma.attendance.findMany({ 
+    where: q,
+    orderBy: { date: 'asc' }
   });
   const ids = new Set();
   (items || []).forEach(item => {
@@ -805,11 +811,14 @@ async function buildFeesReportRows(query) {
   if (cls) studentsQuery.class = String(cls);
   if (section) studentsQuery.section = String(section);
   if (studentId) studentsQuery._id = studentId;
-  const students = await prisma.student.findMany({ where: studentsQuery }).sort({
-    class: 1,
-    section: 1,
-    rollNo: 1,
-    name: 1
+  const students = await prisma.student.findMany({ 
+    where: studentsQuery,
+    orderBy: [
+      { class: 'asc' },
+      { section: 'asc' },
+      { rollNo: 'asc' },
+      { name: 'asc' }
+    ]
   });
   const studentIds = students.map(s => String(s._id));
   const receiptQuery = {};
@@ -821,8 +830,9 @@ async function buildFeesReportRows(query) {
   };
   const createdAtFilter = reportCreatedAtFilter(from, to);
   if (createdAtFilter) receiptQuery.createdAt = createdAtFilter;
-  const receipts = await prisma.receipt.findMany({ where: receiptQuery }).sort({
-    createdAt: -1
+  const receipts = await prisma.receipt.findMany({ 
+    where: receiptQuery,
+    orderBy: { createdAt: 'desc' }
   });
   const paidKeys = new Set();
   (receipts || []).forEach(r => paidKeys.add(`${String(r.studentId || '')}|${String(r.term || '')}`));
@@ -872,11 +882,14 @@ async function buildMarksReportRows(query) {
   };
   const createdAtFilter = reportCreatedAtFilter(from, to);
   if (createdAtFilter) q.createdAt = createdAtFilter;
-  const marks = await prisma.mark.findMany({ where: q }).sort({
-    class: 1,
-    section: 1,
-    subject: 1,
-    createdAt: -1
+  const marks = await prisma.mark.findMany({ 
+    where: q,
+    orderBy: [
+      { class: 'asc' },
+      { section: 'asc' },
+      { subject: 'asc' },
+      { createdAt: 'desc' }
+    ]
   });
   const ids = Array.from(new Set((marks || []).map(m => String(m.studentId)).filter(Boolean)));
   const students = ids.length ? await Student.find({
@@ -1362,9 +1375,22 @@ const notification_settingsRoutes = require('./routes/notification-settingsRoute
 app.use('/api/notification-settings', notification_settingsRoutes);
 
 
-const server = app.listen(PORT, () => {
-  console.log(`ERP backend listening on http://localhost:${PORT}`);
-});
+let server;
+if (cluster.isPrimary) {
+  console.log(`Primary ${process.pid} is running`);
+  const numCPUs = os.cpus().length;
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died. Forking a new one...`);
+    cluster.fork();
+  });
+} else {
+  server = app.listen(PORT, () => {
+    console.log(`ERP backend listening on http://localhost:${PORT} (Worker ${process.pid})`);
+  });
+}
 
 // Ensure basic classes (1..12) exist for legacy frontend expectations
 (async () => {

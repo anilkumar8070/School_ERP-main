@@ -42,7 +42,7 @@ export default function ParentLinkStudent() {
                     />
                     <div className="mt-4 flex gap-2">
                         <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Linking...' : 'Link Student'}</button>
-                        <a href="/parent/progress" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/parent/progress'); window.dispatchEvent(new PopStateEvent('popstate')) }} className="btn-secondary">Cancel</a>
+                        <a href="/parent/progress" className="btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>

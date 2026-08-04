@@ -190,7 +190,8 @@ export default function Sidebar({ isOpen, onClose }) {
 
             <nav className={`admin-sidebar-new ${isOpen ? 'open' : 'closed'}`}>
                 <div className="sidebar-header">
-                    <div className="sidebar-brand">
+                    <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <MdSchool style={{ fontSize: '1.4rem' }} />
                         <span>School ERP</span>
                     </div>
                     {/* Always allow closing via button on mobile/desktop */}

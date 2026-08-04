@@ -4,7 +4,7 @@
     height: 100vh;
     background: var(--bg-sidebar, #ffffff);
     /* Fallback added */
-    border-right: 1px solid var(--border, #e5e7eb);
+    /* border-right removed */
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -43,10 +43,17 @@
 .close-sidebar-btn {
     background: transparent;
     border: none;
-    color: var(--text-muted, #6b7280);
+    color: var(--text-muted);
     cursor: pointer;
-    display: none;
-    /* Hidden on desktop by default */
+    display: block;
+    font-size: 1.2rem;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+.close-sidebar-btn:hover {
+    background: var(--bg-surface);
+    color: var(--text-main);
 }
 
 .sidebar-menu {

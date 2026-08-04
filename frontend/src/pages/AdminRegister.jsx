@@ -69,7 +69,7 @@ export default function AdminRegister() {
                             onClick={(e) => {
                                 e.preventDefault()
                                 window.history.pushState({}, '', '/admin-login')
-                                window.dispatchEvent(new PopStateEvent('popstate'))
+                                window.location.href = '/admin-login'
                             }}
                         >
                             Back to Login

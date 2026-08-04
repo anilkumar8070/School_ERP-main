@@ -4,7 +4,10 @@ import './Academics.css'
 import { getStudents, getFaculty, getSyllabus, getTimetable } from '../api'
 import { getAuth } from '../utils/session'
 
+import { useNavigate } from 'react-router-dom'
+
 export default function Academics() {
+    const navigate = useNavigate()
     const [klass, setKlass] = useState('1')
     const [section, setSection] = useState('A')
     const [metrics, setMetrics] = useState({ students: 0, teachers: 0, subjects: 0 })
@@ -12,8 +15,7 @@ export default function Academics() {
     const [classesMetrics, setClassesMetrics] = useState([])
 
     function goTo(path) {
-        window.history.pushState({}, '', path)
-        window.dispatchEvent(new Event('popstate'))
+        navigate(path)
     }
 
     useEffect(() => {
@@ -118,7 +120,7 @@ export default function Academics() {
                                 {classesMetrics.length === 0 ? (
                                     <div style={{ padding: 12 }}>No data</div>
                                 ) : classesMetrics.map((cm, idx) => (
-                                    <div key={cm.class} className={`class-block cls-${idx + 1}`}>
+                                    <div key={cm.class} className={`class-block cls-${idx + 1}`} onClick={() => setKlass(cm.class)} style={{ cursor: 'pointer' }}>
                                         <div className="class-label">Class {cm.class}</div>
                                         <div className="class-values">
                                             <div className="small">{cm.students} students</div>

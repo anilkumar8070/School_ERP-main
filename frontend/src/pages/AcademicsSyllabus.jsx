@@ -141,7 +141,7 @@ export default function AcademicsSyllabus() {
                     <p className="muted">Accepted formats: .pdf .doc .docx .xls .xlsx</p>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                         <input className="boxed-input" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={onChoose} />
-                        <button className="btn green" onClick={save}>Save Syllabus</button>
+                        <button className="btn green" onClick={save} disabled={!file}>Save Syllabus</button>
                         {status && <div style={{ marginLeft: 12 }}><strong>Saved:</strong> {status.name}</div>}
                     </div>
                     {saved && <div style={{ marginTop: 12, color: '#0b1220' }}>Uploaded successfully.</div>}
@@ -176,7 +176,7 @@ export default function AcademicsSyllabus() {
                                         <div className={`sb-status ${uploaded ? 'ok' : 'missing'}`}>{uploaded ? 'Uploaded' : 'Not uploaded'}</div>
                                     </div>
                                     <div className="sb-actions">
-                                        <button className="btn outline" onClick={() => { window.history.pushState({}, '', `/admin/academics/syllabus?class=${n}&section=A`); window.dispatchEvent(new Event('popstate')) }}>Open</button>
+                                        <a className="btn outline" href={`/admin/academics/syllabus?class=${n}&section=A`}>Open</a>
                                     </div>
                                 </div>
                             )

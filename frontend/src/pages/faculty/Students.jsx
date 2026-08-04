@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import FacultyLayout from '../../components/faculty/FacultyLayout'
-import { getStudents, changeStudentClass, facultyBlockStudent, requestStudentDeletion, getReceiptsByStudent, setStudentStream, getMyFaculty } from '../../api'
+import { getStudents, changeStudentClass, facultyBlockStudent, requestStudentDeletion, getReceipts, setStudentStream, getMyFaculty } from '../../api'
+import Pagination from '../../components/Pagination'
 import { getAuth } from '../../utils/session'
 import '../Faculty.css'
 
@@ -14,6 +15,7 @@ export default function Students() {
     const [category, setCategory] = useState('')
     const [religion, setReligion] = useState('')
     const [students, setStudents] = useState([])
+    const [page, setPage] = useState(1)
     const [query, setQuery] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
@@ -71,6 +73,7 @@ export default function Students() {
                 const { token } = getAuth()
                 const list = await getStudents({ class: klass, section: (section === 'ALL' ? '' : section), gender, category, religion }, token)
                 setStudents(list || [])
+                setPage(1)
                 // if current faculty is class teacher for this class, gather available sections
                 try {
                     const info = (assigned || []).find(a => String(a.class) === String(klass)) || null
@@ -96,17 +99,15 @@ export default function Students() {
         async function loadReceipts(list) {
             try {
                 const { token } = getAuth()
-                const ids = (list || []).map(s => String(s._id))
+                const allReceipts = await getReceipts(token)
                 const map = {}
-                const CONCURRENCY = 5
-                for (let i = 0; i < ids.length; i += CONCURRENCY) {
-                    const slice = ids.slice(i, i + CONCURRENCY)
-                    const batch = await Promise.allSettled(slice.map(id => getReceiptsByStudent(id, token)))
-                    batch.forEach((res, j) => {
-                        const sid = slice[j]
-                        map[sid] = res.status === 'fulfilled' ? (res.value || []) : []
+                list.forEach(s => {
+                    const sid = String(s._id)
+                    map[sid] = allReceipts.filter(r => {
+                        const rSid = r.student?._id || r.student
+                        return String(rSid) === sid
                     })
-                }
+                })
                 setReceiptsMap(map)
             } catch (e) { /* non-blocking */ }
         }
@@ -304,7 +305,7 @@ export default function Students() {
                                         return (String(s.name || '').toLowerCase().includes(q)
                                             || String(s.email || '').toLowerCase().includes(q)
                                             || String(s.rollNo || '').toLowerCase().includes(q))
-                                    }).map(s => (
+                                    }).slice((page - 1) * 50, page * 50).map(s => (
                                         <tr key={s._id} className={`student-row ${s.blocked ? 'blocked' : ''}`}>
                                             <td>{s.name}</td>
                                             <td>{s.email || '-'}</td>
@@ -344,6 +345,7 @@ export default function Students() {
                                     ))}
                                 </tbody>
                             </table>
+                            <Pagination page={page} setPage={setPage} total={students.length} />
                         </div>
                     )}
                 </div>

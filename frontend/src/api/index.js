@@ -3,6 +3,14 @@ import axios from 'axios';
 
 const apiClient = axios.create();
 
+apiClient.interceptors.request.use((config) => {
+  if (String(config.method).toLowerCase() === 'get') {
+    config.params = config.params || {};
+    config.params._t = Date.now();
+  }
+  return config;
+});
+
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {

@@ -1,12 +1,23 @@
 import React, { useEffect, useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
-import Footer from './Footer'
+import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/Faculty.css'
 
 export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(() => {
+        try {
+            if (window.innerWidth <= 768) return false
+            const val = localStorage.getItem('sidebar_open')
+            return val !== null ? val === 'true' : true
+        } catch (e) { return true }
+    })
+    
+    useEffect(() => {
+        localStorage.setItem('sidebar_open', open)
+    }, [open])
+
     const [attached, setAttached] = useState(false)
     const [darkMode, setDarkMode] = useState(() => {
         try {
@@ -59,11 +70,14 @@ export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
             />
             <Sidebar isOpen={open} onClose={close} />
 
-            <main className={`faculty-content ${open ? 'sidebar-open' : ''}`} onClick={close}>
-                {children}
+            <main className={`faculty-content ${open ? 'sidebar-open' : ''}`} onClick={close} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <div style={{ padding: '1.5rem', flex: 1 }}>
+                    {children}
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                    <GlobalFooter />
+                </div>
             </main>
-
-            <Footer />
         </div>
     )
 }

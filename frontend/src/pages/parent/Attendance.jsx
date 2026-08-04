@@ -117,7 +117,7 @@ export default function ParentAttendance() {
                 {!linked && (
                     <div className="attendance-card">
                         <div className="text-subtle">No student linked. Link a student using the access code.</div>
-                        <a href="/parent/link-student" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/parent/link-student'); window.dispatchEvent(new PopStateEvent('popstate')) }} className="btn-primary" style={{ marginTop: 10, display: 'inline-block' }}>Link Student</a>
+                        <a href="/parent/link-student" className="btn-primary" style={{ marginTop: 10, display: 'inline-block' }}>Link Student</a>
                     </div>
                 )}
                 {linked && (

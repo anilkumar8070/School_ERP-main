@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import '../../pages/AdminPanel.css'
 import { getParents, deleteParent, blockParent, createParent, uploadFile } from '../../api'
+import Pagination from '../../components/Pagination'
 import { getAuth } from '../../utils/session'
 
 export default function Parents() {
     const [loading, setLoading] = useState(false)
     const [parents, setParents] = useState([])
+    const [page, setPage] = useState(1)
     const [searchTerm, setSearchTerm] = useState('')
 
     async function load(q = '') {
@@ -15,6 +17,7 @@ export default function Parents() {
             const { token } = getAuth()
             const data = await getParents(q, token)
             setParents(data)
+            setPage(1)
         } catch (e) {
             console.error(e)
             setParents([])
@@ -99,7 +102,8 @@ export default function Parents() {
             }
             const { token } = getAuth()
             await createParent(payload, token)
-            await load()
+            setSearchTerm('')
+            await load('')
             closeAdd()
             alert('Parent created')
         } catch (err) {
@@ -150,9 +154,9 @@ export default function Parents() {
                                 {loading ? (
                                     <tr><td colSpan={8} style={{ padding: 20, textAlign: 'center' }}>Loading...</td></tr>
                                 ) : parents.length === 0 ? (
-                                    <tr><td colSpan={8} style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>No parents found</td></tr>
-                                ) : parents.map((p) => (
-                                    <tr key={p._id || p.username}>
+                                    <tr><td colSpan={7} style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)' }}>No parents found</td></tr>
+                                ) : parents.slice((page - 1) * 50, page * 50).map((p) => (
+                                    <tr key={p._id || p.username} className={p.disabled ? 'blocked' : ''}>
                                         <td>
                                             {p.avatar ? (
                                                 <img src={p.avatar} alt="avatar" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
@@ -181,6 +185,7 @@ export default function Parents() {
                                 ))}
                             </tbody>
                         </table>
+                        <Pagination page={page} setPage={setPage} total={parents.length} />
                     </div>
                 </div>
 

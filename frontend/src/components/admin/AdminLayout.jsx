@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
-import Footer from './Footer'
+import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/AdminPanel.css'
 
@@ -26,7 +26,18 @@ export default function AdminLayout({
         setDarkMode(prev => !prev)
     }
 
-    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        try {
+            if (window.innerWidth <= 768) return false
+            const val = localStorage.getItem('sidebar_open')
+            return val !== null ? val === 'true' : true
+        } catch (e) { return true }
+    })
+    
+    useEffect(() => {
+        localStorage.setItem('sidebar_open', sidebarOpen)
+    }, [sidebarOpen])
+
     const [attached, setAttached] = useState(false)
 
     function toggleSidebar() {
@@ -72,12 +83,14 @@ export default function AdminLayout({
             />
             <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} items={sidebarItems} closeOnNavigate={false} attached={attached} />
 
-            <main className={`admin-content ${sidebarOpen ? 'sidebar-open' : ''}`}>
-                {children}
+            <main className={`admin-content ${sidebarOpen ? 'sidebar-open' : ''}`} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <div style={{ padding: '24px', flex: 1 }}>
+                    {children}
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                    <GlobalFooter copyrightText={copyrightText} />
+                </div>
             </main>
-
-            <Footer copyrightText={copyrightText} />
-
         </div>
     )
 }

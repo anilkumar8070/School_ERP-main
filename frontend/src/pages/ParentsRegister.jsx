@@ -97,7 +97,7 @@ export default function ParentsRegister() {
                             onClick={(e) => {
                                 e.preventDefault()
                                 window.history.pushState({}, '', '/parents-login')
-                                window.dispatchEvent(new PopStateEvent('popstate'))
+                                window.location.href = '/parents-login'
                             }}
                         >
                             Back to Login

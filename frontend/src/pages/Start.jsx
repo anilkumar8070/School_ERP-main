@@ -49,8 +49,7 @@ export default function Start() {
 
     const handleNav = (e, link) => {
         e.preventDefault()
-        window.history.pushState({}, '', link)
-        window.dispatchEvent(new PopStateEvent('popstate'))
+        window.location.href = link
     }
 
     const submitContact = async (e) => {
@@ -107,50 +106,14 @@ export default function Start() {
 
             <main>
                 <section className="hero-shell">
-                    <div className="hero-copy">
-                        <div className="eyebrow"><FaIcons.FaCheckCircle /> Complete school management system</div>
-                        <h1>ERP-School</h1>
-                        <p>Manage academics, attendance, fees, staff, students, parents, documents, and communication from one secure school portal.</p>
-                        <div className="hero-cta">
-                            <a className="primary-cta" href="#roles">Login to Portal <FaIcons.FaArrowRight /></a>
-                            <a className="secondary-cta" href="#features">View Features</a>
-                        </div>
-                    </div>
-
-                    <div className="hero-art" aria-hidden="true">
-                        <div className="student-orbit">
-                            <div className="student-illustration">
-                                <div className="head" />
-                                <div className="hair" />
-                                <div className="body" />
-                                <div className="laptop" />
-                                <div className="book book-one" />
-                                <div className="book book-two" />
-                            </div>
-                        </div>
-                        <div className="ops-card">
-                            <div className="ops-head">
-                                <div>
-                                    <strong>Live Operations</strong>
-                                    <span>Today at a glance</span>
-                                </div>
-                                <em>Online</em>
-                            </div>
-                            <div className="metrics-grid">
-                                <div><b>1,248</b><span>Students</span></div>
-                                <div><b>96%</b><span>Attendance</span></div>
-                                <div><b>38</b><span>Open notices</span></div>
-                                <div><b>12</b><span>Pending approvals</span></div>
-                            </div>
-                            <div className="performance-card">
-                                <span>Class X-A<br />Performance</span>
-                                <b>+8.4%</b>
-                                <i />
-                            </div>
-                            <div className="quick-chips">
-                                <span>Exams</span>
-                                <span>Fees</span>
-                                <span>Notices</span>
+                    <div className="hero-content-wrapper">
+                        <div className="hero-copy glass-hero">
+                            <div className="eyebrow"><FaIcons.FaUniversity /> Excellence in Education & Administration</div>
+                            <h1>The Foundation of Your Future.</h1>
+                            <p>Access our unified portal for academics, campus operations, and intelligent school management. Secure, seamless, and sophisticated.</p>
+                            <div className="hero-cta">
+                                <a className="primary-cta" href="#roles">Access Portal <FaIcons.FaArrowRight /></a>
+                                <a className="secondary-cta" href="#features">Explore Features</a>
                             </div>
                         </div>
                     </div>

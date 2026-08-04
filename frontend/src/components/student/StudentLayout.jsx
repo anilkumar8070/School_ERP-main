@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
-import Footer from './Footer'
+import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/Student.css'
 
 export default function StudentLayout({ children }) {
-    const [open, setOpen] = useState(window.innerWidth >= 768)
+    const [open, setOpen] = useState(() => {
+        try {
+            if (window.innerWidth <= 768) return false
+            const val = localStorage.getItem('sidebar_open')
+            return val !== null ? val === 'true' : true
+        } catch (e) { return true }
+    })
+    
+    useEffect(() => {
+        localStorage.setItem('sidebar_open', open)
+    }, [open])
     const [darkMode, setDarkMode] = useState(() => {
         try {
             return localStorage.getItem('student_theme') === 'dark'
@@ -64,11 +74,14 @@ export default function StudentLayout({ children }) {
             />
             <Sidebar isOpen={open} onClose={() => setOpen(false)} />
 
-            <main className={`student-main ${open ? 'sidebar-open' : ''}`}>
-                {children}
+            <main className={`student-main ${open ? 'sidebar-open' : ''}`} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <div style={{ padding: '1.5rem', flex: 1 }}>
+                    {children}
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                    <GlobalFooter />
+                </div>
             </main>
-
-            <Footer />
         </div>
     )
 }

@@ -64,7 +64,7 @@ export default function ParentProgress() {
                 {!linked && (
                     <div style={{ marginTop: 12, padding: 14, border: '1px solid #334155', borderRadius: 10, background: '#0f172a' }}>
                         <div style={{ color: '#e2e8f0' }}>No student linked. Link a student using the access code.</div>
-                        <a href="/parent/link-student" onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/parent/link-student'); window.dispatchEvent(new PopStateEvent('popstate')) }} className="btn-primary" style={{ marginTop: 10, display: 'inline-block' }}>Link Student</a>
+                        <a href="/parent/link-student" className="btn-primary" style={{ marginTop: 10, display: 'inline-block' }}>Link Student</a>
                     </div>
                 )}
                 {linked && (

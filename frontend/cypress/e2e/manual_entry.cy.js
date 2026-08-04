@@ -3,8 +3,8 @@ describe('Automated Manual Data Entry', () => {
     cy.visit('http://localhost:5173/admin-login')
 
     // Login as Admin
-    cy.get('input[placeholder="Enter your username/email"]').type('admin@gmail.com')
-    cy.get('input[placeholder="Enter your password"]').type('Admin@123')
+    cy.get('input[placeholder="Enter your username/email"]').type('admin')
+    cy.get('input[placeholder="Enter your password"]').type('admin')
     cy.get('button.login-btn').click()
 
     cy.wait(3000)

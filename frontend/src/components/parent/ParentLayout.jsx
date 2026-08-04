@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
-import Footer from './Footer'
+import GlobalFooter from '../GlobalFooter'
 import '../../pages/ParentPanel.css'
 import { getAuth } from '../../utils/session'
 
 export default function ParentLayout({ children, title = 'Parent Panel' }) {
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(() => {
+        try {
+            if (window.innerWidth <= 768) return false
+            const val = localStorage.getItem('sidebar_open')
+            return val !== null ? val === 'true' : true
+        } catch (e) { return true }
+    })
+    
+    useEffect(() => {
+        localStorage.setItem('sidebar_open', open)
+    }, [open])
+
     const [attached, setAttached] = useState(false)
     const [darkMode, setDarkMode] = useState(false)
 
@@ -61,11 +72,14 @@ export default function ParentLayout({ children, title = 'Parent Panel' }) {
             />
             <Sidebar isOpen={open} onClose={close} />
 
-            <main className={`parent-content ${open ? 'sidebar-open' : ''}`} onClick={() => { if (window.innerWidth <= 768) close() }}>
-                {children}
+            <main className={`parent-content ${open ? 'sidebar-open' : ''}`} onClick={() => { if (window.innerWidth <= 768) close() }} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <div style={{ padding: '1.5rem', flex: 1 }}>
+                    {children}
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                    <GlobalFooter />
+                </div>
             </main>
-
-            <Footer />
         </div>
     )
 }

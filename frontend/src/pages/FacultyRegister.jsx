@@ -122,7 +122,7 @@ export default function FacultyRegister() {
                             onClick={(e) => {
                                 e.preventDefault()
                                 window.history.pushState({}, '', '/faculty-login')
-                                window.dispatchEvent(new PopStateEvent('popstate'))
+                                window.location.href = '/faculty-login'
                             }}
                         >
                             Back to Login

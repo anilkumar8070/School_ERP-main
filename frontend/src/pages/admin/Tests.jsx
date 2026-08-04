@@ -41,16 +41,10 @@ export default function AdminTests() {
             // fetch exact question counts per test for admin users
             if (role === 'admin') {
                 try {
-                    const countsArr = await Promise.all(list.map(async t => {
-                        try {
-                            const qs = await getTestQuestions(t._id, token)
-                            return { id: t._id, count: Array.isArray(qs) ? qs.length : 0 }
-                        } catch (err) {
-                            return { id: t._id, count: (t.totalQuestions != null ? t.totalQuestions : (t.questions ? t.questions.length : 0)) }
-                        }
-                    }))
                     const map = {}
-                    countsArr.forEach(c => { map[c.id] = c.count })
+                    list.forEach(t => {
+                        map[t._id] = t.totalQuestions != null ? t.totalQuestions : (t.questions ? t.questions.length : 0)
+                    })
                     setCounts(map)
                 } catch (err) {
                     console.warn('Failed to fetch question counts', err)

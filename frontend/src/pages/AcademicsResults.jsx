@@ -29,23 +29,15 @@ export default function AcademicsResults() {
                 const studs = await getStudents(studentQuery, token)
                 setStudents(studs || [])
 
-                // fetch marks for class/section
-                const markQuery = { class: klass }
-                if (!(section === 'ALL' || !section)) markQuery.section = section
-                let mks = await getMarks(markQuery, token)
+                // fetch marks for class and filter by section in memory to avoid N+1 per-student calls
+                let mks = await getMarks({ class: klass }, token)
                 mks = mks || []
-
-                // If no marks returned for a specific section, try a per-student fallback
-                if ((mks.length === 0) && section !== 'ALL' && Array.isArray(studs) && studs.length > 0) {
-                    try {
-                        // limit the number of parallel requests to avoid overload
-                        const limit = 50
-                        const slice = studs.slice(0, limit)
-                        const per = await Promise.all(slice.map(s => getMarks({ studentId: s._id }, token).catch(() => [])))
-                        mks = per.flat()
-                    } catch (e) {
-                        console.warn('Fallback per-student marks fetch failed', e)
-                    }
+                
+                if (section && section !== 'ALL') {
+                    mks = mks.filter(m => {
+                        const mSec = m.student?.section || m.studentSection
+                        return mSec === section
+                    })
                 }
                 setMarks(mks)
 

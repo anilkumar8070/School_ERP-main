@@ -10,6 +10,11 @@ import './styles/ui-refresh.css'
 void React
 void Tanstack
 
+if (typeof window !== 'undefined') {
+  const originalAlert = window.alert;
+  window.alert = (msg) => setTimeout(() => originalAlert(msg), 50);
+}
+
 // Suppress React DevTools console hint in development when desired
 try {
   // Some React builds show a friendly console message recommending React DevTools.

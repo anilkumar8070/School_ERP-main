@@ -38,7 +38,8 @@ export default function Admins() {
             setAdding(true)
             const { token } = getAuth()
             await createAdmin(newAdmin, token)
-            await load()
+            setSearchTerm('')
+            await load('')
             closeAdd()
             alert('Admin created successfully and notification email sent.')
         } catch (err) { console.error(err); alert('Failed to create admin: ' + (err && err.message || String(err))) }

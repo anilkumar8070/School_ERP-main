@@ -28,7 +28,7 @@ async function runComprehensiveAudit() {
   const loginRes = await makeRequest({
     hostname: 'localhost', port: 4000, path: '/api/login', method: 'POST',
     headers: { 'Content-Type': 'application/json' }
-  }, { username: 'admin', password: 'admin123' });
+  }, { username: 'admin', password: 'admin' });
 
   const token = loginRes.body?.token;
   if (!token) {
