@@ -73,48 +73,11 @@ if (Razorpay && process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) 
   }
 }
 
-// Configure CORS: allow specific origins via `ALLOWED_ORIGINS` (comma-separated)
-// Fallback: use `FRONTEND_URL` or `VITE_FRONTEND_URL`. In development you can set
-// `ALLOW_ALL_ORIGINS=true` to allow all origins (convenient for local testing).
-const allowedEnv = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL || '';
-const allowAll = String(process.env.ALLOW_ALL_ORIGINS || process.env.DEV_ALLOW_ALL || '').toLowerCase() === 'true';
-let corsOptions = undefined;
-{
-  // Default development origins to allow (helps when FRONTEND_URL not set)
-  const defaultDevOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 'http://127.0.0.1:3000'];
-
-  // If explicitly asked, allow all origins (development only if not production)
-  if (allowAll || process.env.NODE_ENV !== 'production' && !allowedEnv) {
-    console.warn('CORS: permissive mode enabled (allowing all origins)');
-    corsOptions = {
-      origin: true,
-      credentials: true
-    };
-  } else {
-    // Normalize configured origins by trimming whitespace and trailing slashes
-    const origins = allowedEnv ? allowedEnv.split(',').map(s => String(s || '').trim()).filter(Boolean) : defaultDevOrigins;
-    const normalizedOrigins = origins.map(o => o.replace(/\/+$/, ''));
-    corsOptions = {
-      origin: function (origin, cb) {
-        // allow requests with no origin (curl, mobile apps, server-to-server)
-        if (!origin) return cb(null, true);
-
-        // If strict origins are not configured, allow all to prevent breaking Vercel deployments
-        if (!allowedEnv) return cb(null, true);
-        try {
-          const norm = String(origin || '').replace(/\/+$/, '');
-          if (normalizedOrigins.indexOf(norm) !== -1) return cb(null, true);
-        } catch (e) {
-          // fallthrough to deny
-        }
-        console.warn(`CORS: Denying request from unconfigured origin: ${origin}`);
-        return cb(null, false); // Return false instead of Error to prevent 500 Internal Server Error
-      },
-      credentials: true
-    };
-    console.log('CORS: strict origins mode enabled:', normalizedOrigins.join(', '));
-  }
-}
+// Configure CORS: allow all origins dynamically to support Vercel preview URLs and dynamic domains
+const corsOptions = {
+  origin: true, // Reflects the incoming origin, allowing any domain
+  credentials: true // Required if cookies or Authorization headers are sent
+};
 app.use(cors(corsOptions));
 // When running behind a proxy (Render, etc.) enable trust proxy so req.ip and secure checks work correctly
 app.set('trust proxy', true);
