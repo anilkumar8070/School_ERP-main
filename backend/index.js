@@ -1341,7 +1341,9 @@ app.use('/api/notification-settings', notification_settingsRoutes);
 let server;
 if (cluster.isPrimary) {
   console.log(`Primary ${process.pid} is running`);
-  const numCPUs = os.cpus().length;
+  // Prevent Out-Of-Memory (OOM) crashes on Render/Heroku by limiting workers
+  // Cloud providers report host CPUs (e.g., 32) but restrict container memory (e.g., 512MB).
+  const numCPUs = process.env.WEB_CONCURRENCY ? parseInt(process.env.WEB_CONCURRENCY) : Math.min(os.cpus().length, 2);
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
