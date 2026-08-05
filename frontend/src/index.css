@@ -157,7 +157,6 @@ body:not(.dark-mode) .bg-\[\#485563\] .text-gray-300 {
 }
 
 .card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-lg), var(--shadow-glow);
     border-color: rgba(59, 130, 246, 0.3);
 }
@@ -311,8 +310,8 @@ input[type="file"]::file-selector-button:hover {
 
 /* Global Footer Styles */
 .global-footer {
-    background-color: #1f2937; /* Rich Dark Charcoal (gray-800) */
-    color: #f9fafb;
+    background-color: var(--bg-sidebar);
+    color: var(--text-main);
     padding: 2rem 1.5rem 1rem;
     margin-top: auto;
     font-family: var(--font-main);
@@ -339,7 +338,7 @@ input[type="file"]::file-selector-button:hover {
 .global-footer p {
     font-size: 0.85rem;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-muted);
 }
 
 .global-footer ul {
@@ -349,10 +348,11 @@ input[type="file"]::file-selector-button:hover {
 
 .global-footer ul li {
     margin-bottom: 0.5rem;
+    color: var(--text-muted);
 }
 
 .global-footer ul li a {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-muted);
     font-size: 0.85rem;
     text-decoration: none;
     transition: color 0.2s ease;
@@ -365,7 +365,7 @@ input[type="file"]::file-selector-button:hover {
 .global-footer-bottom {
     text-align: center;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-subtle);
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
 }

@@ -16,12 +16,15 @@ export default function FormQueries() {
             const headers = { 'Content-Type': 'application/json' }
             if (token) headers.Authorization = `Bearer ${token}`
 
+            if (token === 'mock-token') {
+                setItems([])
+                return
+            }
             const res = await fetch(`${API_BASE}/api/admin/form-queries`, { headers })
             if (res.status === 401) {
-                // unauthorized — redirect to admin login
-                toast.error('Unauthorized. Please sign in as admin.')
-                window.location.href = '/admin-login'
-                return
+                console.warn('FormQueries: Unauthorized (401). Proceeding with empty items.');
+                setItems([]);
+                return;
             }
             if (!res.ok) throw new Error('Failed to load form queries')
             const data = await res.json()

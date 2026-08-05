@@ -284,7 +284,6 @@ export default function Dashboard() {
                 .landing-page .dashboard-card:hover,
                 .landing-page .stat-tile:hover {
                     box-shadow: 0 18px 45px rgba(180, 125, 0, 0.14);
-                    transform: translateY(-5px);
                 }
                 .landing-page .floating-illustration {
                     animation: landingFloat 6s ease-in-out infinite;

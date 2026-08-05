@@ -1,3 +1,5 @@
+import { Outlet } from 'react-router-dom';
+import { createContext, useContext } from 'react';
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
@@ -5,7 +7,22 @@ import GlobalFooter from '../GlobalFooter'
 import '../../pages/ParentPanel.css'
 import { getAuth } from '../../utils/session'
 
+const LayoutContext = createContext(null);
+
 export default function ParentLayout({ children, title = 'Parent Panel' }) {
+    const context = useContext(LayoutContext);
+    useEffect(() => {
+        if (context && title && context.setTitle) {
+            context.setTitle(title);
+        }
+    }, [title, context]);
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
+
+    const [currentTitle, setCurrentTitle] = React.useState(title);
+
     const [open, setOpen] = useState(() => {
         try {
             if (window.innerWidth <= 768) return false
@@ -61,11 +78,12 @@ export default function ParentLayout({ children, title = 'Parent Panel' }) {
     }
 
     return (
-        <div className={`parent-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : ''}`}>
+        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
+            <div className={`parent-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : ''}`}>
             <Header
                 onToggleSidebar={toggle}
                 onAttachSidebar={attachAndOpen}
-                title={title}
+                title={currentTitle}
                 sidebarOpen={open}
                 darkMode={darkMode}
                 toggleTheme={toggleTheme}
@@ -74,12 +92,13 @@ export default function ParentLayout({ children, title = 'Parent Panel' }) {
 
             <main className={`parent-content ${open ? 'sidebar-open' : ''}`} onClick={() => { if (window.innerWidth <= 768) close() }} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <div style={{ padding: '1.5rem', flex: 1 }}>
-                    {children}
+                    {children || <Outlet />}
                 </div>
                 <div style={{ marginTop: 'auto' }}>
                     <GlobalFooter />
                 </div>
             </main>
         </div>
+            </LayoutContext.Provider>
     )
 }

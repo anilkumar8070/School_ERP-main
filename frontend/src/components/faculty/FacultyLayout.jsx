@@ -1,3 +1,5 @@
+import { Outlet } from 'react-router-dom';
+import { createContext, useContext } from 'react';
 import React, { useEffect, useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
@@ -5,7 +7,22 @@ import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/Faculty.css'
 
+const LayoutContext = createContext(null);
+
 export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
+    const context = useContext(LayoutContext);
+    useEffect(() => {
+        if (context && title && context.setTitle) {
+            context.setTitle(title);
+        }
+    }, [title, context]);
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
+
+    const [currentTitle, setCurrentTitle] = React.useState(title);
+
     const [open, setOpen] = useState(() => {
         try {
             if (window.innerWidth <= 768) return false
@@ -59,11 +76,12 @@ export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
     }
 
     return (
-        <div className={`faculty-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : 'light'}`}>
+        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
+            <div className={`faculty-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : 'light'}`}>
             <Header
                 onToggleSidebar={toggle}
                 onAttachSidebar={attachAndOpen}
-                title={title}
+                title={currentTitle}
                 sidebarOpen={open}
                 darkMode={darkMode}
                 toggleTheme={toggleTheme}
@@ -72,12 +90,13 @@ export default function FacultyLayout({ children, title = 'Faculty Panel' }) {
 
             <main className={`faculty-content ${open ? 'sidebar-open' : ''}`} onClick={close} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <div style={{ padding: '1.5rem', flex: 1 }}>
-                    {children}
+                    {children || <Outlet />}
                 </div>
                 <div style={{ marginTop: 'auto' }}>
                     <GlobalFooter />
                 </div>
             </main>
         </div>
+            </LayoutContext.Provider>
     )
 }

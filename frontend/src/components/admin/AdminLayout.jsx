@@ -1,3 +1,5 @@
+import { Outlet } from 'react-router-dom';
+import { createContext, useContext } from 'react';
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
@@ -5,12 +7,27 @@ import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/AdminPanel.css'
 
+const LayoutContext = createContext(null);
+
 export default function AdminLayout({
     children,
     title = 'Admin Panel',
     sidebarItems = undefined,
     copyrightText = 'copyright @AdminPanel 2025',
 }) {
+    const context = useContext(LayoutContext);
+    useEffect(() => {
+        if (context && title && context.setTitle) {
+            context.setTitle(title);
+        }
+    }, [title, context]);
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
+
+    const [currentTitle, setCurrentTitle] = React.useState(title);
+
     const [darkMode, setDarkMode] = useState(() => {
         try {
             return localStorage.getItem('admin_theme') === 'dark'
@@ -72,11 +89,12 @@ export default function AdminLayout({
     }, [])
 
     return (
-        <div className={`admin-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : 'light'}`}>
+        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
+            <div className={`admin-root ${attached ? 'sidebar-attached' : ''} ${darkMode ? 'dark' : 'light'}`}>
             <Header
                 onToggleSidebar={toggleSidebar}
                 onAttachSidebar={attachAndOpen}
-                title={title}
+                title={currentTitle}
                 sidebarOpen={sidebarOpen}
                 darkMode={darkMode}
                 toggleTheme={toggleTheme}
@@ -85,13 +103,14 @@ export default function AdminLayout({
 
             <main className={`admin-content ${sidebarOpen ? 'sidebar-open' : ''}`} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <div style={{ padding: '24px', flex: 1 }}>
-                    {children}
+                    {children || <Outlet />}
                 </div>
                 <div style={{ marginTop: 'auto' }}>
                     <GlobalFooter copyrightText={copyrightText} />
                 </div>
             </main>
         </div>
+            </LayoutContext.Provider>
     )
 }
 

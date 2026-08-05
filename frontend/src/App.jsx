@@ -143,6 +143,32 @@ const ParentsLogin = React.lazy(() => import('./pages/ParentsLogin'))
 const ParentsRegister = React.lazy(() => import('./pages/ParentsRegister'))
 const Start = React.lazy(() => import('./pages/Start'))
 
+const AdminLayout = React.lazy(() => import('./components/admin/AdminLayout'))
+const FacultyLayout = React.lazy(() => import('./components/faculty/FacultyLayout'))
+const ParentLayout = React.lazy(() => import('./components/parent/ParentLayout'))
+
+function GlobalLayoutWrapper({ children }) {
+    const location = Router.useLocation()
+    const path = location.pathname
+
+    if (path.startsWith('/admin') && path !== '/admin-login' && path !== '/admin-register') {
+        return <AdminLayout>{children}</AdminLayout>
+    }
+    if (path.startsWith('/faculty') && path !== '/faculty-login' && path !== '/faculty-register') {
+        return <FacultyLayout>{children}</FacultyLayout>
+    }
+    if (path.startsWith('/student') && path !== '/student-login' && path !== '/student-register') {
+        return <StudentLayout>{children}</StudentLayout>
+    }
+    if (path.startsWith('/parent') && path !== '/parents-login' && path !== '/parents-register') {
+        return <ParentLayout>{children}</ParentLayout>
+    }
+    if (path.startsWith('/staff') && path !== '/staff-login') {
+        return <StaffLayout>{children}</StaffLayout>
+    }
+    return <>{children}</>
+}
+
 function App() {
   // Listen for global logout events from other tabs
   useEffect(() => {
@@ -167,7 +193,8 @@ function App() {
     <Router.BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ReactToastify.ToastContainer position="top-right" autoClose={3000} />
       <React.Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
-        <Router.Routes>
+        <GlobalLayoutWrapper>
+          <Router.Routes>
         <Router.Route path="/start" element={<Router.Navigate to="/" replace />} />
         <Router.Route path="/admin-login" element={<AdminLogin />} />
         {/* Staff login */}
@@ -312,6 +339,7 @@ function App() {
         <Router.Route path="/faculty/behavior-records" element={<Protected role="faculty"><BehaviorRecordsFaculty /></Protected>} />
         <Router.Route path="/faculty/lesson-plan" element={<Protected role="faculty"><LessonPlan /></Protected>} />
         </Router.Routes>
+        </GlobalLayoutWrapper>
       </React.Suspense>
     </Router.BrowserRouter>
   )

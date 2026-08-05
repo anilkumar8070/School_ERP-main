@@ -1,3 +1,5 @@
+import { Outlet } from 'react-router-dom';
+import { createContext, useContext } from 'react';
 import React, { useState, useEffect } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
@@ -5,7 +7,22 @@ import GlobalFooter from '../GlobalFooter'
 import { getAuth } from '../../utils/session'
 import '../../pages/Student.css'
 
+const LayoutContext = createContext(null);
+
 export default function StudentLayout({ children }) {
+    const context = useContext(LayoutContext);
+    useEffect(() => {
+        if (context && null && context.setTitle) {
+            context.setTitle(null);
+        }
+    }, [null, context]);
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
+
+    const [currentTitle, setCurrentTitle] = React.useState(null);
+
     const [open, setOpen] = useState(() => {
         try {
             if (window.innerWidth <= 768) return false
@@ -59,7 +76,9 @@ export default function StudentLayout({ children }) {
         window.addEventListener('popstate', onPop)
         // also update after clicks (single page navigation)
         document.addEventListener('click', updateActive)
-        return () => {
+        return (
+        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
+            ) => {
             window.removeEventListener('popstate', onPop)
             document.removeEventListener('click', updateActive)
         }
@@ -76,12 +95,13 @@ export default function StudentLayout({ children }) {
 
             <main className={`student-main ${open ? 'sidebar-open' : ''}`} style={{ padding: 0, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <div style={{ padding: '1.5rem', flex: 1 }}>
-                    {children}
+                    {children || <Outlet />}
                 </div>
                 <div style={{ marginTop: 'auto' }}>
                     <GlobalFooter />
                 </div>
             </main>
         </div>
+            </LayoutContext.Provider>
     )
 }
