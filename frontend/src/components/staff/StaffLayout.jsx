@@ -17,9 +17,6 @@ export default function StaffLayout({ children, title = 'Staff Panel' }) {
         }
     }, [title, context]);
 
-    if (context) {
-        return <>{children || <Outlet />}</>;
-    }
 
     const [currentTitle, setCurrentTitle] = React.useState(title);
 
@@ -76,6 +73,10 @@ export default function StaffLayout({ children, title = 'Staff Panel' }) {
     function attachAndOpen() {
         setAttached(true)
         setOpen(true)
+    }
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
     }
 
     return (

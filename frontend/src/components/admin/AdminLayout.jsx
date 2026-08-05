@@ -22,9 +22,6 @@ export default function AdminLayout({
         }
     }, [title, context]);
 
-    if (context) {
-        return <>{children || <Outlet />}</>;
-    }
 
     const [currentTitle, setCurrentTitle] = React.useState(title);
 
@@ -87,6 +84,10 @@ export default function AdminLayout({
             try { window.location.href = '/admin-login' } catch (err) { }
         }
     }, [])
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
 
     return (
         <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>

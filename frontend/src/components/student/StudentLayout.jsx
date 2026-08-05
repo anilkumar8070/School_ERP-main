@@ -17,9 +17,6 @@ export default function StudentLayout({ children }) {
         }
     }, [null, context]);
 
-    if (context) {
-        return <>{children || <Outlet />}</>;
-    }
 
     const [currentTitle, setCurrentTitle] = React.useState(null);
 
@@ -81,6 +78,10 @@ export default function StudentLayout({ children }) {
             document.removeEventListener('click', updateActive)
         }
     }, [])
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
+    }
 
     return (
         <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>

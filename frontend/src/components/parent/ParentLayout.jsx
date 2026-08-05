@@ -17,9 +17,6 @@ export default function ParentLayout({ children, title = 'Parent Panel' }) {
         }
     }, [title, context]);
 
-    if (context) {
-        return <>{children || <Outlet />}</>;
-    }
 
     const [currentTitle, setCurrentTitle] = React.useState(title);
 
@@ -75,6 +72,10 @@ export default function ParentLayout({ children, title = 'Parent Panel' }) {
     function attachAndOpen() {
         setAttached(true)
         setOpen(true)
+    }
+
+    if (context) {
+        return <>{children || <Outlet />}</>;
     }
 
     return (
