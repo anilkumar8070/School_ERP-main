@@ -191,6 +191,10 @@ export default function Faculty() {
                                     <label>Employee ID</label>
                                     <input className="admin-input" value={editing.employeeId || ''} onChange={e => setEditing(s => ({ ...s, employeeId: e.target.value }))} />
                                 </div>
+                                <div className="form-group">
+                                    <label>Class (1 to 12)</label>
+                                    <input className="admin-input" type="number" min="1" max="12" value={editing.classGrade || ''} onChange={e => setEditing(s => ({ ...s, classGrade: e.target.value }))} />
+                                </div>
                             </div>
 
                             <div style={{ marginTop: 24, padding: 16, background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>

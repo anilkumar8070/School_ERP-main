@@ -115,7 +115,7 @@ router.get("/dashboard", verifyToken, requireRole(['faculty', 'admin']), async (
     let assignedClasses = [];
     try {
       if (fac) {
-        if (Array.isArray(fac.classGrade)) assignedClasses = fac.classGrade.map(x => String(x)).filter(Boolean);else if (typeof fac.classGrade === 'string' && fac.classGrade.trim()) assignedClasses = [fac.classGrade.trim()];else if (Array.isArray(fac.assignments) && fac.assignments.length) assignedClasses = fac.assignments.map(a => String(a)).filter(Boolean);
+        if (Array.isArray(fac.assignments) && fac.assignments.length) assignedClasses = fac.assignments.map(a => typeof a === 'object' && a !== null ? String(a.class) : String(a)).filter(Boolean);else if (Array.isArray(fac.classGrade)) assignedClasses = fac.classGrade.map(x => String(x)).filter(Boolean);else if (typeof fac.classGrade === 'string' && fac.classGrade.trim()) assignedClasses = [fac.classGrade.trim()];
       }
     } catch (e) {
       assignedClasses = [];
@@ -188,6 +188,14 @@ router.get("/me", verifyToken, async (req, res) => {
     if (!fac) return res.status(404).json({
       message: 'Faculty record not linked'
     });
+    // Normalize classGrade into assignments for frontend compatibility
+    if (!fac.assignments || (Array.isArray(fac.assignments) && fac.assignments.length === 0)) {
+      if (typeof fac.classGrade === 'string' && fac.classGrade.trim()) {
+        fac.assignments = [{ class: fac.classGrade.trim(), sections: [], isClassTeacher: true }];
+      } else if (Array.isArray(fac.classGrade) && fac.classGrade.length > 0) {
+        fac.assignments = fac.classGrade.map(c => ({ class: String(c).trim(), sections: [], isClassTeacher: true }));
+      }
+    }
     return res.json(fac);
   } catch (e) {
     return res.status(500).json({

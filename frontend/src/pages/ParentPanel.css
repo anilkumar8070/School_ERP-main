@@ -361,7 +361,6 @@
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
     box-shadow: var(--shadow-md);
 }
 
@@ -812,7 +811,6 @@
 }
 
 .notice-card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
@@ -1095,7 +1093,6 @@
 
 .parent-hero-actions .btn-primary:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
 }
 
 .parent-hero-actions .btn-secondary {
@@ -1220,7 +1217,6 @@
 }
 
 .parent-dashboard-card:hover {
-    transform: translateY(-3px);
     box-shadow: var(--shadow-md);
 }
 
@@ -1380,7 +1376,6 @@
 
 .parent-action-card:hover {
     border-left-color: var(--primary-dark);
-    transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(124,58,237,0.15);
 }
 

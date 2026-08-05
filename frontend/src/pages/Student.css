@@ -193,13 +193,11 @@
 }
 
 .prio-box:hover {
-    transform: translateY(-8px);
     box-shadow: 0 18px 40px rgba(2, 6, 23, 0.12);
 }
 
 .prio-box.selected {
     box-shadow: 0 20px 48px rgba(11, 102, 209, 0.12);
-    transform: translateY(-12px);
     background: linear-gradient(180deg, #f8fff8, #e6ffe6);
 }
 
@@ -484,7 +482,6 @@
 }
 
 .student-dashboard .card:hover {
-    transform: translateY(-6px) scale(1.02);
     box-shadow: 0 12px 30px rgba(11, 102, 209, 0.12);
 }
 
@@ -890,7 +887,6 @@
 }
 
 .cal-table td:hover {
-    transform: translateY(-6px);
     box-shadow: 0 12px 30px rgba(11, 102, 209, 0.08)
 }
 
@@ -1174,7 +1170,6 @@
     }
 
     .cal-table td:hover {
-        transform: translateY(-6px);
         box-shadow: 0 12px 30px rgba(11, 102, 209, 0.08);
     }
 
@@ -1423,7 +1418,6 @@
 
     .prio-btn.active {
         box-shadow: 0 8px 30px rgba(11, 102, 209, 0.08);
-        transform: translateY(-2px)
     }
 
     .submit-row {
@@ -1591,7 +1585,6 @@
 }
 
 .complaint-item:hover {
-    transform: translateY(-6px);
     box-shadow: 0 18px 40px rgba(15, 86, 52, 0.08);
 }
 
@@ -1816,7 +1809,6 @@
 
 .prio-box.selected {
     box-shadow: 0 14px 40px rgba(11, 102, 209, 0.08);
-    transform: translateY(-6px);
     background: linear-gradient(180deg, #f8fff8, #e6ffe6)
 }
 
@@ -2361,7 +2353,6 @@
 }
 
 .result-card:hover {
-    transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -3094,7 +3085,6 @@
 }
 
 .btn-white:hover {
-    transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -3506,7 +3496,6 @@
 .student-hero-actions a:hover,
 .student-mini-btn:hover,
 .student-section-title a:hover {
-    transform: translateY(-3px);
     box-shadow: 0 18px 35px rgba(17, 17, 17, 0.18);
 }
 
@@ -3632,7 +3621,6 @@
 .student-overview-grid article:hover,
 .student-action-card:hover,
 .student-panel-card:hover {
-    transform: translateY(-6px);
     box-shadow: 0 26px 60px rgba(17, 17, 17, 0.14) !important;
 }
 
@@ -3855,7 +3843,6 @@
 .btn:hover,
 .ts-enroll:hover,
 .btn-primary:hover {
-    transform: translateY(-3px);
 }
 
 @keyframes studentPageIn {

@@ -192,7 +192,6 @@ body:not(.dark-mode) .bg-\[\#485563\] .text-gray-300 {
 .btn.primary:hover,
 .btn.blue:hover {
     background: #2563eb;
-    transform: translateY(-1px);
     box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.23);
 }
 
@@ -206,7 +205,6 @@ body:not(.dark-mode) .bg-\[\#485563\] .text-gray-300 {
 .btn.secondary:hover,
 .btn.purple:hover {
     background: #7c3aed;
-    transform: translateY(-1px);
 }
 
 .btn.accent,
@@ -305,7 +303,6 @@ input[type="file"]::file-selector-button {
 
 input[type="file"]::file-selector-button:hover {
     box-shadow: var(--shadow-md), var(--shadow-glow);
-    transform: translateY(-1px);
 }
 
 /* Global Footer Styles */
