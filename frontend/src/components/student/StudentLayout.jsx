@@ -76,15 +76,14 @@ export default function StudentLayout({ children }) {
         window.addEventListener('popstate', onPop)
         // also update after clicks (single page navigation)
         document.addEventListener('click', updateActive)
-        return (
-        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
-            ) => {
+        return () => {
             window.removeEventListener('popstate', onPop)
             document.removeEventListener('click', updateActive)
         }
     }, [])
 
     return (
+        <LayoutContext.Provider value={{ setTitle: setCurrentTitle }}>
         <div className={`student-app ${darkMode ? 'dark' : 'light'}`}>
             <Header
                 onToggleSidebar={() => setOpen(s => !s)}
