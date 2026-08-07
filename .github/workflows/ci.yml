@@ -108,7 +108,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Test & Coverage Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-test-coverage
@@ -160,7 +160,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Frontend Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-build-dist
           path: frontend/dist/
