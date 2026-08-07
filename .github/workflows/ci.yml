@@ -60,7 +60,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
 
       - name: Cache Prisma Engines
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/prisma
           key: ${{ runner.os }}-prisma-${{ hashFiles('backend/prisma/schema.prisma') }}
