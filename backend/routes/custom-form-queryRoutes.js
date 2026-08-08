@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail
   } = helpers;
 
 // Public: submit a built custom form
@@ -92,6 +92,43 @@ router.post("/", upload.any(), async (req, res) => {
         originalname: fileFields[0] && fileFields[0].originalname
       }
     });
+
+    // Send admin notification & user auto-reply
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com';
+      await sendMail({
+        to: adminEmail,
+        subject: `New Custom Form Response: ${form.title} from ${doc.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h3 style="color: #2563eb;">New Response Received for ${form.title}</h3>
+            <p><strong>Applicant:</strong> ${doc.name}</p>
+            <p><strong>Email:</strong> ${doc.email}</p>
+            <p><strong>Contact:</strong> ${doc.contact || '-'}</p>
+            <p><strong>Submitted Data:</strong></p>
+            <pre style="background: #f9fafb; padding: 12px; border-radius: 4px; border: 1px solid #e5e7eb;">${JSON.stringify(labeledResponses, null, 2)}</pre>
+          </div>
+        `
+      });
+
+      if (doc.email && doc.email !== 'no-email@example.com') {
+        await sendMail({
+          to: doc.email,
+          subject: `Confirmation — ${form.title} Received`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+              <h3 style="color: #2563eb;">Form Submission Received!</h3>
+              <p>Dear <strong>${doc.name}</strong>,</p>
+              <p>Thank you for submitting your response for <strong>${form.title}</strong>.</p>
+              <p style="color: #6b7280; font-size: 13px; margin-top: 20px;">Contact support at <a href="mailto:${process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com'}">${process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com'}</a>.</p>
+            </div>
+          `
+        });
+      }
+    } catch (mailErr) {
+      console.warn('Failed to send custom form query emails:', mailErr && mailErr.message);
+    }
+
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({

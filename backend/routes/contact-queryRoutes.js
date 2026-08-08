@@ -143,17 +143,43 @@ router.post("/", upload.single('attachment'), async (req, res) => {
       }
     });
 
-    // Try to notify admin email about new contact (best-effort)
+    // Send admin notification to iitiancraft03@gmail.com & auto-reply to user
     try {
-      const adminEmail = process.env.FROM_EMAIL || process.env.SMTP_USER;
-      if (adminEmail) {
+      const adminEmail = process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com';
+      await sendMail({
+        to: adminEmail,
+        subject: `New Contact Query: ${doc.name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h3 style="color: #2563eb; margin-top: 0;">New Contact Form Query Submitted</h3>
+            <p><strong>Name:</strong> ${doc.name}</p>
+            <p><strong>Email:</strong> ${doc.email}</p>
+            <p><strong>Contact / Phone:</strong> ${doc.contact || '-'}</p>
+            <p><strong>Message / Description:</strong></p>
+            <div style="background: #f9fafb; padding: 12px 16px; border-left: 4px solid #2563eb; border-radius: 4px;">
+              ${(doc.description || '').replace(/\n/g, '<br/>')}
+            </div>
+          </div>
+        `
+      });
+
+      if (doc.email) {
         await sendMail({
-          to: adminEmail,
-          subject: `New contact query from ${doc.name}`,
-          html: `<p><strong>Name:</strong> ${doc.name}</p><p><strong>Email:</strong> ${doc.email}</p><p><strong>Contact:</strong> ${doc.contact || '-'} </p><p><strong>Description:</strong><br/>${(doc.description || '').replace(/\n/g, '<br/>')}</p>`
-        }).catch(() => null);
+          to: doc.email,
+          subject: `Thank you for contacting School ERP — Query Received`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+              <h3 style="color: #2563eb;">We have received your message!</h3>
+              <p>Dear <strong>${doc.name}</strong>,</p>
+              <p>Thank you for reaching out to the School ERP administration. We have received your query and our team will get back to you shortly.</p>
+              <p style="color: #6b7280; font-size: 13px; margin-top: 20px;">If you have urgent inquiries, please reach out to <a href="mailto:${process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com'}">${process.env.ADMIN_EMAIL || 'iitiancraft03@gmail.com'}</a>.</p>
+            </div>
+          `
+        });
       }
-    } catch (e) {/* ignore notification errors */}
+    } catch (e) {
+      console.warn('Failed to send contact query emails:', e.message);
+    }
     return res.status(201).json(doc);
   } catch (e) {
     return res.status(500).json({

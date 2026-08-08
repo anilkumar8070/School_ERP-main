@@ -917,11 +917,9 @@ router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
         username: email
       }
     });
-    let generatedPassword = null;
+    let generatedPassword = password && String(password).trim().length >= 4 ? String(password).trim() : null;
     if (!user) {
-      if (password && String(password).trim().length >= 4) {
-        generatedPassword = String(password);
-      } else {
+      if (!generatedPassword) {
         generatedPassword = Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10);
       }
       const hashed = await bcrypt.hash(generatedPassword, 10);

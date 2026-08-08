@@ -20,7 +20,7 @@ module.exports = function(helpers) {
     verifyToken, requireRole, generateReceiptPdf, generateReportCardPdf,
     generateAdmitCardPdf, generateIDCardPdf, generateHostelReceiptPdf,
     generateSalaryReceiptPdf, upload, transporter, generateCertificatePdf,
-    similarity, PDFDocument, fs, path, bcrypt, jwt
+    similarity, PDFDocument, fs, path, bcrypt, jwt, sendMail
   } = helpers;
 
 // Debug: test mail endpoint (useful to verify mail delivery on host).
