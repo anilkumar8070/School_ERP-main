@@ -1,10 +1,13 @@
 import React, { useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import * as FaIcons from 'react-icons/fa'
 import './Start.css'
 import { API_BASE, getForms, submitFormQuery } from '../api'
 import { toast } from 'react-toastify'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export default function Forms() {
+    const navigate = useNavigate()
     const [error, setError] = useState('')
     const [showDialog, setShowDialog] = useState(false)
     const [selectedForm, setSelectedForm] = useState(null)
@@ -58,14 +61,27 @@ export default function Forms() {
         } finally { setSubmitting(false) }
     }
 
-    // data loaded by useQuery above
-
     return (
-        <div className="start-root" style={{ paddingTop: 36, paddingBottom: 36 }}>
-            <main className="start-main" style={{ paddingTop: 24, paddingBottom: 24 }}>
-                <div style={{ maxWidth: 980, width: '100%', margin: '0 auto' }}>
-                    <h2 style={{ marginTop: 0 }}>Forms</h2>
-                    <div style={{ color: '#6b7280', marginBottom: 12 }}>Downloadable forms uploaded by the administration.</div>
+        <div className="start-root" style={{ minHeight: '100vh', background: '#fdfbf7', paddingBottom: 48 }}>
+            <header className="start-nav">
+                <Link className="brand-lockup" to="/">
+                    <img src="/logo.svg" alt="ERP-School Logo" className="brand-logo-img" />
+                    <span>
+                        <strong>ERP-School</strong>
+                        <small>Smart Campus Portal</small>
+                    </span>
+                </Link>
+                <div className="nav-actions">
+                    <button className="login-pill" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                        <FaIcons.FaArrowLeft /> Back to Home
+                    </button>
+                </div>
+            </header>
+
+            <main className="start-main" style={{ paddingTop: 36, paddingBottom: 36, px: 16 }}>
+                <div style={{ maxWidth: 980, width: '100%', margin: '0 auto', padding: '0 16px' }}>
+                    <h2 style={{ marginTop: 0, color: '#2c1d06', fontSize: '2rem', fontWeight: 800 }}>Forms</h2>
+                    <div style={{ color: '#6b5736', marginBottom: 20, fontSize: '1.05rem' }}>Downloadable forms uploaded by the administration.</div>
 
                     {error && <div className="error">{error}</div>}
                     {loading && <div>Loading…</div>}

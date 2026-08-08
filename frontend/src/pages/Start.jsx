@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import * as FaIcons from 'react-icons/fa'
 import { getIdCardByCode, API_BASE, postContactQuery } from '../api'
 import { toast } from 'react-toastify'
@@ -22,6 +23,7 @@ const FEATURES = [
 const SECURITY_POINTS = ['Role-based dashboards', 'JWT protected sessions', 'Verified ID-card lookup', 'Secure uploads and records']
 
 export default function Start() {
+    const navigate = useNavigate()
     const [verifyOpen, setVerifyOpen] = useState(false)
     const [verifyCode, setVerifyCode] = useState('')
     const [verifyResult, setVerifyResult] = useState(null)
@@ -48,8 +50,13 @@ export default function Start() {
     }
 
     const handleNav = (e, link) => {
-        e.preventDefault()
-        window.location.href = link
+        if (e) e.preventDefault()
+        if (link.startsWith('#')) {
+            const el = document.querySelector(link)
+            if (el) el.scrollIntoView({ behavior: 'smooth' })
+        } else {
+            navigate(link)
+        }
     }
 
     const submitContact = async (e) => {
@@ -86,21 +93,21 @@ export default function Start() {
     return (
         <div className="start-page">
             <header className="start-nav">
-                <a className="brand-lockup" href="/start" onClick={(e) => handleNav(e, '/start')}>
-                    <span className="brand-mark"><FaIcons.FaSchool /></span>
+                <a className="brand-lockup" href="/" onClick={(e) => handleNav(e, '/')}>
+                    <img src="/logo.svg" alt="ERP-School Logo" className="brand-logo-img" />
                     <span>
                         <strong>ERP-School</strong>
                         <small>Smart Campus Portal</small>
                     </span>
                 </a>
                 <nav className="nav-links" aria-label="Landing navigation">
-                    <a href="#roles">Roles</a>
-                    <a href="#features">Features</a>
-                    <a href="#security">Security</a>
+                    <a href="#roles" onClick={(e) => handleNav(e, '#roles')}>Roles</a>
+                    <a href="#features" onClick={(e) => handleNav(e, '#features')}>Features</a>
+                    <a href="#security" onClick={(e) => handleNav(e, '#security')}>Security</a>
                 </nav>
                 <div className="nav-actions">
                     <button className="ghost-link" onClick={() => setContactOpen(true)}>Contact</button>
-                    <a className="login-pill" href="#roles">Login <FaIcons.FaArrowRight /></a>
+                    <a className="login-pill" href="#roles" onClick={(e) => handleNav(e, '#roles')}>Login <FaIcons.FaArrowRight /></a>
                 </div>
             </header>
 
@@ -112,8 +119,8 @@ export default function Start() {
                             <h1>The Foundation of Your Future.</h1>
                             <p>Access our unified portal for academics, campus operations, and intelligent school management. Secure, seamless, and sophisticated.</p>
                             <div className="hero-cta">
-                                <a className="primary-cta" href="#roles">Access Portal <FaIcons.FaArrowRight /></a>
-                                <a className="secondary-cta" href="#features">Explore Features</a>
+                                <a className="primary-cta" href="#roles" onClick={(e) => handleNav(e, '#roles')}>Access Portal <FaIcons.FaArrowRight /></a>
+                                <a className="secondary-cta" href="#features" onClick={(e) => handleNav(e, '#features')}>Explore Features</a>
                             </div>
                         </div>
                     </div>
@@ -163,18 +170,74 @@ export default function Start() {
                 </section>
 
                 <section className="forms-banner">
-                    <div>
+                    <div className="forms-banner-content">
                         <h3>ERP School Management</h3>
                         <p>Reliable, secure, and easy-to-use school management platform for students, staff, finances, and communication.</p>
-                        <span>Contact: <a href="tel:6378452145">6378452145</a> | Email: <a href="mailto:erp@creator">erp@creator</a></span>
+                        <div className="forms-banner-contact">
+                            <span>Contact: <a href="tel:6378452145">6378452145</a></span>
+                            <span className="forms-banner-divider">|</span>
+                            <span>Email: <a href="mailto:erp@creator">erp@creator</a></span>
+                        </div>
                     </div>
-                    <a href="/forms" onClick={(e) => handleNav(e, '/forms')}>View Forms <FaIcons.FaArrowRight /></a>
+                    <a className="forms-banner-btn" href="/forms" onClick={(e) => handleNav(e, '/forms')}>
+                        View Forms <FaIcons.FaArrowRight />
+                    </a>
                 </section>
             </main>
 
             <footer className="start-footer">
-                <span>ERP-School</span>
-                <span>Smart Campus Portal</span>
+                <div className="start-footer-inner">
+                    <div className="footer-brand">
+                        <div className="footer-logo-lockup">
+                            <img src="/logo.svg" alt="ERP-School Logo" className="footer-logo" />
+                            <div>
+                                <strong>ERP-School</strong>
+                                <small>Smart Campus Portal</small>
+                            </div>
+                        </div>
+                        <p className="footer-desc">
+                            Unified school administration, academics, communication, and security for modern educational institutions.
+                        </p>
+                    </div>
+
+                    <div className="footer-nav">
+                        <div className="footer-col">
+                            <h4>Workspaces</h4>
+                            <ul>
+                                <li><a href="/admin-login" onClick={(e) => handleNav(e, '/admin-login')}>Admin Portal</a></li>
+                                <li><a href="/student-login" onClick={(e) => handleNav(e, '/student-login')}>Student Portal</a></li>
+                                <li><a href="/faculty-login" onClick={(e) => handleNav(e, '/faculty-login')}>Teacher Portal</a></li>
+                                <li><a href="/parents-login" onClick={(e) => handleNav(e, '/parents-login')}>Parent Portal</a></li>
+                                <li><a href="/staff-login" onClick={(e) => handleNav(e, '/staff-login')}>Staff Portal</a></li>
+                            </ul>
+                        </div>
+
+                        <div className="footer-col">
+                            <h4>Quick Links</h4>
+                            <ul>
+                                <li><a href="#roles" onClick={(e) => handleNav(e, '#roles')}>Roles</a></li>
+                                <li><a href="#features" onClick={(e) => handleNav(e, '#features')}>Features</a></li>
+                                <li><a href="#security" onClick={(e) => handleNav(e, '#security')}>Security</a></li>
+                                <li><a href="/forms" onClick={(e) => handleNav(e, '/forms')}>Download Forms</a></li>
+                                <li><button className="footer-link-btn" onClick={() => setContactOpen(true)}>Contact Us</button></li>
+                            </ul>
+                        </div>
+
+                        <div className="footer-col">
+                            <h4>Contact Info</h4>
+                            <ul className="footer-contact-list">
+                                <li><FaIcons.FaPhone /> <a href="tel:6378452145">6378452145</a></li>
+                                <li><FaIcons.FaEnvelope /> <a href="mailto:erp@creator">erp@creator</a></li>
+                                <li><FaIcons.FaMapMarkerAlt /> <span>Academic Campus, Main Drive</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="start-footer-bottom">
+                    <span>© {new Date().getFullYear()} ERP-School Management System. All rights reserved.</span>
+                    <span>Smart Campus Portal</span>
+                </div>
             </footer>
 
             <button onClick={() => setVerifyOpen(true)} className="verify-fab">
