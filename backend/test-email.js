@@ -1,81 +1,44 @@
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+const { sendMail, sendCredentialEmail } = require('./utils/mailer');
 
-async function testSmtp() {
-  console.log('=== RESEND SMTP TRANSPORTER AUDIT ===');
-  const host = process.env.SMTP_HOST || 'smtp.resend.com';
-  const port = Number(process.env.SMTP_PORT || 465);
-  const secure = port === 465;
-  const user = process.env.SMTP_USER || 'resend';
-  const pass = process.env.SMTP_PASS || process.env.RESEND_API_KEY;
-  const from = process.env.FROM_EMAIL || process.env.EMAIL_FROM || 'School ERP <onboarding@resend.dev>';
-  const to = process.env.TEST_RECIPIENT || 'iitiancraft3@gmail.com';
+async function testResendIntegration() {
+  console.log('=== GLOBAL RESEND EMAIL INTEGRATION TEST ===');
+  const recipient = process.env.TEST_RECIPIENT || 'iitiancraft3@gmail.com';
+  console.log(`Target Recipient: ${recipient}`);
 
-  console.log('SMTP_HOST:', host);
-  console.log('SMTP_PORT:', port, `(secure: ${secure})`);
-  console.log('SMTP_USER:', user);
-  console.log('SMTP_PASS present:', !!pass);
-  console.log('FROM_EMAIL:', from);
-  console.log('TEST_RECIPIENT:', to);
-
-  if (!pass) {
-    console.error('FATAL: Neither SMTP_PASS nor RESEND_API_KEY is present in environment variables.');
-    process.exit(1);
-  }
-
-  console.log('\n--- 1. Creating Nodemailer Transporter ---');
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: {
-      user,
-      pass
-    },
-    debug: true,
-    logger: true
+  console.log('\n--- Test 1: Generic Email Notification via Resend ---');
+  const test1 = await sendMail({
+    to: recipient,
+    subject: 'School ERP — Resend Integration Test',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #2563eb;">School ERP Resend Test</h2>
+        <p>This email confirms that the global Resend email service is working properly.</p>
+        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+      </div>
+    `
   });
+  console.log('Test 1 Result:', JSON.stringify(test1, null, 2));
 
-  console.log('\n--- 2. Running transporter.verify() ---');
-  try {
-    const verified = await transporter.verify();
-    console.log('✅ transporter.verify() SUCCESS:', verified);
-  } catch (verifyErr) {
-    console.error('❌ transporter.verify() FAILED:');
-    console.error('Error Code:', verifyErr.code);
-    console.error('Error Command:', verifyErr.command);
-    console.error('Error Response:', verifyErr.response);
-    console.error('Full Error Object:', verifyErr);
-    console.error('Stack Trace:', verifyErr.stack);
-    process.exit(1);
-  }
+  console.log('\n--- Test 2: Role-Based Student Credential Email via Resend ---');
+  const test2 = await sendCredentialEmail({
+    to: recipient,
+    name: 'Test Student',
+    role: 'Student',
+    username: 'student@example.com',
+    password: 'TempPassword123!',
+    extraDetails: {
+      'Class': '10',
+      'Section': 'A',
+      'Roll Number': '1001'
+    }
+  });
+  console.log('Test 2 Result:', JSON.stringify(test2, null, 2));
 
-  console.log('\n--- 3. Sending Test Email via Nodemailer SMTP ---');
-  try {
-    const info = await transporter.sendMail({
-      from,
-      to,
-      subject: 'Nodemailer Resend SMTP Integration Test',
-      html: '<h3>Nodemailer Resend SMTP Test</h3><p>This email was sent using <b>Nodemailer + Resend SMTP (smtp.resend.com)</b>.</p>',
-      text: 'This email was sent using Nodemailer + Resend SMTP (smtp.resend.com).'
-    });
-
-    console.log('✅ sendMail() SUCCESS!');
-    console.log('Message ID:', info.messageId);
-    console.log('Accepted:', info.accepted);
-    console.log('Rejected:', info.rejected);
-    console.log('Response String:', info.response);
-    console.log('Full Info Object:', JSON.stringify(info, null, 2));
-  } catch (sendErr) {
-    console.error('❌ sendMail() FAILED:');
-    console.error('Error Message:', sendErr.message);
-    console.error('Error Code:', sendErr.code);
-    console.error('Error Response:', sendErr.response);
-    console.error('Full Error Object:', sendErr);
-    console.error('Stack Trace:', sendErr.stack);
-  }
+  console.log('\n=== TEST SUITE COMPLETED ===');
 }
 
-testSmtp().catch(err => {
+testResendIntegration().catch(err => {
   console.error('Fatal execution error:', err);
 });
+

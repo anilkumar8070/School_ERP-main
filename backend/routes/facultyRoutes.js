@@ -26,11 +26,73 @@ module.exports = function(helpers) {
 // Admin: create new faculty member
 router.post("/", verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const { name, email, subject, classGrade, contact, experience, employeeId } = req.body || {};
+    const { name, email, subject, classGrade, contact, experience, employeeId, password } = req.body || {};
     if (!name) return res.status(400).json({ message: 'name is required' });
+
+    let userId = null;
+    let generatedPassword = null;
+
+    if (email) {
+      const existingUser = await prisma.user.findFirst({ where: { username: email } }).catch(() => null);
+      if (!existingUser) {
+        generatedPassword = password && String(password).trim().length >= 4
+          ? String(password).trim()
+          : (Math.random().toString(36).slice(-8) + Math.floor(Math.random() * 90 + 10));
+        const hashed = await bcrypt.hash(generatedPassword, 10);
+        const createdUser = await User.create({
+          data: {
+            username: email,
+            password: hashed,
+            role: 'faculty',
+            name: name,
+            contact: contact || '',
+            designation: 'Faculty / Teacher'
+          }
+        }).catch(err => {
+          console.warn('Could not auto-create User for faculty:', err.message);
+          return null;
+        });
+        if (createdUser) {
+          userId = String(createdUser.id || createdUser._id);
+        }
+      } else {
+        userId = String(existingUser.id || existingUser._id);
+      }
+    }
+
     const created = await prisma.faculty.create({
-      data: { name, email, subject, classGrade, contact, experience, employeeId, createdAt: new Date() }
+      data: {
+        name,
+        email,
+        subject,
+        classGrade,
+        contact,
+        experience,
+        employeeId,
+        userId,
+        createdAt: new Date()
+      }
     });
+
+    if (email && generatedPassword) {
+      try {
+        await sendCredentialEmail({
+          to: email,
+          name: name,
+          role: 'Faculty',
+          username: email,
+          password: generatedPassword,
+          extraDetails: {
+            'Employee ID': employeeId || '-',
+            'Subject': subject || '-',
+            'Class Grade': classGrade || '-'
+          }
+        });
+      } catch (mailErr) {
+        console.warn('Failed to send faculty creation credential email:', mailErr && (mailErr.message || String(mailErr)));
+      }
+    }
+
     return res.status(201).json(created);
   } catch (e) {
     return res.status(500).json({ message: e.message });
